@@ -38757,7 +38757,7 @@ class Container {
             tag: options?.tag,
         };
     }
-    #buildPlanParams(isMultiple, serviceIdentifier, options) {
+    #buildPlanParams(serviceIdentifier, isMultiple, options) {
         const planParams = {
             autobindOptions: (options?.autobind ?? this.#options.autobind)
                 ? {
@@ -38770,7 +38770,7 @@ class Container {
                 isMultiple,
                 serviceIdentifier,
             },
-            servicesBranch: new Set(),
+            servicesBranch: [],
             setBinding: this.#setBindingParamsPlan,
         };
         this.#handlePlanParamsRootConstraints(planParams, options);
@@ -38782,7 +38782,7 @@ class Container {
         if (planResultFromCache !== undefined) {
             return planResultFromCache;
         }
-        const planResult = (0, core_1.plan)(this.#buildPlanParams(isMultiple, serviceIdentifier, options));
+        const planResult = (0, core_1.plan)(this.#buildPlanParams(serviceIdentifier, isMultiple, options));
         this.#planResultCacheService.set(getPlanOptions, planResult);
         return planResult;
     }
@@ -39519,6 +39519,33 @@ var DecoratorInfoKind;
     DecoratorInfoKind[DecoratorInfoKind["property"] = 2] = "property";
 })(DecoratorInfoKind || (exports.DecoratorInfoKind = DecoratorInfoKind = {}));
 //# sourceMappingURL=DecoratorInfoKind.js.map
+
+/***/ }),
+
+/***/ 1960:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isStackOverflowError = isStackOverflowError;
+function isStackOverflowError(error) {
+    if (!(error instanceof Error)) {
+        return false;
+    }
+    // V8 (Chrome, Node.js, Edge, Deno): "Maximum call stack size exceeded"
+    // SpiderMonkey (Firefox): "too much recursion"
+    // JavaScriptCore (Safari): "call stack size exceeded"
+    // Chakra (IE/legacy Edge): "Out of stack space"
+    const stackOverflowPatterns = /stack space|call stack|too much recursion/i;
+    return (
+    // V8 and JavaScriptCore typically throw RangeError
+    (error instanceof RangeError &&
+        stackOverflowPatterns.test(error.message)) ||
+        // SpiderMonkey throws InternalError with "too much recursion"
+        (error.name === 'InternalError' && /too much recursion/.test(error.message)));
+}
+//# sourceMappingURL=isStackOverflowError.js.map
 
 /***/ }),
 
@@ -40752,36 +40779,6 @@ var ResolvedValueElementMetadataKind;
 
 /***/ }),
 
-/***/ 2458:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addBranchService = addBranchService;
-const common_1 = __nccwpck_require__(9160);
-const InversifyCoreError_1 = __nccwpck_require__(120);
-const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
-function addBranchService(params, serviceIdentifier) {
-    if (params.servicesBranch.has(serviceIdentifier)) {
-        throwError(params, serviceIdentifier);
-    }
-    params.servicesBranch.add(serviceIdentifier);
-}
-function stringifyServiceIdentifierTrace(serviceIdentifiers) {
-    return [...serviceIdentifiers].map(common_1.stringifyServiceIdentifier).join(' -> ');
-}
-function throwError(params, serviceIdentifier) {
-    const stringifiedCircularDependencies = stringifyServiceIdentifierTrace([
-        ...params.servicesBranch,
-        serviceIdentifier,
-    ]);
-    throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning, `Circular dependency found: ${stringifiedCircularDependencies}`);
-}
-//# sourceMappingURL=addBranchService.js.map
-
-/***/ }),
-
 /***/ 3769:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -40878,6 +40875,56 @@ function checkServiceNodeSingleInjectionBindings(serviceNode, isOptional, bindin
 
 /***/ }),
 
+/***/ 7720:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handlePlanError = handlePlanError;
+const common_1 = __nccwpck_require__(9160);
+const isStackOverflowError_1 = __nccwpck_require__(1960);
+const InversifyCoreError_1 = __nccwpck_require__(120);
+const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
+/**
+ * Extracts a likely circular dependency asuming a service asociated to a
+ * service identifier should not be asociated to services asociated to the same
+ * service identifier.
+ *
+ * Important note: given the current binding constraints, there's no way to know
+ * which is exactly the circular dependency. Custom ancestor based constraints might
+ * allow circular dependencies breaking the loop when a certain condition is met.
+ *
+ * @param params plan params
+ */
+function extractLikelyCircularDependency(params) {
+    const serviceIdentifiers = new Set();
+    for (const serviceIdentifier of params.servicesBranch) {
+        if (serviceIdentifiers.has(serviceIdentifier)) {
+            return [...serviceIdentifiers, serviceIdentifier];
+        }
+        serviceIdentifiers.add(serviceIdentifier);
+    }
+    return [...serviceIdentifiers];
+}
+function handlePlanError(params, error) {
+    if ((0, isStackOverflowError_1.isStackOverflowError)(error)) {
+        const stringifiedCircularDependencies = stringifyServiceIdentifierTrace(extractLikelyCircularDependency(params));
+        throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning, `Circular dependency found: ${stringifiedCircularDependencies}`, { cause: error });
+    }
+    throw error;
+}
+function stringifyServiceIdentifierTrace(serviceIdentifiers) {
+    const serviceIdentifiersArray = [...serviceIdentifiers];
+    if (serviceIdentifiersArray.length === 0) {
+        return '(No dependency trace)';
+    }
+    return serviceIdentifiersArray.map(common_1.stringifyServiceIdentifier).join(' -> ');
+}
+//# sourceMappingURL=handlePlanError.js.map
+
+/***/ }),
+
 /***/ 513:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -40921,43 +40968,48 @@ const BindingType_1 = __nccwpck_require__(8810);
 const SingleInmutableLinkedList_1 = __nccwpck_require__(6479);
 const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
 const ResolvedValueElementMetadataKind_1 = __nccwpck_require__(2645);
-const addBranchService_1 = __nccwpck_require__(2458);
 const buildFilteredServiceBindings_1 = __nccwpck_require__(3769);
 const checkServiceNodeSingleInjectionBindings_1 = __nccwpck_require__(8455);
+const handlePlanError_1 = __nccwpck_require__(7720);
 const isInstanceBindingNode_1 = __nccwpck_require__(513);
 const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
 function plan(params) {
-    const tags = new Map();
-    if (params.rootConstraints.tag !== undefined) {
-        tags.set(params.rootConstraints.tag.key, params.rootConstraints.tag.value);
-    }
-    const bindingConstraintsList = new SingleInmutableLinkedList_1.SingleInmutableLinkedList({
-        elem: {
-            name: params.rootConstraints.name,
+    try {
+        const tags = new Map();
+        if (params.rootConstraints.tag !== undefined) {
+            tags.set(params.rootConstraints.tag.key, params.rootConstraints.tag.value);
+        }
+        const bindingConstraintsList = new SingleInmutableLinkedList_1.SingleInmutableLinkedList({
+            elem: {
+                name: params.rootConstraints.name,
+                serviceIdentifier: params.rootConstraints.serviceIdentifier,
+                tags,
+            },
+            previous: undefined,
+        });
+        const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
+        const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints);
+        const serviceNodeBindings = [];
+        const serviceNode = {
+            bindings: serviceNodeBindings,
+            parent: undefined,
             serviceIdentifier: params.rootConstraints.serviceIdentifier,
-            tags,
-        },
-        previous: undefined,
-    });
-    const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
-    const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints);
-    const serviceNodeBindings = [];
-    const serviceNode = {
-        bindings: serviceNodeBindings,
-        parent: undefined,
-        serviceIdentifier: params.rootConstraints.serviceIdentifier,
-    };
-    serviceNodeBindings.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, serviceNode));
-    if (!params.rootConstraints.isMultiple) {
-        (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, params.rootConstraints.isOptional ?? false, bindingConstraints);
-        const [planBindingNode] = serviceNodeBindings;
-        serviceNode.bindings = planBindingNode;
+        };
+        serviceNodeBindings.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, serviceNode));
+        if (!params.rootConstraints.isMultiple) {
+            (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, params.rootConstraints.isOptional ?? false, bindingConstraints);
+            const [planBindingNode] = serviceNodeBindings;
+            serviceNode.bindings = planBindingNode;
+        }
+        return {
+            tree: {
+                root: serviceNode,
+            },
+        };
     }
-    return {
-        tree: {
-            root: serviceNode,
-        },
-    };
+    catch (error) {
+        (0, handlePlanError_1.handlePlanError)(params, error);
+    }
 }
 function buildInstancePlanBindingNode(params, binding, bindingConstraintsList, parentNode) {
     const classMetadata = params.getClassMetadata(binding.implementationType);
@@ -41051,7 +41103,7 @@ function buildServiceNodeBindings(params, bindingConstraintsList, serviceBinding
     const serviceIdentifier = (0, isPlanServiceRedirectionBindingNode_1.isPlanServiceRedirectionBindingNode)(parentNode)
         ? parentNode.binding.targetServiceIdentifier
         : parentNode.serviceIdentifier;
-    (0, addBranchService_1.addBranchService)(params, serviceIdentifier);
+    params.servicesBranch.push(serviceIdentifier);
     const planBindingNodes = [];
     for (const binding of serviceBindings) {
         switch (binding.type) {
@@ -41075,7 +41127,7 @@ function buildServiceNodeBindings(params, bindingConstraintsList, serviceBinding
                 });
         }
     }
-    params.servicesBranch.delete(serviceIdentifier);
+    params.servicesBranch.pop();
     return planBindingNodes;
 }
 function buildServiceRedirectionPlanBindingNode(params, bindingConstraintsList, binding, parentNode) {
