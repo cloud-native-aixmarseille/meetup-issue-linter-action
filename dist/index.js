@@ -34916,7 +34916,7 @@ const input_service_1 = __nccwpck_require__(2301);
 let AgendaLinterAdapter = class AgendaLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     static { AgendaLinterAdapter_1 = this; }
     inputService;
-    static AGENDA_LINE_REGEX = /^- (.+): (.+)$/;
+    static AGENDA_LINE_REGEX = /^- ([^:]+): (.+)$/;
     speakers;
     constructor(inputService) {
         super();

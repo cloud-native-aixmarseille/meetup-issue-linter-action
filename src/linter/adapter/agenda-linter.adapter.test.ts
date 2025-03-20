@@ -30,6 +30,24 @@ describe("AgendaLinterAdapter", () => {
       expect(result).toEqual(meetupIssue);
     });
 
+    it("should accept agenda description containing colon", async () => {
+      // Arrange
+      const speakers = getSpeakersFixture();
+
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          agenda: `- ${speakers[0]}: Talk Description: with colon`,
+        },
+      });
+      const shouldFix = false;
+
+      // Act
+      const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result).toEqual(meetupIssue);
+    });
+
     it("should throw a LintError if the Agenda is invalid", async () => {
       // Arrange
       const invalidMeetupIssue = getMeetupIssueFixture({
