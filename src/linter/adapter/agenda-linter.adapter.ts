@@ -12,7 +12,7 @@ type AgendaEntry = {
 
 @injectable()
 export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
-  private static AGENDA_LINE_REGEX = /^- (.+): (.+)$/;
+  private static AGENDA_LINE_REGEX = /^- ([^:]+): (.+)$/;
 
   private readonly speakers: [string, ...string[]];
 
