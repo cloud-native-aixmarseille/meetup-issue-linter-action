@@ -34791,7 +34791,7 @@ container.bind(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER).to(drive_link_linter_
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = run;
 const core_1 = __nccwpck_require__(7484);
 const input_service_1 = __nccwpck_require__(2301);
 const logger_service_1 = __nccwpck_require__(8187);
@@ -34840,7 +34840,6 @@ async function run() {
         (0, core_1.setFailed)(`${error instanceof Error ? error : JSON.stringify(error)}`);
     }
 }
-exports.run = run;
 
 
 /***/ }),
@@ -37805,6 +37804,24 @@ function getBindingId() {
 
 /***/ }),
 
+/***/ 8129:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildBindingIdentifier = buildBindingIdentifier;
+const BindingIdentifier_1 = __nccwpck_require__(6813);
+function buildBindingIdentifier(binding) {
+    return {
+        [BindingIdentifier_1.bindingIdentifierSymbol]: true,
+        id: binding.id,
+    };
+}
+//# sourceMappingURL=buildBindingIdentifier.js.map
+
+/***/ }),
+
 /***/ 439:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -37927,6 +37944,23 @@ function isBindingConstraintsWithTag(tag, value) {
     return (constraints) => constraints.tags.has(tag) && constraints.tags.get(tag) === value;
 }
 //# sourceMappingURL=isBindingConstraintsWithTag.js.map
+
+/***/ }),
+
+/***/ 3049:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isBindingIdentifier = isBindingIdentifier;
+const BindingIdentifier_1 = __nccwpck_require__(6813);
+function isBindingIdentifier(value) {
+    return (typeof value === 'object' &&
+        value !== null &&
+        value[BindingIdentifier_1.bindingIdentifierSymbol] === true);
+}
+//# sourceMappingURL=isBindingIdentifier.js.map
 
 /***/ }),
 
@@ -38151,6 +38185,7 @@ exports.BindInWhenOnFluentSyntaxImplementation = exports.BindWhenOnFluentSyntaxI
 const core_1 = __nccwpck_require__(4922);
 const BindingConstraintUtils_1 = __nccwpck_require__(7647);
 const getBindingId_1 = __nccwpck_require__(110);
+const buildBindingIdentifier_1 = __nccwpck_require__(8129);
 const isAnyAncestorBindingConstraints_1 = __nccwpck_require__(439);
 const isAnyAncestorBindingConstraintsWithName_1 = __nccwpck_require__(8752);
 const isAnyAncestorBindingConstraintsWithServiceId_1 = __nccwpck_require__(9073);
@@ -38175,6 +38210,9 @@ class BindInFluentSyntaxImplementation {
     #binding;
     constructor(binding) {
         this.#binding = binding;
+    }
+    getIdentifier() {
+        return (0, buildBindingIdentifier_1.buildBindingIdentifier)(this.#binding);
     }
     inRequestScope() {
         this.#binding.scope = core_1.bindingScopeValues.Request;
@@ -38377,6 +38415,9 @@ class BindOnFluentSyntaxImplementation {
     constructor(binding) {
         this.#binding = binding;
     }
+    getIdentifier() {
+        return (0, buildBindingIdentifier_1.buildBindingIdentifier)(this.#binding);
+    }
     onActivation(activation) {
         this.#binding.onActivation = activation;
         return new BindWhenFluentSyntaxImplementation(this.#binding);
@@ -38391,6 +38432,9 @@ class BindWhenFluentSyntaxImplementation {
     #binding;
     constructor(binding) {
         this.#binding = binding;
+    }
+    getIdentifier() {
+        return (0, buildBindingIdentifier_1.buildBindingIdentifier)(this.#binding);
     }
     when(constraint) {
         this.#binding.isSatisfiedBy = constraint;
@@ -38490,6 +38534,18 @@ exports.BindInWhenOnFluentSyntaxImplementation = BindInWhenOnFluentSyntaxImpleme
 
 /***/ }),
 
+/***/ 6813:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.bindingIdentifierSymbol = void 0;
+exports.bindingIdentifierSymbol = Symbol.for('@inversifyjs/container/bindingIdentifier');
+//# sourceMappingURL=BindingIdentifier.js.map
+
+/***/ }),
+
 /***/ 54:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -38566,6 +38622,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Container = void 0;
 const common_1 = __nccwpck_require__(9160);
 const core_1 = __nccwpck_require__(4922);
+const isBindingIdentifier_1 = __nccwpck_require__(3049);
 const BindingFluentSyntaxImplementation_1 = __nccwpck_require__(7769);
 const InversifyContainerError_1 = __nccwpck_require__(8360);
 const InversifyContainerErrorKind_1 = __nccwpck_require__(2418);
@@ -38573,6 +38630,7 @@ const DEFAULT_DEFAULT_SCOPE = core_1.bindingScopeValues.Transient;
 class Container {
     #activationService;
     #bindingService;
+    #deactivationParams;
     #deactivationService;
     #getActivationsResolutionParam;
     #getBindingsPlanParams;
@@ -38582,6 +38640,7 @@ class Container {
     #setBindingParamsPlan;
     #snapshots;
     constructor(options) {
+        this.#deactivationParams = this.#buildDeactivationParams();
         this.#getActivationsResolutionParam = (serviceIdentifier) => this.#activationService.get(serviceIdentifier);
         this.#planResultCacheService = new core_1.PlanResultCacheService();
         this.#resolutionContext = this.#buildResolutionContext();
@@ -38671,19 +38730,19 @@ class Container {
             deactivationService: this.#deactivationService.clone(),
         });
     }
-    async unbind(serviceIdentifier) {
-        await (0, core_1.resolveServiceDeactivations)(this.#buildDeactivationParams(), serviceIdentifier);
-        this.#activationService.removeAllByServiceId(serviceIdentifier);
-        this.#bindingService.removeAllByServiceId(serviceIdentifier);
-        this.#deactivationService.removeAllByServiceId(serviceIdentifier);
-        this.#planResultCacheService.clearCache();
+    async unbind(identifier) {
+        if ((0, isBindingIdentifier_1.isBindingIdentifier)(identifier)) {
+            await this.#unbindBindingIdentifier(identifier);
+        }
+        else {
+            await this.#unbindServiceIdentifier(identifier);
+        }
     }
     async unbindAll() {
-        const deactivationParams = this.#buildDeactivationParams();
         const nonParentBoundServiceIds = [
             ...this.#bindingService.getNonParentBoundServices(),
         ];
-        await Promise.all(nonParentBoundServiceIds.map(async (serviceId) => (0, core_1.resolveServiceDeactivations)(deactivationParams, serviceId)));
+        await Promise.all(nonParentBoundServiceIds.map(async (serviceId) => (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, serviceId)));
         /*
          * Removing service related objects here so unload is deterministic.
          *
@@ -38700,8 +38759,7 @@ class Container {
         this.#planResultCacheService.clearCache();
     }
     async unload(...modules) {
-        const deactivationParams = this.#buildDeactivationParams();
-        await Promise.all(modules.map((module) => (0, core_1.resolveModuleDeactivations)(deactivationParams, module.id)));
+        await Promise.all(modules.map((module) => (0, core_1.resolveModuleDeactivations)(this.#deactivationParams, module.id)));
         /*
          * Removing module related objects here so unload is deterministic.
          *
@@ -38849,6 +38907,19 @@ class Container {
     }
     #setBinding(binding) {
         this.#bindingService.set(binding);
+        this.#planResultCacheService.clearCache();
+    }
+    async #unbindBindingIdentifier(identifier) {
+        const bindings = this.#bindingService.getById(identifier.id);
+        await (0, core_1.resolveBindingsDeactivations)(this.#deactivationParams, bindings);
+        this.#bindingService.removeById(identifier.id);
+        this.#planResultCacheService.clearCache();
+    }
+    async #unbindServiceIdentifier(identifier) {
+        await (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, identifier);
+        this.#activationService.removeAllByServiceId(identifier);
+        this.#bindingService.removeAllByServiceId(identifier);
+        this.#deactivationService.removeAllByServiceId(identifier);
         this.#planResultCacheService.clearCache();
     }
 }
@@ -39107,6 +39178,7 @@ exports.BindingService = void 0;
 const OneToManyMapStar_1 = __nccwpck_require__(4101);
 var BindingRelationKind;
 (function (BindingRelationKind) {
+    BindingRelationKind["id"] = "id";
     BindingRelationKind["moduleId"] = "moduleId";
     BindingRelationKind["serviceId"] = "serviceId";
 })(BindingRelationKind || (BindingRelationKind = {}));
@@ -39117,6 +39189,9 @@ class BindingService {
         this.#bindingMaps =
             bindingMaps ??
                 new OneToManyMapStar_1.OneToManyMapStar({
+                    id: {
+                        isOptional: false,
+                    },
                     moduleId: {
                         isOptional: true,
                     },
@@ -39137,14 +39212,20 @@ class BindingService {
         return (this.getNonParentBindings(serviceIdentifier) ??
             this.#parent?.get(serviceIdentifier));
     }
+    getById(id) {
+        return (this.#bindingMaps.get(BindingRelationKind.id, id) ?? this.#parent?.getById(id));
+    }
+    getByModuleId(moduleId) {
+        return (this.#bindingMaps.get(BindingRelationKind.moduleId, moduleId) ?? this.#parent?.getByModuleId(moduleId));
+    }
     getNonParentBindings(serviceId) {
         return this.#bindingMaps.get(BindingRelationKind.serviceId, serviceId);
     }
     getNonParentBoundServices() {
         return this.#bindingMaps.getAllKeys(BindingRelationKind.serviceId);
     }
-    getByModuleId(moduleId) {
-        return (this.#bindingMaps.get(BindingRelationKind.moduleId, moduleId) ?? this.#parent?.getByModuleId(moduleId));
+    removeById(id) {
+        this.#bindingMaps.removeByRelation(BindingRelationKind.id, id);
     }
     removeAllByModuleId(moduleId) {
         this.#bindingMaps.removeByRelation(BindingRelationKind.moduleId, moduleId);
@@ -39154,6 +39235,7 @@ class BindingService {
     }
     set(binding) {
         const relation = {
+            [BindingRelationKind.id]: binding.id,
             [BindingRelationKind.serviceId]: binding.serviceIdentifier,
         };
         if (binding.moduleId !== undefined) {
@@ -39604,7 +39686,7 @@ var InversifyCoreErrorKind;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
+exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolveBindingsDeactivations = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
 const BindingScope_1 = __nccwpck_require__(2412);
 Object.defineProperty(exports, "bindingScopeValues", ({ enumerable: true, get: function () { return BindingScope_1.bindingScopeValues; } }));
 const BindingType_1 = __nccwpck_require__(8810);
@@ -39649,6 +39731,8 @@ const PlanResultCacheService_1 = __nccwpck_require__(2852);
 Object.defineProperty(exports, "PlanResultCacheService", ({ enumerable: true, get: function () { return PlanResultCacheService_1.PlanResultCacheService; } }));
 const resolve_1 = __nccwpck_require__(3765);
 Object.defineProperty(exports, "resolve", ({ enumerable: true, get: function () { return resolve_1.resolve; } }));
+const resolveBindingsDeactivations_1 = __nccwpck_require__(3931);
+Object.defineProperty(exports, "resolveBindingsDeactivations", ({ enumerable: true, get: function () { return resolveBindingsDeactivations_1.resolveBindingsDeactivations; } }));
 const resolveModuleDeactivations_1 = __nccwpck_require__(2529);
 Object.defineProperty(exports, "resolveModuleDeactivations", ({ enumerable: true, get: function () { return resolveModuleDeactivations_1.resolveModuleDeactivations; } }));
 const resolveServiceDeactivations_1 = __nccwpck_require__(3796);
