@@ -38303,9 +38303,7 @@ class BindToFluentSyntaxImplementation {
         this.#callback(binding);
         return new BindInWhenOnFluentSyntaxImplementation(binding);
     }
-    toResolvedValue(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    factory, injectOptions) {
+    toResolvedValue(factory, injectOptions) {
         const binding = {
             cache: {
                 isRight: false,
@@ -38546,6 +38544,42 @@ exports.bindingIdentifierSymbol = Symbol.for('@inversifyjs/container/bindingIden
 
 /***/ }),
 
+/***/ 1513:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getFirstIteratorResult = getFirstIteratorResult;
+function getFirstIteratorResult(iterator) {
+    if (iterator === undefined) {
+        return undefined;
+    }
+    const firstIteratorResult = iterator.next();
+    if (firstIteratorResult.done === true) {
+        return undefined;
+    }
+    return firstIteratorResult.value;
+}
+//# sourceMappingURL=getFirstIteratorResult.js.map
+
+/***/ }),
+
+/***/ 688:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getFirstIterableResult = getFirstIterableResult;
+const getFirstIteratorResult_1 = __nccwpck_require__(1513);
+function getFirstIterableResult(iterable) {
+    return (0, getFirstIteratorResult_1.getFirstIteratorResult)(iterable?.[Symbol.iterator]());
+}
+//# sourceMappingURL=getFirstIterableResult.js.map
+
+/***/ }),
+
 /***/ 54:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -38604,8 +38638,8 @@ class ContainerModule {
     get id() {
         return this.#id;
     }
-    async load(options) {
-        await this.#load(options);
+    load(options) {
+        return this.#load(options);
     }
 }
 exports.ContainerModule = ContainerModule;
@@ -38624,6 +38658,7 @@ const common_1 = __nccwpck_require__(9160);
 const core_1 = __nccwpck_require__(4922);
 const isBindingIdentifier_1 = __nccwpck_require__(3049);
 const BindingFluentSyntaxImplementation_1 = __nccwpck_require__(7769);
+const getFirstIterableResult_1 = __nccwpck_require__(688);
 const InversifyContainerError_1 = __nccwpck_require__(8360);
 const InversifyContainerErrorKind_1 = __nccwpck_require__(2418);
 const DEFAULT_DEFAULT_SCOPE = core_1.bindingScopeValues.Transient;
@@ -38701,7 +38736,15 @@ class Container {
         return this.#isAnyValidBinding(serviceIdentifier, bindings, options);
     }
     async load(...modules) {
-        await Promise.all(modules.map(async (module) => module.load(this.#buildContainerModuleLoadOptions(module.id))));
+        await Promise.all(this.#load(...modules));
+    }
+    loadSync(...modules) {
+        const results = this.#load(...modules);
+        for (const result of results) {
+            if (result !== undefined) {
+                throw new InversifyContainerError_1.InversifyContainerError(InversifyContainerErrorKind_1.InversifyContainerErrorKind.invalidOperation, 'Unexpected asyncronous module load. Consider using Container.load() instead.');
+            }
+        }
     }
     onActivation(serviceIdentifier, activation) {
         this.#activationService.add(activation, {
@@ -38723,6 +38766,14 @@ class Container {
         this.#deactivationService = snapshot.deactivationService;
         this.#resetComputedProperties();
     }
+    async rebind(serviceIdentifier) {
+        await this.unbind(serviceIdentifier);
+        return this.bind(serviceIdentifier);
+    }
+    rebindSync(serviceIdentifier) {
+        this.unbindSync(serviceIdentifier);
+        return this.bind(serviceIdentifier);
+    }
     snapshot() {
         this.#snapshots.push({
             activationService: this.#activationService.clone(),
@@ -38731,12 +38782,7 @@ class Container {
         });
     }
     async unbind(identifier) {
-        if ((0, isBindingIdentifier_1.isBindingIdentifier)(identifier)) {
-            await this.#unbindBindingIdentifier(identifier);
-        }
-        else {
-            await this.#unbindServiceIdentifier(identifier);
-        }
+        await this.#unbind(identifier);
     }
     async unbindAll() {
         const nonParentBoundServiceIds = [
@@ -38744,7 +38790,7 @@ class Container {
         ];
         await Promise.all(nonParentBoundServiceIds.map(async (serviceId) => (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, serviceId)));
         /*
-         * Removing service related objects here so unload is deterministic.
+         * Removing service related objects here so unbindAll is deterministic.
          *
          * Removing service related objects as soon as resolveModuleDeactivations takes
          * effect leads to module deactivations not triggering previously deleted
@@ -38758,8 +38804,14 @@ class Container {
         }
         this.#planResultCacheService.clearCache();
     }
+    unbindSync(identifier) {
+        const result = this.#unbind(identifier);
+        if (result !== undefined) {
+            this.#throwUnexpectedAsyncUnbindOperation(identifier);
+        }
+    }
     async unload(...modules) {
-        await Promise.all(modules.map((module) => (0, core_1.resolveModuleDeactivations)(this.#deactivationParams, module.id)));
+        await Promise.all(this.#unload(...modules));
         /*
          * Removing module related objects here so unload is deterministic.
          *
@@ -38768,12 +38820,24 @@ class Container {
          * introducing non determinism depending in the order in which modules are
          * deactivated.
          */
-        for (const module of modules) {
-            this.#activationService.removeAllByModuleId(module.id);
-            this.#bindingService.removeAllByModuleId(module.id);
-            this.#deactivationService.removeAllByModuleId(module.id);
+        this.#clearAfterUnloadModules(modules);
+    }
+    unloadSync(...modules) {
+        const results = this.#unload(...modules);
+        for (const result of results) {
+            if (result !== undefined) {
+                throw new InversifyContainerError_1.InversifyContainerError(InversifyContainerErrorKind_1.InversifyContainerErrorKind.invalidOperation, 'Unexpected asyncronous module unload. Consider using Container.unload() instead.');
+            }
         }
-        this.#planResultCacheService.clearCache();
+        /*
+         * Removing module related objects here so unload is deterministic.
+         *
+         * Removing modules as soon as resolveModuleDeactivations takes effect leads to
+         * module deactivations not triggering previously deleted deactivations,
+         * introducing non determinism depending in the order in which modules are
+         * deactivated.
+         */
+        this.#clearAfterUnloadModules(modules);
     }
     #buildContainerModuleLoadOptions(moduleId) {
         return {
@@ -38795,7 +38859,10 @@ class Container {
                     serviceId: serviceIdentifier,
                 });
             },
+            rebind: this.rebind.bind(this),
+            rebindSync: this.rebindSync.bind(this),
             unbind: this.unbind.bind(this),
+            unbindSync: this.unbindSync.bind(this),
         };
     }
     #buildDeactivationParams() {
@@ -38898,6 +38965,12 @@ class Container {
         }
         return false;
     }
+    #load(...modules) {
+        return modules.map((module) => module.load(this.#buildContainerModuleLoadOptions(module.id)));
+    }
+    #unload(...modules) {
+        return modules.map((module) => (0, core_1.resolveModuleDeactivations)(this.#deactivationParams, module.id));
+    }
     #resetComputedProperties() {
         this.#planResultCacheService.clearCache();
         this.#getActivationsResolutionParam = (serviceIdentifier) => this.#activationService.get(serviceIdentifier);
@@ -38909,14 +38982,66 @@ class Container {
         this.#bindingService.set(binding);
         this.#planResultCacheService.clearCache();
     }
-    async #unbindBindingIdentifier(identifier) {
+    #throwUnexpectedAsyncUnbindOperation(identifier) {
+        let errorMessage;
+        if ((0, isBindingIdentifier_1.isBindingIdentifier)(identifier)) {
+            const bindingsById = this.#bindingService.getById(identifier.id);
+            const bindingServiceIdentifier = (0, getFirstIterableResult_1.getFirstIterableResult)(bindingsById)?.serviceIdentifier;
+            if (bindingServiceIdentifier === undefined) {
+                errorMessage =
+                    'Unexpected asyncronous deactivation when unbinding binding identifier. Consider using Container.unbind() instead.';
+            }
+            else {
+                errorMessage = `Unexpected asyncronous deactivation when unbinding "${(0, common_1.stringifyServiceIdentifier)(bindingServiceIdentifier)}" binding. Consider using Container.unbind() instead.`;
+            }
+        }
+        else {
+            errorMessage = `Unexpected asyncronous deactivation when unbinding "${(0, common_1.stringifyServiceIdentifier)(identifier)}" service. Consider using Container.unbind() instead.`;
+        }
+        throw new InversifyContainerError_1.InversifyContainerError(InversifyContainerErrorKind_1.InversifyContainerErrorKind.invalidOperation, errorMessage);
+    }
+    #unbind(identifier) {
+        if ((0, isBindingIdentifier_1.isBindingIdentifier)(identifier)) {
+            return this.#unbindBindingIdentifier(identifier);
+        }
+        return this.#unbindServiceIdentifier(identifier);
+    }
+    #unbindBindingIdentifier(identifier) {
         const bindings = this.#bindingService.getById(identifier.id);
-        await (0, core_1.resolveBindingsDeactivations)(this.#deactivationParams, bindings);
+        const result = (0, core_1.resolveBindingsDeactivations)(this.#deactivationParams, bindings);
+        if (result === undefined) {
+            this.#clearAfterUnbindBindingIdentifier(identifier);
+        }
+        else {
+            return result.then(() => {
+                this.#clearAfterUnbindBindingIdentifier(identifier);
+            });
+        }
+    }
+    #clearAfterUnbindBindingIdentifier(identifier) {
         this.#bindingService.removeById(identifier.id);
         this.#planResultCacheService.clearCache();
     }
-    async #unbindServiceIdentifier(identifier) {
-        await (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, identifier);
+    #clearAfterUnloadModules(modules) {
+        for (const module of modules) {
+            this.#activationService.removeAllByModuleId(module.id);
+            this.#bindingService.removeAllByModuleId(module.id);
+            this.#deactivationService.removeAllByModuleId(module.id);
+        }
+        this.#planResultCacheService.clearCache();
+    }
+    #unbindServiceIdentifier(identifier) {
+        const result = (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, identifier);
+        if (result === undefined) {
+            this.#clearAfterUnbindServiceIdentifier(identifier);
+        }
+        else {
+            return result.then(() => {
+                this.#clearAfterUnbindServiceIdentifier(identifier);
+            });
+        }
+    }
+    #clearAfterUnbindServiceIdentifier(identifier) {
         this.#activationService.removeAllByServiceId(identifier);
         this.#bindingService.removeAllByServiceId(identifier);
         this.#deactivationService.removeAllByServiceId(identifier);
