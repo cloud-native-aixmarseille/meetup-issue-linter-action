@@ -37781,29 +37781,6 @@ exports.LazyServiceIdentifier = LazyServiceIdentifier;
 
 /***/ }),
 
-/***/ 110:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBindingId = getBindingId;
-const reflect_metadata_utils_1 = __nccwpck_require__(2732);
-const ID_METADATA = '@inversifyjs/container/bindingId';
-function getBindingId() {
-    const bindingId = (0, reflect_metadata_utils_1.getOwnReflectMetadata)(Object, ID_METADATA) ?? 0;
-    if (bindingId === Number.MAX_SAFE_INTEGER) {
-        (0, reflect_metadata_utils_1.setReflectMetadata)(Object, ID_METADATA, Number.MIN_SAFE_INTEGER);
-    }
-    else {
-        (0, reflect_metadata_utils_1.updateOwnReflectMetadata)(Object, ID_METADATA, () => bindingId, (id) => id + 1);
-    }
-    return bindingId;
-}
-//# sourceMappingURL=getBindingId.js.map
-
-/***/ }),
-
 /***/ 8129:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -38183,8 +38160,8 @@ function isResolvedValueMetadataInjectOptions(options) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BindInWhenOnFluentSyntaxImplementation = exports.BindWhenOnFluentSyntaxImplementation = exports.BindWhenFluentSyntaxImplementation = exports.BindOnFluentSyntaxImplementation = exports.BindToFluentSyntaxImplementation = exports.BindInFluentSyntaxImplementation = void 0;
 const core_1 = __nccwpck_require__(4922);
+const core_2 = __nccwpck_require__(4922);
 const BindingConstraintUtils_1 = __nccwpck_require__(7647);
-const getBindingId_1 = __nccwpck_require__(110);
 const buildBindingIdentifier_1 = __nccwpck_require__(8129);
 const isAnyAncestorBindingConstraints_1 = __nccwpck_require__(439);
 const isAnyAncestorBindingConstraintsWithName_1 = __nccwpck_require__(8752);
@@ -38246,7 +38223,7 @@ class BindToFluentSyntaxImplementation {
                 isRight: false,
                 value: undefined,
             },
-            id: (0, getBindingId_1.getBindingId)(),
+            id: (0, core_2.getBindingId)(),
             implementationType: type,
             isSatisfiedBy: BindingConstraintUtils_1.BindingConstraintUtils.always,
             moduleId: this.#containerModuleId,
@@ -38271,7 +38248,7 @@ class BindToFluentSyntaxImplementation {
                 isRight: false,
                 value: undefined,
             },
-            id: (0, getBindingId_1.getBindingId)(),
+            id: (0, core_2.getBindingId)(),
             isSatisfiedBy: BindingConstraintUtils_1.BindingConstraintUtils.always,
             moduleId: this.#containerModuleId,
             onActivation: undefined,
@@ -38290,7 +38267,7 @@ class BindToFluentSyntaxImplementation {
                 isRight: false,
                 value: undefined,
             },
-            id: (0, getBindingId_1.getBindingId)(),
+            id: (0, core_2.getBindingId)(),
             isSatisfiedBy: BindingConstraintUtils_1.BindingConstraintUtils.always,
             moduleId: this.#containerModuleId,
             onActivation: undefined,
@@ -38310,7 +38287,7 @@ class BindToFluentSyntaxImplementation {
                 value: undefined,
             },
             factory,
-            id: (0, getBindingId_1.getBindingId)(),
+            id: (0, core_2.getBindingId)(),
             isSatisfiedBy: BindingConstraintUtils_1.BindingConstraintUtils.always,
             metadata: this.#buildResolvedValueMetadata(injectOptions),
             moduleId: this.#containerModuleId,
@@ -38332,7 +38309,7 @@ class BindToFluentSyntaxImplementation {
                 value: undefined,
             },
             factory: builder,
-            id: (0, getBindingId_1.getBindingId)(),
+            id: (0, core_2.getBindingId)(),
             isSatisfiedBy: BindingConstraintUtils_1.BindingConstraintUtils.always,
             moduleId: this.#containerModuleId,
             onActivation: undefined,
@@ -38352,7 +38329,7 @@ class BindToFluentSyntaxImplementation {
                 isRight: false,
                 value: undefined,
             },
-            id: (0, getBindingId_1.getBindingId)(),
+            id: (0, core_2.getBindingId)(),
             isSatisfiedBy: BindingConstraintUtils_1.BindingConstraintUtils.always,
             moduleId: this.#containerModuleId,
             onActivation: undefined,
@@ -38367,7 +38344,7 @@ class BindToFluentSyntaxImplementation {
     }
     toService(service) {
         const binding = {
-            id: (0, getBindingId_1.getBindingId)(),
+            id: (0, core_2.getBindingId)(),
             isSatisfiedBy: BindingConstraintUtils_1.BindingConstraintUtils.always,
             moduleId: this.#containerModuleId,
             serviceIdentifier: this.#serviceIdentifier,
@@ -39119,6 +39096,29 @@ Object.defineProperty(exports, "InversifyContainerErrorKind", ({ enumerable: tru
 
 /***/ }),
 
+/***/ 4470:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getBindingId = getBindingId;
+const reflect_metadata_utils_1 = __nccwpck_require__(2732);
+const ID_METADATA = '@inversifyjs/container/bindingId';
+function getBindingId() {
+    const bindingId = (0, reflect_metadata_utils_1.getOwnReflectMetadata)(Object, ID_METADATA) ?? 0;
+    if (bindingId === Number.MAX_SAFE_INTEGER) {
+        (0, reflect_metadata_utils_1.setReflectMetadata)(Object, ID_METADATA, Number.MIN_SAFE_INTEGER);
+    }
+    else {
+        (0, reflect_metadata_utils_1.updateOwnReflectMetadata)(Object, ID_METADATA, () => bindingId, (id) => id + 1);
+    }
+    return bindingId;
+}
+//# sourceMappingURL=getBindingId.js.map
+
+/***/ }),
+
 /***/ 1393:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -39811,7 +39811,9 @@ var InversifyCoreErrorKind;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolveBindingsDeactivations = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
+exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolveBindingsDeactivations = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.getBindingId = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
+const getBindingId_1 = __nccwpck_require__(4470);
+Object.defineProperty(exports, "getBindingId", ({ enumerable: true, get: function () { return getBindingId_1.getBindingId; } }));
 const BindingScope_1 = __nccwpck_require__(2412);
 Object.defineProperty(exports, "bindingScopeValues", ({ enumerable: true, get: function () { return BindingScope_1.bindingScopeValues; } }));
 const BindingType_1 = __nccwpck_require__(8810);
@@ -40995,7 +40997,9 @@ var ResolvedValueElementMetadataKind;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildFilteredServiceBindings = buildFilteredServiceBindings;
+const getBindingId_1 = __nccwpck_require__(4470);
 const BindingType_1 = __nccwpck_require__(8810);
+const getClassMetadata_1 = __nccwpck_require__(2928);
 function buildFilteredServiceBindings(params, bindingConstraints, options) {
     const serviceIdentifier = options?.customServiceIdentifier ?? bindingConstraints.serviceIdentifier;
     const serviceBindings = [
@@ -41012,18 +41016,20 @@ function buildFilteredServiceBindings(params, bindingConstraints, options) {
     return filteredBindings;
 }
 function buildInstanceBinding(autobindOptions, serviceIdentifier) {
+    const classMetadata = (0, getClassMetadata_1.getClassMetadata)(serviceIdentifier);
+    const scope = classMetadata.scope ?? autobindOptions.scope;
     return {
         cache: {
             isRight: false,
             value: undefined,
         },
-        id: 0,
+        id: (0, getBindingId_1.getBindingId)(),
         implementationType: serviceIdentifier,
         isSatisfiedBy: () => true,
         moduleId: undefined,
         onActivation: undefined,
         onDeactivation: undefined,
-        scope: autobindOptions.scope,
+        scope,
         serviceIdentifier,
         type: BindingType_1.bindingTypeValues.Instance,
     };
