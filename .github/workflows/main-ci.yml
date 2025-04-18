@@ -32,13 +32,13 @@ jobs:
           repo: ${{ github.event.repository.name }}
           version_prefix: ""
 
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         id: generate-token
         with:
           app-id: ${{ vars.CI_BOT_APP_ID }}
           private-key: ${{ secrets.CI_BOT_APP_PRIVATE_KEY }}
 
-      - uses: hoverkraft-tech/ci-github-common/actions/create-and-merge-pull-request@0.18.0
+      - uses: hoverkraft-tech/ci-github-common/actions/create-and-merge-pull-request@0.22.2
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           branch: docs/actions-workflows-documentation-update
