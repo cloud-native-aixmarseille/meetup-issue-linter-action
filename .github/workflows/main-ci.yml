@@ -33,7 +33,7 @@ jobs:
           repo: ${{ github.event.repository.name }}
           version_prefix: ""
 
-      - uses: actions/create-github-app-token@30bf6253fa41bdc8d1501d202ad15287582246b4 # v2.0.3
+      - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         id: generate-token
         with:
           app-id: ${{ vars.CI_BOT_APP_ID }}
