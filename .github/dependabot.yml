@@ -37,6 +37,10 @@ updates:
       npm-actions-dependencies:
         patterns:
           - "@actions/*"
+      npm-zod-dependencies:
+        patterns:
+          - "zod"
+          - "zod-*"
       npm-dev-dependencies:
         dependency-type: development
 
