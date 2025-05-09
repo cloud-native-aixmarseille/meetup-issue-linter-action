@@ -29939,8 +29939,8 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // lib/index.ts
-var lib_exports = {};
-__export(lib_exports, {
+var index_exports = {};
+__export(index_exports, {
   ValidationError: () => ValidationError,
   createMessageBuilder: () => createMessageBuilder,
   errorMap: () => errorMap,
@@ -29952,7 +29952,7 @@ __export(lib_exports, {
   isZodErrorLike: () => isZodErrorLike,
   toValidationError: () => toValidationError
 });
-module.exports = __toCommonJS(lib_exports);
+module.exports = __toCommonJS(index_exports);
 
 // lib/isZodErrorLike.ts
 function isZodErrorLike(err) {

@@ -78,7 +78,7 @@
     "inversify": "^7.5.1",
     "reflect-metadata": "^0.2.2",
     "zod": "^3.24.4",
-    "zod-validation-error": "^3.4.0"
+    "zod-validation-error": "^3.4.1"
   },
   "devDependencies": {
     "@ts-dev-tools/core": "^1.6.2",
