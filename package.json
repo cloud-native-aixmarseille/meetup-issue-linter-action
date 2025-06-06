@@ -40,6 +40,21 @@
     "prepare": "ts-dev-tools install"
   },
   "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "inversify": "^7.5.2",
+    "reflect-metadata": "^0.2.2",
+    "zod": "^3.25.67",
+    "zod-validation-error": "^3.5.2"
+  },
+  "devDependencies": {
+    "@ts-dev-tools/core": "^1.6.2",
+    "@vercel/ncc": "^0.38.3",
+    "eslint-plugin-github": "^6.0.0",
+    "eslint-plugin-jsonc": "^2.20.1",
+    "jest-mock-extended": "^4.0.0"
+  },
   "jest": {
     "preset": "ts-jest",
     "verbose": true,
@@ -71,21 +86,6 @@
       "./src/**",
       "**/src/**/*.[jt]s?(x)"
     ]
-  },
-  "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
-    "inversify": "^7.5.1",
-    "reflect-metadata": "^0.2.2",
-    "zod": "^3.24.4",
-    "zod-validation-error": "^3.4.1"
-  },
-  "devDependencies": {
-    "@ts-dev-tools/core": "^1.9.2",
-    "@vercel/ncc": "^0.38.3",
-    "eslint-plugin-github": "^6.0.0",
-    "eslint-plugin-jsonc": "^2.20.1",
-    "jest-mock-extended": "^4.0.0"
   },
   "eslintConfig": {
     "root": true,
