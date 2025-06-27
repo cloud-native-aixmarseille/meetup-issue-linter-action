@@ -15,6 +15,11 @@ lint-fix: ## Execute linting and fix
 		-e FIX_MARKDOWN_PRETTIER=true \
 		-e FIX_NATURAL_LANGUAGE=true)
 
+.PHONY: all
+all: ## Execute all tasks to prepare commit
+	npm run all
+	$(MAKE) lint-fix
+
 define run_linter
 	DEFAULT_WORKSPACE="$(CURDIR)"; \
 	LINTER_IMAGE="linter:latest"; \

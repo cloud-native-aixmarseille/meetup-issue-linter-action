@@ -10,11 +10,13 @@
 # <img src=".github/ghadocs/branding.svg" width="60px" align="center" alt="branding<icon:check-circle color:blue>" /> GitHub Action: Meetup issue linter action
 
 <!-- end title -->
+<!-- markdownlint-disable MD013 -->
 <!-- start badges -->
 
 <a href="https%3A%2F%2Fgithub.com%2Fcloud-native-aixmarseille%2Fmeetup-issue-linter-action%2Freleases%2Flatest"><img src="https://img.shields.io/github/v/release/cloud-native-aixmarseille/meetup-issue-linter-action?display_name=tag&sort=semver&logo=github&style=flat-square" alt="Release%20by%20tag" /></a><a href="https%3A%2F%2Fgithub.com%2Fcloud-native-aixmarseille%2Fmeetup-issue-linter-action%2Freleases%2Flatest"><img src="https://img.shields.io/github/release-date/cloud-native-aixmarseille/meetup-issue-linter-action?display_name=tag&sort=semver&logo=github&style=flat-square" alt="Release%20by%20date" /></a><img src="https://img.shields.io/github/last-commit/cloud-native-aixmarseille/meetup-issue-linter-action?logo=github&style=flat-square" alt="Commit" /><a href="https%3A%2F%2Fgithub.com%2Fcloud-native-aixmarseille%2Fmeetup-issue-linter-action%2Fissues"><img src="https://img.shields.io/github/issues/cloud-native-aixmarseille/meetup-issue-linter-action?logo=github&style=flat-square" alt="Open%20Issues" /></a><img src="https://img.shields.io/github/downloads/cloud-native-aixmarseille/meetup-issue-linter-action/total?logo=github&style=flat-square" alt="Downloads" />
 
 <!-- end badges -->
+<!-- markdownlint-enable MD013 -->
 </div>
 <!-- start description -->
 
@@ -76,9 +78,9 @@ This action lint the meetup issue for required fields and format
 <!-- end inputs -->
 <!-- start outputs -->
 
-| **Output**               | **Description**                           |
-| ------------------------ | ----------------------------------------- |
-| <code>lint-issues</code> | List of issues found in the meetup issue. |
+| **Output**                 | **Description**                           |
+| -------------------------- | ----------------------------------------- |
+| <code>`lint-issues`</code> | List of issues found in the meetup issue. |
 
 <!-- end outputs -->
 <!-- start [.github/ghadocs/examples/] -->
