@@ -78,9 +78,9 @@ This action lint the meetup issue for required fields and format
 <!-- end inputs -->
 <!-- start outputs -->
 
-| **Output**               | **Description**                           |
-| ------------------------ | ----------------------------------------- |
-| <code>lint-issues</code> | List of issues found in the meetup issue. |
+| **Output**                 | **Description**                           |
+| -------------------------- | ----------------------------------------- |
+| <code>`lint-issues`</code> | List of issues found in the meetup issue. |
 
 <!-- end outputs -->
 <!-- start [.github/ghadocs/examples/] -->

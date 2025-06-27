@@ -36,7 +36,7 @@ describe("AgendaLinterAdapter", () => {
 
       const meetupIssue = getMeetupIssueFixture({
         body: {
-          agenda: `- ${speakers[0]}: Talk Description: with colon`,
+          agenda: `- ${speakers[0].name}: Talk Description: with colon`,
         },
       });
       const shouldFix = false;
@@ -54,7 +54,7 @@ describe("AgendaLinterAdapter", () => {
 
       const meetupIssue = getMeetupIssueFixture({
         body: {
-          agenda: `- ${speakers[0]}, ${speakers[1]}: Talk Description with multiple speakers`,
+          agenda: `- ${speakers[0].name}, ${speakers[1].name}: Talk Description with multiple speakers`,
         },
       });
       const shouldFix = false;
@@ -71,9 +71,9 @@ describe("AgendaLinterAdapter", () => {
       const speakers = getSpeakersFixture();
 
       const agenda = [
-        `- ${speakers[0]}: Talk Description with space at the end `,
-        `- ${speakers[0]} : Talk Description with speakers containing space`,
-        `- ${speakers[0]},  ${speakers[1]}: Talk Description with multiple speakers containing space`,
+        `- ${speakers[0].name}: Talk Description with space at the end `,
+        `- ${speakers[0].name} : Talk Description with speakers containing space`,
+        `- ${speakers[0].name},  ${speakers[1].name}: Talk Description with multiple speakers containing space`,
       ].join("\n");
 
       const meetupIssue = getMeetupIssueFixture({
@@ -89,9 +89,38 @@ describe("AgendaLinterAdapter", () => {
 
       // Assert
       expect(result.body.agenda).toBe(
-        `- ${speakers[0]}: Talk Description with space at the end\n` +
-          `- ${speakers[0]}: Talk Description with speakers containing space\n` +
-          `- ${speakers[0]}, ${speakers[1]}: Talk Description with multiple speakers containing space`
+        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with space at the end\n` +
+          `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speakers containing space\n` +
+          `- [${speakers[0].name}](https://example.com/speaker1), [${speakers[1].name}](https://example.com/speaker2): Talk Description with multiple speakers containing space`
+      );
+    });
+
+    it("should handle mixed scenarios with some speakers having links and others not", async () => {
+      // Arrange
+      const speakers = getSpeakersFixture();
+
+      const agenda = [
+        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speaker with link`,
+        `- ${speakers[0].name}: Talk Description with speaker without link`,
+        `- [${speakers[0].name}](https://example.com/speaker1), ${speakers[1].name}: Talk Description with multiple speakers with link and without`,
+      ].join("\n");
+
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          agenda,
+        },
+      });
+
+      const shouldFix = false;
+
+      // Act
+      const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result.body.agenda).toBe(
+        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speaker with link\n` +
+          `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speaker without link\n` +
+          `- [${speakers[0].name}](https://example.com/speaker1), [${speakers[1].name}](https://example.com/speaker2): Talk Description with multiple speakers with link and without`
       );
     });
 

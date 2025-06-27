@@ -14,7 +14,9 @@ export function getMeetupIssueFixture(override?: Partial<MeetupIssue>): MeetupIs
       event_title: "Meetup Event",
       hoster: [getHostersFixture()[0]],
       event_description: "Description",
-      agenda: `- ${speakers[0]}: Talk description One\n- ${speakers[1]}: Talk description Two`,
+      agenda:
+        `- [${speakers[0].name}](https://example.com/speaker1): Talk description One\n` +
+        `- [${speakers[1].name}](https://example.com/speaker2): Talk description Two`,
       meetup_link: "https://www.meetup.com/cloud-native-aix-marseille/events/123456789",
       cncf_link:
         "https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",

@@ -1,3 +1,8 @@
-export function getSpeakersFixture(): [string, ...string[]] {
-  return ["Speaker One", "Speaker Two"];
+import { SpeakerWithUrl } from "../services/input.service";
+
+export function getSpeakersFixture(): [SpeakerWithUrl, ...SpeakerWithUrl[]] {
+  return [
+    { name: "Speaker One", url: "https://example.com/speaker1" },
+    { name: "Speaker Two", url: "https://example.com/speaker2" },
+  ];
 }

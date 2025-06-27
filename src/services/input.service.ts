@@ -13,6 +13,13 @@ export enum InputNames {
 
 type NonEmptyArrayOfStrings = [string, ...string[]];
 
+export type SpeakerWithUrl = {
+  name: string;
+  url: string;
+};
+
+type NonEmptyArrayOfSpeakers = [SpeakerWithUrl, ...SpeakerWithUrl[]];
+
 @injectable()
 export class InputService {
   constructor(@inject(CORE_SERVICE_IDENTIFIER) private readonly coreService: CoreService) {}
@@ -37,8 +44,42 @@ export class InputService {
     return this.getNonEmptyArrayOfStringsInput(InputNames.Hosters);
   }
 
-  getSpeakers(): NonEmptyArrayOfStrings {
-    return this.getNonEmptyArrayOfStringsInput(InputNames.Speakers);
+  getSpeakers(): NonEmptyArrayOfSpeakers {
+    const inputValue = this.coreService.getInput(InputNames.Speakers, {
+      required: true,
+    });
+
+    const parsedInput = JSON.parse(inputValue);
+
+    if (!Array.isArray(parsedInput)) {
+      throw new Error(`"${InputNames.Speakers}" input must be an array`);
+    }
+
+    if (parsedInput.length === 0) {
+      throw new Error(`"${InputNames.Speakers}" input must not be empty`);
+    }
+
+    for (const parsedInputValue of parsedInput) {
+      if (typeof parsedInputValue !== "object" || parsedInputValue === null) {
+        throw new Error(
+          `"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must be an object`
+        );
+      }
+
+      if (typeof parsedInputValue.name !== "string") {
+        throw new Error(
+          `"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "name" property of type string`
+        );
+      }
+
+      if (typeof parsedInputValue.url !== "string") {
+        throw new Error(
+          `"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "url" property of type string`
+        );
+      }
+    }
+
+    return parsedInput as NonEmptyArrayOfSpeakers;
   }
 
   getShouldFix(): boolean {

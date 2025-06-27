@@ -44,7 +44,7 @@ jobs:
           issue-number: ${{ env.TEST_VALID_ISSUE_NUMBER }}
           issue-parsed-body: ${{ steps.parser.outputs.json }}
           hosters: '["Hoster Test One", "Hoster Test Two"]'
-          speakers: '["Speaker One", "Speaker Two"]'
+          speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -87,7 +87,7 @@ jobs:
           issue-number: ${{ env.TEST_INVALID_ISSUE_NUMBER }}
           issue-parsed-body: ${{ steps.parser.outputs.json }}
           hosters: '["Hoster Test One", "Hoster Test Two"]'
-          speakers: '["Speaker One", "Speaker Two"]'
+          speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
           fail-on-error: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
