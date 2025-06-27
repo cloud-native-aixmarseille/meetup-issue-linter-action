@@ -30325,6 +30325,42 @@ async function run() {
 
 /***/ }),
 
+/***/ 2211:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AbstractLinkLinterAdapter = void 0;
+const inversify_1 = __nccwpck_require__(4871);
+const zod_1 = __nccwpck_require__(2046);
+const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
+let AbstractLinkLinterAdapter = class AbstractLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+    getValidator() {
+        const linkRegex = this.getLinkRegex();
+        const errorMessage = this.getErrorMessage();
+        return (0, zod_1.string)()
+            .url()
+            .regex(linkRegex, {
+            message: errorMessage,
+        })
+            .transform((url) => url.replace(/\/$/, ""));
+    }
+};
+exports.AbstractLinkLinterAdapter = AbstractLinkLinterAdapter;
+exports.AbstractLinkLinterAdapter = AbstractLinkLinterAdapter = __decorate([
+    (0, inversify_1.injectable)()
+], AbstractLinkLinterAdapter);
+
+
+/***/ }),
+
 /***/ 4053:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -30500,15 +30536,15 @@ var CNCFLinkLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CNCFLinkLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
-let CNCFLinkLinterAdapter = class CNCFLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+const abstract_link_linter_adapter_1 = __nccwpck_require__(2211);
+let CNCFLinkLinterAdapter = class CNCFLinkLinterAdapter extends abstract_link_linter_adapter_1.AbstractLinkLinterAdapter {
     static { CNCFLinkLinterAdapter_1 = this; }
-    static CNCF_LINK_REGEX = /^https:\/\/community\.cncf\.io\/events\/details\/cncf-cloud-native-aix-marseille-presents-[0-9a-z-]+$/;
-    getValidator() {
-        return (0, zod_1.string)().url().regex(CNCFLinkLinterAdapter_1.CNCF_LINK_REGEX, {
-            message: "Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
-        });
+    static CNCF_LINK_REGEX = /^https:\/\/community\.cncf\.io\/events\/details\/cncf-cloud-native-aix-marseille-presents-[0-9a-z-]+\/?$/;
+    getLinkRegex() {
+        return CNCFLinkLinterAdapter_1.CNCF_LINK_REGEX;
+    }
+    getErrorMessage() {
+        return "Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event";
     }
     getFieldName() {
         return "cncf_link";
@@ -30537,15 +30573,15 @@ var DriveLinkLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DriveLinkLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
-let DriveLinkLinterAdapter = class DriveLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+const abstract_link_linter_adapter_1 = __nccwpck_require__(2211);
+let DriveLinkLinterAdapter = class DriveLinkLinterAdapter extends abstract_link_linter_adapter_1.AbstractLinkLinterAdapter {
     static { DriveLinkLinterAdapter_1 = this; }
-    static DRIVE_LINK_REGEX = /^https:\/\/drive\.google\.com\/drive\/folders\/[a-zA-Z0-9-_]+$/;
-    getValidator() {
-        return (0, zod_1.string)().url().regex(DriveLinkLinterAdapter_1.DRIVE_LINK_REGEX, {
-            message: "Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j",
-        });
+    static DRIVE_LINK_REGEX = /^https:\/\/drive\.google\.com\/drive\/folders\/[a-zA-Z0-9-_]+\/?$/;
+    getLinkRegex() {
+        return DriveLinkLinterAdapter_1.DRIVE_LINK_REGEX;
+    }
+    getErrorMessage() {
+        return "Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j";
     }
     getFieldName() {
         return "drive_link";
@@ -30739,15 +30775,15 @@ var MeetupLinkLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MeetupLinkLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
-let MeetupLinkLinterAdapter = class MeetupLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+const abstract_link_linter_adapter_1 = __nccwpck_require__(2211);
+let MeetupLinkLinterAdapter = class MeetupLinkLinterAdapter extends abstract_link_linter_adapter_1.AbstractLinkLinterAdapter {
     static { MeetupLinkLinterAdapter_1 = this; }
-    static MEETUP_LINK_REGEX = /^https:\/\/www\.meetup\.com\/cloud-native-aix-marseille\/events\/[0-9]+$/;
-    getValidator() {
-        return (0, zod_1.string)().url().regex(MeetupLinkLinterAdapter_1.MEETUP_LINK_REGEX, {
-            message: "Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789",
-        });
+    static MEETUP_LINK_REGEX = /^https:\/\/www\.meetup\.com\/cloud-native-aix-marseille\/events\/[0-9]+\/?$/;
+    getLinkRegex() {
+        return MeetupLinkLinterAdapter_1.MEETUP_LINK_REGEX;
+    }
+    getErrorMessage() {
+        return "Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789";
     }
     getFieldName() {
         return "meetup_link";

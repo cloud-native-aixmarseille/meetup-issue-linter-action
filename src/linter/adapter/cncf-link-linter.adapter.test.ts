@@ -59,5 +59,41 @@ describe("CNCFLinkLinterAdapter", () => {
         expectedError
       );
     });
+
+    it("should accept CNCF Link with trailing slash", async () => {
+      // Arrange
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          cncf_link:
+            "https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event/",
+        },
+      });
+      const shouldFix = false;
+
+      // Act
+      const result = await cncfLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result).toEqual(meetupIssue);
+    });
+
+    it("should remove trailing slash when shouldFix is true", async () => {
+      // Arrange
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          cncf_link:
+            "https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event/",
+        },
+      });
+      const shouldFix = true;
+
+      // Act
+      const result = await cncfLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result.body.cncf_link).toBe(
+        "https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event"
+      );
+    });
   });
 });

@@ -59,5 +59,39 @@ describe("MeetupLinkLinterAdapter", () => {
         meetupLinkLinterAdapter.lint(invalidMeetupIssue, shouldFix)
       ).rejects.toStrictEqual(expectedError);
     });
+
+    it("should accept Meetup Link with trailing slash", async () => {
+      // Arrange
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          meetup_link: "https://www.meetup.com/cloud-native-aix-marseille/events/123456789/",
+        },
+      });
+      const shouldFix = false;
+
+      // Act
+      const result = await meetupLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result).toEqual(meetupIssue);
+    });
+
+    it("should remove trailing slash when shouldFix is true", async () => {
+      // Arrange
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          meetup_link: "https://www.meetup.com/cloud-native-aix-marseille/events/123456789/",
+        },
+      });
+      const shouldFix = true;
+
+      // Act
+      const result = await meetupLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result.body.meetup_link).toBe(
+        "https://www.meetup.com/cloud-native-aix-marseille/events/123456789"
+      );
+    });
   });
 });
