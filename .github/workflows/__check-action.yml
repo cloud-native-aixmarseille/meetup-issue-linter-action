@@ -104,14 +104,14 @@ jobs:
           Hoster: Must be an existing hoster at index 0
           Event Description: Required
           Agenda: Speaker "Wrong Speaker" is not in the list of speakers
-          Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker>: <talk_description>"
+          Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker(s)>: <talk_description>"
           Meetup Link: Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789
           CNCF Link: Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event
           Drive Link: Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j
           EOF
           )
 
-          if ! diff <(echo "${LINT_ISSUES}") <(echo "${EXPECTED_LINT_ISSUES}"); then
-            echo "The action did not return the expected list of issues"
+          if ! diff --color <(echo "${LINT_ISSUES}") <(echo "${EXPECTED_LINT_ISSUES}"); then
+            echo -e "The action did not return the expected list of issues"
             exit 1
           fi

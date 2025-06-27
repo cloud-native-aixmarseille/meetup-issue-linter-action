@@ -6,7 +6,7 @@ import { LintError } from "../lint.error";
 import { InputService } from "../../services/input.service";
 
 type AgendaEntry = {
-  speaker: string;
+  speakers: string[];
   talkDescription: string;
 };
 
@@ -56,6 +56,8 @@ export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
       throw new LintError([this.getLintErrorMessage("Must contain at least one entry")]);
     }
 
+    result.body[this.getFieldName()] = this.formatAgenda(agendaEntries);
+
     return result;
   }
 
@@ -68,23 +70,37 @@ export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
     if (matches === null) {
       throw new LintError([
         this.getLintErrorMessage(
-          `Entry "${agendaLine}" must follow the format: "- <speaker>: <talk_description>"`
+          `Entry "${agendaLine}" must follow the format: "- <speaker(s)>: <talk_description>"`
         ),
       ]);
     }
 
-    const [, speaker, talkDescription] = matches;
+    const [, speakers, talkDescription] = matches;
 
-    if (!this.speakers.includes(speaker)) {
-      throw new LintError([
-        this.getLintErrorMessage(`Speaker "${speaker}" is not in the list of speakers`),
-      ]);
+    const speakerList = speakers.split(",").map((s) => s.trim());
+
+    for (const speaker of speakerList) {
+      if (!speaker.length) {
+        throw new LintError([this.getLintErrorMessage("Speaker must not be empty")]);
+      }
+
+      if (!this.speakers.includes(speaker)) {
+        throw new LintError([
+          this.getLintErrorMessage(`Speaker "${speaker}" is not in the list of speakers`),
+        ]);
+      }
     }
 
     return {
-      speaker,
-      talkDescription,
+      speakers: speakerList,
+      talkDescription: talkDescription.trim(),
     };
+  }
+
+  private formatAgenda(agendaEntries: AgendaEntry[]): string {
+    return agendaEntries
+      .map((entry) => `- ${entry.speakers.join(", ")}: ${entry.talkDescription}`)
+      .join("\n");
   }
 
   protected getValidator() {
