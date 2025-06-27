@@ -1,17 +1,17 @@
 import { injectable } from "inversify";
-import { string } from "zod";
-import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
+import { AbstractLinkLinterAdapter } from "./abstract-link-linter.adapter";
 
 @injectable()
-export class MeetupLinkLinterAdapter extends AbstractZodLinterAdapter {
+export class MeetupLinkLinterAdapter extends AbstractLinkLinterAdapter {
   private static readonly MEETUP_LINK_REGEX =
-    /^https:\/\/www\.meetup\.com\/cloud-native-aix-marseille\/events\/[0-9]+$/;
+    /^https:\/\/www\.meetup\.com\/cloud-native-aix-marseille\/events\/[0-9]+\/?$/;
 
-  protected getValidator() {
-    return string().url().regex(MeetupLinkLinterAdapter.MEETUP_LINK_REGEX, {
-      message:
-        "Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789",
-    });
+  protected getLinkRegex() {
+    return MeetupLinkLinterAdapter.MEETUP_LINK_REGEX;
+  }
+
+  protected getErrorMessage() {
+    return "Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789";
   }
 
   protected getFieldName() {

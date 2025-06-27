@@ -1,17 +1,17 @@
 import { injectable } from "inversify";
-import { string } from "zod";
-import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
+import { AbstractLinkLinterAdapter } from "./abstract-link-linter.adapter";
 
 @injectable()
-export class CNCFLinkLinterAdapter extends AbstractZodLinterAdapter {
+export class CNCFLinkLinterAdapter extends AbstractLinkLinterAdapter {
   private static readonly CNCF_LINK_REGEX =
-    /^https:\/\/community\.cncf\.io\/events\/details\/cncf-cloud-native-aix-marseille-presents-[0-9a-z-]+$/;
+    /^https:\/\/community\.cncf\.io\/events\/details\/cncf-cloud-native-aix-marseille-presents-[0-9a-z-]+\/?$/;
 
-  protected getValidator() {
-    return string().url().regex(CNCFLinkLinterAdapter.CNCF_LINK_REGEX, {
-      message:
-        "Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
-    });
+  protected getLinkRegex() {
+    return CNCFLinkLinterAdapter.CNCF_LINK_REGEX;
+  }
+
+  protected getErrorMessage() {
+    return "Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event";
   }
 
   protected getFieldName() {

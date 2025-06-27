@@ -59,5 +59,39 @@ describe("DriveLinkLinterAdapter", () => {
         driveLinkLinterAdapter.lint(invalidMeetupIssue, shouldFix)
       ).rejects.toStrictEqual(expectedError);
     });
+
+    it("should accept Drive Link with trailing slash", async () => {
+      // Arrange
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          drive_link: "https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j/",
+        },
+      });
+      const shouldFix = false;
+
+      // Act
+      const result = await driveLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result).toEqual(meetupIssue);
+    });
+
+    it("should remove trailing slash when shouldFix is true", async () => {
+      // Arrange
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          drive_link: "https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j/",
+        },
+      });
+      const shouldFix = true;
+
+      // Act
+      const result = await driveLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result.body.drive_link).toBe(
+        "https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j"
+      );
+    });
   });
 });

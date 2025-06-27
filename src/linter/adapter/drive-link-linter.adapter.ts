@@ -1,17 +1,17 @@
 import { injectable } from "inversify";
-import { string } from "zod";
-import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
+import { AbstractLinkLinterAdapter } from "./abstract-link-linter.adapter";
 
 @injectable()
-export class DriveLinkLinterAdapter extends AbstractZodLinterAdapter {
+export class DriveLinkLinterAdapter extends AbstractLinkLinterAdapter {
   private static readonly DRIVE_LINK_REGEX =
-    /^https:\/\/drive\.google\.com\/drive\/folders\/[a-zA-Z0-9-_]+$/;
+    /^https:\/\/drive\.google\.com\/drive\/folders\/[a-zA-Z0-9-_]+\/?$/;
 
-  protected getValidator() {
-    return string().url().regex(DriveLinkLinterAdapter.DRIVE_LINK_REGEX, {
-      message:
-        "Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j",
-    });
+  protected getLinkRegex() {
+    return DriveLinkLinterAdapter.DRIVE_LINK_REGEX;
+  }
+
+  protected getErrorMessage() {
+    return "Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j";
   }
 
   protected getFieldName() {
