@@ -3,7 +3,7 @@ import { string } from "zod";
 import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
 import { MeetupIssue } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
-import { InputService } from "../../services/input.service";
+import { InputService, SpeakerWithUrl } from "../../services/input.service";
 
 type AgendaEntry = {
   speakers: string[];
@@ -12,14 +12,17 @@ type AgendaEntry = {
 
 @injectable()
 export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
-  private static AGENDA_LINE_REGEX = /^- ([^:]+): (.+)$/;
+  private static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
+  private static SPEAKER_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
 
-  private readonly speakers: [string, ...string[]];
+  private readonly speakers: [SpeakerWithUrl, ...SpeakerWithUrl[]];
+  private readonly speakerNameToUrl: Map<string, string>;
 
   constructor(private readonly inputService: InputService) {
     super();
 
     this.speakers = this.inputService.getSpeakers();
+    this.speakerNameToUrl = new Map(this.speakers.map((speaker) => [speaker.name, speaker.url]));
   }
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
@@ -77,14 +80,15 @@ export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
 
     const [, speakers, talkDescription] = matches;
 
-    const speakerList = speakers.split(",").map((s) => s.trim());
+    // Extract speaker names from potentially linked text
+    const speakerList = this.extractSpeakerNames(speakers);
 
     for (const speaker of speakerList) {
       if (!speaker.length) {
         throw new LintError([this.getLintErrorMessage("Speaker must not be empty")]);
       }
 
-      if (!this.speakers.includes(speaker)) {
+      if (!this.speakerNameToUrl.has(speaker)) {
         throw new LintError([
           this.getLintErrorMessage(`Speaker "${speaker}" is not in the list of speakers`),
         ]);
@@ -97,9 +101,22 @@ export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
     };
   }
 
+  private extractSpeakerNames(speakersText: string): string[] {
+    // Replace linked speakers with their display text
+    const cleanedText = speakersText.replace(AgendaLinterAdapter.SPEAKER_LINK_REGEX, "$1");
+    return cleanedText.split(",").map((s) => s.trim());
+  }
+
   private formatAgenda(agendaEntries: AgendaEntry[]): string {
+    // Format each agenda entry with linked speakers using provided URLs
     return agendaEntries
-      .map((entry) => `- ${entry.speakers.join(", ")}: ${entry.talkDescription}`)
+      .map((entry) => {
+        const formattedSpeakers = entry.speakers.map((speaker) => {
+          const url = this.speakerNameToUrl.get(speaker);
+          return url ? `[${speaker}](${url})` : speaker;
+        });
+        return `- ${formattedSpeakers.join(", ")}: ${entry.talkDescription}`;
+      })
       .join("\n");
   }
 

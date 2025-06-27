@@ -80,11 +80,16 @@ describe("InputService", () => {
     it("should return the speakers", () => {
       coreServiceMock.getInput
         .calledWith(InputNames.Speakers)
-        .mockReturnValue('["speaker1", "speaker2"]');
+        .mockReturnValue(
+          '[{"name": "speaker1", "url": "https://example.com/speaker1"}, {"name": "speaker2", "url": "https://example.com/speaker2"}]'
+        );
 
       const result = service.getSpeakers();
 
-      expect(result).toEqual(["speaker1", "speaker2"]);
+      expect(result).toEqual([
+        { name: "speaker1", url: "https://example.com/speaker1" },
+        { name: "speaker2", url: "https://example.com/speaker2" },
+      ]);
       expect(coreServiceMock.getInput).toHaveBeenCalledWith(InputNames.Speakers, {
         required: true,
       });
@@ -102,12 +107,26 @@ describe("InputService", () => {
       expect(() => service.getSpeakers()).toThrow('"speakers" input must not be empty');
     });
 
-    it("should throw an error if the speakers input is not an array of strings", () => {
+    it("should throw an error if the speakers input is not an array of valid objects", () => {
       coreServiceMock.getInput.calledWith(InputNames.Speakers).mockReturnValue("[1]");
 
-      expect(() => service.getSpeakers()).toThrow(
-        '"speakers" input value "1" (number) must be of string'
-      );
+      expect(() => service.getSpeakers()).toThrow('"speakers" input value "1" must be an object');
+    });
+
+    it("should throw an error if the speakers input objects are missing name property", () => {
+      coreServiceMock.getInput
+        .calledWith(InputNames.Speakers)
+        .mockReturnValue('[{"url": "https://example.com"}]');
+
+      expect(() => service.getSpeakers()).toThrow('must have a "name" property of type string');
+    });
+
+    it("should throw an error if the speakers input objects are missing url property", () => {
+      coreServiceMock.getInput
+        .calledWith(InputNames.Speakers)
+        .mockReturnValue('[{"name": "speaker1"}]');
+
+      expect(() => service.getSpeakers()).toThrow('must have a "url" property of type string');
     });
   });
 

@@ -30432,12 +30432,15 @@ const input_service_1 = __nccwpck_require__(2301);
 let AgendaLinterAdapter = class AgendaLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     static { AgendaLinterAdapter_1 = this; }
     inputService;
-    static AGENDA_LINE_REGEX = /^- ([^:]+): (.+)$/;
+    static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
+    static SPEAKER_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
     speakers;
+    speakerNameToUrl;
     constructor(inputService) {
         super();
         this.inputService = inputService;
         this.speakers = this.inputService.getSpeakers();
+        this.speakerNameToUrl = new Map(this.speakers.map((speaker) => [speaker.name, speaker.url]));
     }
     async lint(meetupIssue, shouldFix) {
         const result = await super.lint(meetupIssue, shouldFix);
@@ -30482,12 +30485,13 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abtract_zod_linter_a
             ]);
         }
         const [, speakers, talkDescription] = matches;
-        const speakerList = speakers.split(",").map((s) => s.trim());
+        // Extract speaker names from potentially linked text
+        const speakerList = this.extractSpeakerNames(speakers);
         for (const speaker of speakerList) {
             if (!speaker.length) {
                 throw new lint_error_1.LintError([this.getLintErrorMessage("Speaker must not be empty")]);
             }
-            if (!this.speakers.includes(speaker)) {
+            if (!this.speakerNameToUrl.has(speaker)) {
                 throw new lint_error_1.LintError([
                     this.getLintErrorMessage(`Speaker "${speaker}" is not in the list of speakers`),
                 ]);
@@ -30498,9 +30502,21 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abtract_zod_linter_a
             talkDescription: talkDescription.trim(),
         };
     }
+    extractSpeakerNames(speakersText) {
+        // Replace linked speakers with their display text
+        const cleanedText = speakersText.replace(AgendaLinterAdapter_1.SPEAKER_LINK_REGEX, "$1");
+        return cleanedText.split(",").map((s) => s.trim());
+    }
     formatAgenda(agendaEntries) {
+        // Format each agenda entry with linked speakers using provided URLs
         return agendaEntries
-            .map((entry) => `- ${entry.speakers.join(", ")}: ${entry.talkDescription}`)
+            .map((entry) => {
+            const formattedSpeakers = entry.speakers.map((speaker) => {
+                const url = this.speakerNameToUrl.get(speaker);
+                return url ? `[${speaker}](${url})` : speaker;
+            });
+            return `- ${formattedSpeakers.join(", ")}: ${entry.talkDescription}`;
+        })
             .join("\n");
     }
     getValidator() {
@@ -31206,7 +31222,28 @@ let InputService = class InputService {
         return this.getNonEmptyArrayOfStringsInput(InputNames.Hosters);
     }
     getSpeakers() {
-        return this.getNonEmptyArrayOfStringsInput(InputNames.Speakers);
+        const inputValue = this.coreService.getInput(InputNames.Speakers, {
+            required: true,
+        });
+        const parsedInput = JSON.parse(inputValue);
+        if (!Array.isArray(parsedInput)) {
+            throw new Error(`"${InputNames.Speakers}" input must be an array`);
+        }
+        if (parsedInput.length === 0) {
+            throw new Error(`"${InputNames.Speakers}" input must not be empty`);
+        }
+        for (const parsedInputValue of parsedInput) {
+            if (typeof parsedInputValue !== "object" || parsedInputValue === null) {
+                throw new Error(`"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must be an object`);
+            }
+            if (typeof parsedInputValue.name !== "string") {
+                throw new Error(`"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "name" property of type string`);
+            }
+            if (typeof parsedInputValue.url !== "string") {
+                throw new Error(`"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "url" property of type string`);
+            }
+        }
+        return parsedInput;
     }
     getShouldFix() {
         return this.coreService.getBooleanInput(InputNames.ShouldFix);

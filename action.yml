@@ -18,7 +18,7 @@ inputs:
     required: true
   speakers:
     description: |
-      JSON List of speakers to update. Example: ["Speaker One", "Speaker 2"]
+      JSON List of speakers with name and URL. Example: [{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]
     required: true
   should-fix:
     description: "Whether to fix the issue or not."
