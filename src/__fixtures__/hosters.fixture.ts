@@ -1,3 +1,8 @@
-export function getHostersFixture(): [string, ...string[]] {
-  return ["Hoster 1", "Hoster 2"];
+import { HosterWithUrl } from "../services/input.service";
+
+export function getHostersFixture(): [HosterWithUrl, ...HosterWithUrl[]] {
+  return [
+    { name: "Hoster 1", url: "https://example.com/hoster1" },
+    { name: "Hoster 2", url: "https://example.com/hoster2" },
+  ];
 }

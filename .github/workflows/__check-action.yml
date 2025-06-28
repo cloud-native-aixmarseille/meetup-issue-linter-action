@@ -43,7 +43,7 @@ jobs:
         with:
           issue-number: ${{ env.TEST_VALID_ISSUE_NUMBER }}
           issue-parsed-body: ${{ steps.parser.outputs.json }}
-          hosters: '["Hoster Test One", "Hoster Test Two"]'
+          hosters: '[{"name": "Hoster Test One", "url": "https://example.com/hoster1"}, {"name": "Hoster Test Two", "url": "https://example.com/hoster2"}]'
           speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -86,7 +86,7 @@ jobs:
         with:
           issue-number: ${{ env.TEST_INVALID_ISSUE_NUMBER }}
           issue-parsed-body: ${{ steps.parser.outputs.json }}
-          hosters: '["Hoster Test One", "Hoster Test Two"]'
+          hosters: '[{"name": "Hoster Test One", "url": "https://example.com/hoster1"}, {"name": "Hoster Test Two", "url": "https://example.com/hoster2"}]'
           speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
           fail-on-error: false
@@ -101,7 +101,7 @@ jobs:
 
           EXPECTED_LINT_ISSUES=$(cat <<EOF
           Title: Invalid, expected "[Meetup] - 2025-01-01 - Test Invalid Issue"
-          Hoster: Must be an existing hoster at index 0
+          Hoster: "Wrong Hoster" is not an existing hoster
           Event Description: Required
           Agenda: Speaker "Wrong Speaker" is not in the list of speakers
           Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker(s)>: <talk_description>"

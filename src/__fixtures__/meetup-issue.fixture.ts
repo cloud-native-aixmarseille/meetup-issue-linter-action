@@ -12,7 +12,7 @@ export function getMeetupIssueFixture(override?: Partial<MeetupIssue>): MeetupIs
     body: {
       event_date: "2021-12-31",
       event_title: "Meetup Event",
-      hoster: [getHostersFixture()[0]],
+      hoster: [getHostersFixture()[0].name],
       event_description: "Description",
       agenda:
         `- [${speakers[0].name}](https://example.com/speaker1): Talk description One\n` +

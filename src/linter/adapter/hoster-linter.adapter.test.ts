@@ -45,9 +45,10 @@ describe("HosterLinterAdapter", () => {
 
     it("should fail validation if the array has more than one item", async () => {
       // Arrange
+      const hosters = getHostersFixture();
       const invalidMeetupIssue = getMeetupIssueFixture({
         body: {
-          hoster: getHostersFixture(),
+          hoster: [hosters[0].name, hosters[1].name],
         },
       });
 
@@ -67,10 +68,60 @@ describe("HosterLinterAdapter", () => {
       });
 
       // Act & Assert
-      const expectedError = new LintError(["Hoster: Must be an existing hoster at index 0"]);
+      const expectedError = new LintError(['Hoster: "invalidHoster" is not an existing hoster']);
       await expect(() => hosterLinterAdapter.lint(invalidMeetupIssue, false)).rejects.toStrictEqual(
         expectedError
       );
+    });
+
+    it("should add links to hoster when shouldFix is true", async () => {
+      // Arrange
+      const hosters = getHostersFixture();
+
+      const meetupIssue = getMeetupIssueFixture({
+        body: {
+          hoster: [hosters[0].name], // Plain name without link
+        },
+      });
+      const shouldFix = true;
+
+      // Act
+      const result = await hosterLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
+      expect(result.body.hoster).toEqual([`[${hosters[0].name}](${hosters[0].url})`]);
+    });
+
+    it("should handle mixed scenarios with hoster having link and without link", async () => {
+      // Arrange
+      const hosters = getHostersFixture();
+
+      // Test with hoster that already has a link
+      const meetupIssueWithLink = getMeetupIssueFixture({
+        body: {
+          hoster: [`[${hosters[0].name}](${hosters[0].url})`], // Already has link
+        },
+      });
+      const shouldFix = false;
+
+      // Act
+      const resultWithLink = await hosterLinterAdapter.lint(meetupIssueWithLink, shouldFix);
+
+      // Assert - should add link even when shouldFix is false if it doesn't have one
+      expect(resultWithLink.body.hoster).toEqual([`[${hosters[0].name}](${hosters[0].url})`]);
+
+      // Test with hoster that doesn't have a link
+      const meetupIssueWithoutLink = getMeetupIssueFixture({
+        body: {
+          hoster: [hosters[0].name], // Plain name without link
+        },
+      });
+
+      // Act
+      const resultWithoutLink = await hosterLinterAdapter.lint(meetupIssueWithoutLink, shouldFix);
+
+      // Assert - should add link even when shouldFix is false if it doesn't have one
+      expect(resultWithoutLink.body.hoster).toEqual([`[${hosters[0].name}](${hosters[0].url})`]);
     });
   });
 });
