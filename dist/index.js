@@ -30325,6 +30325,82 @@ async function run() {
 
 /***/ }),
 
+/***/ 881:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AbstractEntityLinkLinterAdapter = void 0;
+const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
+/**
+ * Abstract adapter for linting fields that contain entities with URLs.
+ * Provides common functionality for extracting names from markdown links,
+ * validating entities against a known list, and formatting entities with links.
+ */
+class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+    static LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
+    nameToUrl;
+    constructor(entities) {
+        super();
+        this.nameToUrl = new Map(entities.map((entity) => [entity.name, entity.url]));
+    }
+    /**
+     * Extracts entity names from text that may contain markdown links.
+     * @param text Text that may contain entities with or without markdown links
+     * @returns Array of entity names
+     */
+    extractEntityNames(text) {
+        // Replace linked entities with their display text
+        const cleanedText = text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
+        return cleanedText.split(",").map((name) => name.trim());
+    }
+    /**
+     * Checks if the given text contains a markdown link.
+     * @param text Text to check
+     * @returns True if text contains a markdown link
+     */
+    hasLink(text) {
+        return AbstractEntityLinkLinterAdapter.LINK_REGEX.test(text);
+    }
+    /**
+     * Extracts a single entity name from text that may contain a markdown link.
+     * @param text Text that may contain an entity with or without markdown link
+     * @returns Entity name
+     */
+    extractEntityName(text) {
+        return text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
+    }
+    /**
+     * Formats an entity name with its URL as a markdown link.
+     * @param entityName Name of the entity
+     * @returns Formatted markdown link or plain name if no URL found
+     */
+    formatEntityWithLink(entityName) {
+        const url = this.nameToUrl.get(entityName);
+        return url ? `[${entityName}](${url})` : entityName;
+    }
+    /**
+     * Validates that an entity name exists in the known list.
+     * @param entityName Name to validate
+     * @returns True if entity exists
+     */
+    isValidEntity(entityName) {
+        return this.nameToUrl.has(entityName);
+    }
+    /**
+     * Gets all valid entity names.
+     * @returns Array of valid entity names
+     */
+    getValidEntityNames() {
+        return Array.from(this.nameToUrl.keys());
+    }
+}
+exports.AbstractEntityLinkLinterAdapter = AbstractEntityLinkLinterAdapter;
+
+
+/***/ }),
+
 /***/ 2211:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -30426,21 +30502,19 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AgendaLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
+const abstract_entity_link_linter_adapter_1 = __nccwpck_require__(881);
 const lint_error_1 = __nccwpck_require__(4225);
 const input_service_1 = __nccwpck_require__(2301);
-let AgendaLinterAdapter = class AgendaLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+let AgendaLinterAdapter = class AgendaLinterAdapter extends abstract_entity_link_linter_adapter_1.AbstractEntityLinkLinterAdapter {
     static { AgendaLinterAdapter_1 = this; }
     inputService;
     static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
-    static SPEAKER_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
     speakers;
-    speakerNameToUrl;
     constructor(inputService) {
-        super();
+        const speakers = inputService.getSpeakers();
+        super(speakers);
         this.inputService = inputService;
-        this.speakers = this.inputService.getSpeakers();
-        this.speakerNameToUrl = new Map(this.speakers.map((speaker) => [speaker.name, speaker.url]));
+        this.speakers = speakers;
     }
     async lint(meetupIssue, shouldFix) {
         const result = await super.lint(meetupIssue, shouldFix);
@@ -30486,12 +30560,12 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abtract_zod_linter_a
         }
         const [, speakers, talkDescription] = matches;
         // Extract speaker names from potentially linked text
-        const speakerList = this.extractSpeakerNames(speakers);
+        const speakerList = this.extractEntityNames(speakers);
         for (const speaker of speakerList) {
             if (!speaker.length) {
                 throw new lint_error_1.LintError([this.getLintErrorMessage("Speaker must not be empty")]);
             }
-            if (!this.speakerNameToUrl.has(speaker)) {
+            if (!this.isValidEntity(speaker)) {
                 throw new lint_error_1.LintError([
                     this.getLintErrorMessage(`Speaker "${speaker}" is not in the list of speakers`),
                 ]);
@@ -30503,18 +30577,13 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abtract_zod_linter_a
         };
     }
     extractSpeakerNames(speakersText) {
-        // Replace linked speakers with their display text
-        const cleanedText = speakersText.replace(AgendaLinterAdapter_1.SPEAKER_LINK_REGEX, "$1");
-        return cleanedText.split(",").map((s) => s.trim());
+        return this.extractEntityNames(speakersText);
     }
     formatAgenda(agendaEntries) {
         // Format each agenda entry with linked speakers using provided URLs
         return agendaEntries
             .map((entry) => {
-            const formattedSpeakers = entry.speakers.map((speaker) => {
-                const url = this.speakerNameToUrl.get(speaker);
-                return url ? `[${speaker}](${url})` : speaker;
-            });
+            const formattedSpeakers = entry.speakers.map((speaker) => this.formatEntityWithLink(speaker));
             return `- ${formattedSpeakers.join(", ")}: ${entry.talkDescription}`;
         })
             .join("\n");
@@ -30729,20 +30798,42 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HosterLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
+const abstract_entity_link_linter_adapter_1 = __nccwpck_require__(881);
+const lint_error_1 = __nccwpck_require__(4225);
 const input_service_1 = __nccwpck_require__(2301);
-let HosterLinterAdapter = class HosterLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+let HosterLinterAdapter = class HosterLinterAdapter extends abstract_entity_link_linter_adapter_1.AbstractEntityLinkLinterAdapter {
     inputService;
     hosters;
     constructor(inputService) {
-        super();
+        const hosters = inputService.getHosters();
+        super(hosters);
         this.inputService = inputService;
-        this.hosters = this.inputService.getHosters();
+        this.hosters = hosters;
+    }
+    async lint(meetupIssue, shouldFix) {
+        const result = await super.lint(meetupIssue, shouldFix);
+        const hosterArray = result.body[this.getFieldName()];
+        if (!Array.isArray(hosterArray)) {
+            throw new lint_error_1.LintError([this.getLintErrorMessage("Must be an array")]);
+        }
+        if (hosterArray.length === 0) {
+            throw new lint_error_1.LintError([this.getLintErrorMessage("Must not be empty")]);
+        }
+        if (hosterArray.length > 1) {
+            throw new lint_error_1.LintError([this.getLintErrorMessage("Must have exactly one entry")]);
+        }
+        const hosterName = this.extractEntityName(hosterArray[0]);
+        if (!this.isValidEntity(hosterName)) {
+            throw new lint_error_1.LintError([this.getLintErrorMessage(`"${hosterName}" is not an existing hoster`)]);
+        }
+        // Format hoster with link if shouldFix is true or if it already doesn't have a link
+        if (shouldFix || !this.hasLink(hosterArray[0])) {
+            result.body[this.getFieldName()] = [this.formatEntityWithLink(hosterName)];
+        }
+        return result;
     }
     getValidator() {
-        return (0, zod_1.enum)(this.hosters, {
-            message: "Must be an existing hoster",
-        })
+        return (0, zod_1.string)()
             .array()
             .min(1, {
             message: "Must not be empty",
@@ -31219,31 +31310,10 @@ let InputService = class InputService {
         return JSON.parse(issueParsedBody);
     }
     getHosters() {
-        return this.getNonEmptyArrayOfStringsInput(InputNames.Hosters);
+        return this.getEntitiesWithUrl(InputNames.Hosters);
     }
     getSpeakers() {
-        const inputValue = this.coreService.getInput(InputNames.Speakers, {
-            required: true,
-        });
-        const parsedInput = JSON.parse(inputValue);
-        if (!Array.isArray(parsedInput)) {
-            throw new Error(`"${InputNames.Speakers}" input must be an array`);
-        }
-        if (parsedInput.length === 0) {
-            throw new Error(`"${InputNames.Speakers}" input must not be empty`);
-        }
-        for (const parsedInputValue of parsedInput) {
-            if (typeof parsedInputValue !== "object" || parsedInputValue === null) {
-                throw new Error(`"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must be an object`);
-            }
-            if (typeof parsedInputValue.name !== "string") {
-                throw new Error(`"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "name" property of type string`);
-            }
-            if (typeof parsedInputValue.url !== "string") {
-                throw new Error(`"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "url" property of type string`);
-            }
-        }
-        return parsedInput;
+        return this.getEntitiesWithUrl(InputNames.Speakers);
     }
     getShouldFix() {
         return this.coreService.getBooleanInput(InputNames.ShouldFix);
@@ -31255,6 +31325,30 @@ let InputService = class InputService {
         return this.coreService.getInput(InputNames.GithubToken, {
             required: true,
         });
+    }
+    getEntitiesWithUrl(inputName) {
+        const inputValue = this.coreService.getInput(inputName, {
+            required: true,
+        });
+        const parsedInput = JSON.parse(inputValue);
+        if (!Array.isArray(parsedInput)) {
+            throw new Error(`"${inputName}" input must be an array`);
+        }
+        if (parsedInput.length === 0) {
+            throw new Error(`"${inputName}" input must not be empty`);
+        }
+        for (const parsedInputValue of parsedInput) {
+            if (typeof parsedInputValue !== "object" || parsedInputValue === null) {
+                throw new Error(`"${inputName}" input value "${JSON.stringify(parsedInputValue)}" (${typeof parsedInputValue}) must be an object`);
+            }
+            if (typeof parsedInputValue.name !== "string") {
+                throw new Error(`"${inputName}" input value "${JSON.stringify(parsedInputValue)}" must have a "name" property of type string`);
+            }
+            if (typeof parsedInputValue.url !== "string") {
+                throw new Error(`"${inputName}" input value "${JSON.stringify(parsedInputValue)}" must have a "url" property of type string`);
+            }
+        }
+        return parsedInput;
     }
     getNonEmptyArrayOfStringsInput(inputName) {
         const inputValue = this.coreService.getInput(inputName, {

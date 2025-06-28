@@ -45,11 +45,16 @@ describe("InputService", () => {
     it("should return the hosters", () => {
       coreServiceMock.getInput
         .calledWith(InputNames.Hosters)
-        .mockReturnValue('["hoster1", "hoster2"]');
+        .mockReturnValue(
+          '[{"name": "hoster1", "url": "https://example.com/hoster1"}, {"name": "hoster2", "url": "https://example.com/hoster2"}]'
+        );
 
       const result = service.getHosters();
 
-      expect(result).toEqual(["hoster1", "hoster2"]);
+      expect(result).toEqual([
+        { name: "hoster1", url: "https://example.com/hoster1" },
+        { name: "hoster2", url: "https://example.com/hoster2" },
+      ]);
       expect(coreServiceMock.getInput).toHaveBeenCalledWith(InputNames.Hosters, {
         required: true,
       });
@@ -67,12 +72,28 @@ describe("InputService", () => {
       expect(() => service.getHosters()).toThrow('"hosters" input must not be empty');
     });
 
-    it("should throw an error if the hosters input is not an array of strings", () => {
+    it("should throw an error if the hosters input is not an array of valid objects", () => {
       coreServiceMock.getInput.calledWith(InputNames.Hosters).mockReturnValue("[1]");
 
       expect(() => service.getHosters()).toThrow(
-        '"hosters" input value "1" (number) must be of string'
+        '"hosters" input value "1" (number) must be an object'
       );
+    });
+
+    it("should throw an error if the hosters input objects are missing name property", () => {
+      coreServiceMock.getInput
+        .calledWith(InputNames.Hosters)
+        .mockReturnValue('[{"url": "https://example.com"}]');
+
+      expect(() => service.getHosters()).toThrow('must have a "name" property of type string');
+    });
+
+    it("should throw an error if the hosters input objects are missing url property", () => {
+      coreServiceMock.getInput
+        .calledWith(InputNames.Hosters)
+        .mockReturnValue('[{"name": "hoster1"}]');
+
+      expect(() => service.getHosters()).toThrow('must have a "url" property of type string');
     });
   });
 
@@ -110,7 +131,9 @@ describe("InputService", () => {
     it("should throw an error if the speakers input is not an array of valid objects", () => {
       coreServiceMock.getInput.calledWith(InputNames.Speakers).mockReturnValue("[1]");
 
-      expect(() => service.getSpeakers()).toThrow('"speakers" input value "1" must be an object');
+      expect(() => service.getSpeakers()).toThrow(
+        '"speakers" input value "1" (number) must be an object'
+      );
     });
 
     it("should throw an error if the speakers input objects are missing name property", () => {

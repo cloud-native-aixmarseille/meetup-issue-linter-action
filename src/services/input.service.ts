@@ -18,7 +18,18 @@ export type SpeakerWithUrl = {
   url: string;
 };
 
+export type HosterWithUrl = {
+  name: string;
+  url: string;
+};
+
+type EntityWithUrl = {
+  name: string;
+  url: string;
+};
+
 type NonEmptyArrayOfSpeakers = [SpeakerWithUrl, ...SpeakerWithUrl[]];
+type NonEmptyArrayOfHosters = [HosterWithUrl, ...HosterWithUrl[]];
 
 @injectable()
 export class InputService {
@@ -40,46 +51,12 @@ export class InputService {
     return JSON.parse(issueParsedBody);
   }
 
-  getHosters(): NonEmptyArrayOfStrings {
-    return this.getNonEmptyArrayOfStringsInput(InputNames.Hosters);
+  getHosters(): NonEmptyArrayOfHosters {
+    return this.getEntitiesWithUrl(InputNames.Hosters) as NonEmptyArrayOfHosters;
   }
 
   getSpeakers(): NonEmptyArrayOfSpeakers {
-    const inputValue = this.coreService.getInput(InputNames.Speakers, {
-      required: true,
-    });
-
-    const parsedInput = JSON.parse(inputValue);
-
-    if (!Array.isArray(parsedInput)) {
-      throw new Error(`"${InputNames.Speakers}" input must be an array`);
-    }
-
-    if (parsedInput.length === 0) {
-      throw new Error(`"${InputNames.Speakers}" input must not be empty`);
-    }
-
-    for (const parsedInputValue of parsedInput) {
-      if (typeof parsedInputValue !== "object" || parsedInputValue === null) {
-        throw new Error(
-          `"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must be an object`
-        );
-      }
-
-      if (typeof parsedInputValue.name !== "string") {
-        throw new Error(
-          `"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "name" property of type string`
-        );
-      }
-
-      if (typeof parsedInputValue.url !== "string") {
-        throw new Error(
-          `"${InputNames.Speakers}" input value "${JSON.stringify(parsedInputValue)}" must have a "url" property of type string`
-        );
-      }
-    }
-
-    return parsedInput as NonEmptyArrayOfSpeakers;
+    return this.getEntitiesWithUrl(InputNames.Speakers) as NonEmptyArrayOfSpeakers;
   }
 
   getShouldFix(): boolean {
@@ -94,6 +71,44 @@ export class InputService {
     return this.coreService.getInput(InputNames.GithubToken, {
       required: true,
     });
+  }
+
+  private getEntitiesWithUrl(inputName: InputNames): EntityWithUrl[] {
+    const inputValue = this.coreService.getInput(inputName, {
+      required: true,
+    });
+
+    const parsedInput = JSON.parse(inputValue);
+
+    if (!Array.isArray(parsedInput)) {
+      throw new Error(`"${inputName}" input must be an array`);
+    }
+
+    if (parsedInput.length === 0) {
+      throw new Error(`"${inputName}" input must not be empty`);
+    }
+
+    for (const parsedInputValue of parsedInput) {
+      if (typeof parsedInputValue !== "object" || parsedInputValue === null) {
+        throw new Error(
+          `"${inputName}" input value "${JSON.stringify(parsedInputValue)}" (${typeof parsedInputValue}) must be an object`
+        );
+      }
+
+      if (typeof parsedInputValue.name !== "string") {
+        throw new Error(
+          `"${inputName}" input value "${JSON.stringify(parsedInputValue)}" must have a "name" property of type string`
+        );
+      }
+
+      if (typeof parsedInputValue.url !== "string") {
+        throw new Error(
+          `"${inputName}" input value "${JSON.stringify(parsedInputValue)}" must have a "url" property of type string`
+        );
+      }
+    }
+
+    return parsedInput as EntityWithUrl[];
   }
 
   private getNonEmptyArrayOfStringsInput(inputName: InputNames): NonEmptyArrayOfStrings {

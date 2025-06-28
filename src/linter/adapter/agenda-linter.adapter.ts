@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { string } from "zod";
-import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
+import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter";
 import { MeetupIssue } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
 import { InputService, SpeakerWithUrl } from "../../services/input.service";
@@ -11,18 +11,16 @@ type AgendaEntry = {
 };
 
 @injectable()
-export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
+export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter {
   private static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
-  private static SPEAKER_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
 
   private readonly speakers: [SpeakerWithUrl, ...SpeakerWithUrl[]];
-  private readonly speakerNameToUrl: Map<string, string>;
 
   constructor(private readonly inputService: InputService) {
-    super();
+    const speakers = inputService.getSpeakers();
+    super(speakers);
 
-    this.speakers = this.inputService.getSpeakers();
-    this.speakerNameToUrl = new Map(this.speakers.map((speaker) => [speaker.name, speaker.url]));
+    this.speakers = speakers;
   }
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
@@ -81,14 +79,14 @@ export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
     const [, speakers, talkDescription] = matches;
 
     // Extract speaker names from potentially linked text
-    const speakerList = this.extractSpeakerNames(speakers);
+    const speakerList = this.extractEntityNames(speakers);
 
     for (const speaker of speakerList) {
       if (!speaker.length) {
         throw new LintError([this.getLintErrorMessage("Speaker must not be empty")]);
       }
 
-      if (!this.speakerNameToUrl.has(speaker)) {
+      if (!this.isValidEntity(speaker)) {
         throw new LintError([
           this.getLintErrorMessage(`Speaker "${speaker}" is not in the list of speakers`),
         ]);
@@ -102,19 +100,16 @@ export class AgendaLinterAdapter extends AbstractZodLinterAdapter {
   }
 
   private extractSpeakerNames(speakersText: string): string[] {
-    // Replace linked speakers with their display text
-    const cleanedText = speakersText.replace(AgendaLinterAdapter.SPEAKER_LINK_REGEX, "$1");
-    return cleanedText.split(",").map((s) => s.trim());
+    return this.extractEntityNames(speakersText);
   }
 
   private formatAgenda(agendaEntries: AgendaEntry[]): string {
     // Format each agenda entry with linked speakers using provided URLs
     return agendaEntries
       .map((entry) => {
-        const formattedSpeakers = entry.speakers.map((speaker) => {
-          const url = this.speakerNameToUrl.get(speaker);
-          return url ? `[${speaker}](${url})` : speaker;
-        });
+        const formattedSpeakers = entry.speakers.map((speaker) =>
+          this.formatEntityWithLink(speaker)
+        );
         return `- ${formattedSpeakers.join(", ")}: ${entry.talkDescription}`;
       })
       .join("\n");
