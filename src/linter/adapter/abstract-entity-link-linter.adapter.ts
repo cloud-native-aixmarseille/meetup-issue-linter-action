@@ -1,5 +1,5 @@
 import { MeetupIssueService } from "../../services/meetup-issue.service";
-import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
+import { AbstractZodLinterAdapter } from "./abstract-zod-linter.adapter";
 import { inject, injectable, injectFromBase, unmanaged } from "inversify";
 
 export type EntityWithUrl = {

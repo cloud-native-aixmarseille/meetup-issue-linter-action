@@ -1,6 +1,6 @@
 import { injectable, injectFromBase } from "inversify";
 import { string } from "zod";
-import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
+import { AbstractZodLinterAdapter } from "./abstract-zod-linter.adapter";
 
 @injectable()
 @injectFromBase({

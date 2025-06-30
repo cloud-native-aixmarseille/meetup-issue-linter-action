@@ -15,6 +15,9 @@ describe("run", () => {
   let coreServiceMock: MockProxy<CoreService>;
   let githubServiceMock: MockProxy<GitHubService>;
 
+  const hosters = getHostersFixture();
+  const speakers = getSpeakersFixture();
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -35,11 +38,8 @@ describe("run", () => {
     inputServiceMock.getIssueNumber.mockReturnValue(1);
     inputServiceMock.getShouldFix.mockReturnValue(true);
     inputServiceMock.getFailOnError.mockReturnValue(false);
-
-    const hosters = getHostersFixture();
     inputServiceMock.getHosters.mockReturnValue(hosters);
 
-    const speakers = getSpeakersFixture();
     inputServiceMock.getSpeakers.mockReturnValue(speakers);
   });
 
@@ -47,7 +47,7 @@ describe("run", () => {
     container.restore();
   });
 
-  it("should lint given issue", async () => {
+  it("should lint given valid issue and succeed", async () => {
     // Arrange
     const meetupIssue = getMeetupIssueFixture();
     inputServiceMock.getIssueParsedBody.mockReturnValue(meetupIssue.parsedBody);
@@ -68,6 +68,41 @@ describe("run", () => {
     expect(coreServiceMock.info).toHaveBeenCalledWith("Issue linted successfully.");
 
     expect(coreServiceMock.setOutput).not.toHaveBeenCalled();
+    expect(githubServiceMock.updateIssue).not.toHaveBeenCalled();
+
+    expect(setFailedMock).not.toHaveBeenCalled();
+  });
+
+  it("should lint given issue, fix it and succeed", async () => {
+    // Arrange
+    const meetupIssue = getMeetupIssueFixture();
+    inputServiceMock.getIssueParsedBody.mockReturnValue({
+      ...meetupIssue.parsedBody,
+      hoster: [hosters[1].name], // This will trigger a fix
+      cncf_link:
+        "https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event/",
+    });
+
+    githubServiceMock.getIssue.mockResolvedValue({
+      number: meetupIssue.number,
+      title: "", // Title will be updated
+      labels: meetupIssue.labels,
+      body: meetupIssue.body,
+    });
+
+    // Act
+    await indexRunner.run();
+
+    // Assert
+    expect(coreServiceMock.debug).toHaveBeenCalledWith("Issue number: 1");
+    expect(coreServiceMock.info).toHaveBeenCalledWith("Start linting issue 1...");
+    expect(coreServiceMock.info).toHaveBeenCalledWith("Issue linted successfully.");
+    expect(coreServiceMock.setOutput).not.toHaveBeenCalled();
+
+    expect(githubServiceMock.updateIssue).toHaveBeenCalledWith(1, {
+      title: "[Meetup] - 2021-12-31 - December - Meetup Event",
+      body: expect.stringContaining(`### Hoster\n\n[${hosters[1].name}](${hosters[1].url})`),
+    });
 
     expect(setFailedMock).not.toHaveBeenCalled();
   });

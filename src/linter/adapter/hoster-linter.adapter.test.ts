@@ -53,9 +53,10 @@ describe("HosterLinterAdapter", () => {
       // Arrange
       const invalidMeetupIssue = getMeetupIssueFixture({
         parsedBody: {
-          hoster: hoster,
+          hoster,
         },
       });
+
       const shouldFix = false;
 
       // Act & Assert
@@ -90,40 +91,25 @@ describe("HosterLinterAdapter", () => {
       expect(result.parsedBody.hoster).toEqual([`[${hosters[0].name}](${hosters[0].url})`]);
     });
 
-    it("should handle mixed scenarios with hoster having link and without link", async () => {
+    it("should be idempotent for hoster having link", async () => {
       // Arrange
       const hosters = getHostersFixture();
+      const hoster = `[${hosters[0].name}](${hosters[0].url})`; // Hoster with link
 
       // Test with hoster that already has a link
       const meetupIssueWithLink = getMeetupIssueFixture({
         parsedBody: {
-          hoster: [`[${hosters[0].name}](${hosters[0].url})`], // Already has link
+          hoster: [hoster],
         },
       });
-      const shouldFix = false;
+      const shouldFix = true;
 
       // Act
       const resultWithLink = await hosterLinterAdapter.lint(meetupIssueWithLink, shouldFix);
 
       // Assert - should add link even when shouldFix is false if it doesn't have one
       expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
-      expect(resultWithLink.parsedBody.hoster).toEqual([`[${hosters[0].name}](${hosters[0].url})`]);
-
-      // Test with hoster that doesn't have a link
-      const meetupIssueWithoutLink = getMeetupIssueFixture({
-        parsedBody: {
-          hoster: [hosters[0].name], // Plain name without link
-        },
-      });
-
-      // Act
-      const resultWithoutLink = await hosterLinterAdapter.lint(meetupIssueWithoutLink, shouldFix);
-
-      // Assert - should add link even when shouldFix is false if it doesn't have one
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
-      expect(resultWithoutLink.parsedBody.hoster).toEqual([
-        `[${hosters[0].name}](${hosters[0].url})`,
-      ]);
+      expect(resultWithLink.parsedBody.hoster).toEqual([hoster]);
     });
   });
 

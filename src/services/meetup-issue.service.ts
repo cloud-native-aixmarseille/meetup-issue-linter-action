@@ -76,6 +76,10 @@ export class MeetupIssueService {
       assignFieldIfChanged(field, originalIssue[field], updatedIssue[field]);
     }
 
+    if (Object.keys(issueFieldsToUpdate).length === 0) {
+      return;
+    }
+
     await this.githubService.updateIssue(originalIssue.number, issueFieldsToUpdate);
   }
 

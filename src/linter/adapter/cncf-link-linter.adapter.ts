@@ -1,7 +1,10 @@
-import { injectable } from "inversify";
+import { injectable, injectFromBase } from "inversify";
 import { AbstractLinkLinterAdapter } from "./abstract-link-linter.adapter";
 
 @injectable()
+@injectFromBase({
+  extendConstructorArguments: true,
+})
 export class CNCFLinkLinterAdapter extends AbstractLinkLinterAdapter {
   private static readonly CNCF_LINK_REGEX =
     /^https:\/\/community\.cncf\.io\/events\/details\/cncf-cloud-native-aix-marseille-presents-[0-9a-z-]+\/?$/;
