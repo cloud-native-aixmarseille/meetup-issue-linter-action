@@ -1,8 +1,11 @@
-import { injectable } from "inversify";
+import { injectable, injectFromBase } from "inversify";
 import { string } from "zod";
 import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
 
 @injectable()
+@injectFromBase({
+  extendConstructorArguments: true,
+})
 export class EventTitleLinterAdapter extends AbstractZodLinterAdapter {
   protected getValidator() {
     return string().nonempty({

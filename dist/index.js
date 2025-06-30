@@ -30248,7 +30248,7 @@ const labels_linter_adapter_1 = __nccwpck_require__(7139);
 const container = new inversify_1.Container();
 exports.container = container;
 container.bind(core_service_1.CORE_SERVICE_IDENTIFIER).toConstantValue(core_service_1.coreService);
-container.bind(github_service_1.GithubService).toSelf();
+container.bind(github_service_1.GitHubService).toSelf();
 container.bind(input_service_1.InputService).toSelf();
 container.bind(linter_service_1.LinterService).toSelf();
 container.bind(logger_service_1.LoggerService).toSelf();
@@ -30328,19 +30328,35 @@ async function run() {
 /***/ }),
 
 /***/ 881:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var AbstractEntityLinkLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AbstractEntityLinkLinterAdapter = void 0;
+const meetup_issue_service_1 = __nccwpck_require__(9759);
 const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
+const inversify_1 = __nccwpck_require__(4871);
 /**
  * Abstract adapter for linting fields that contain entities with URLs.
  * Provides common functionality for extracting names from markdown links,
  * validating entities against a known list, and formatting entities with links.
  */
-class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+let AbstractEntityLinkLinterAdapter = class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+    static { AbstractEntityLinkLinterAdapter_1 = this; }
     static LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
     nameToUrl;
     constructor(meetupIssueService, entities) {
@@ -30354,7 +30370,7 @@ class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.Abstr
      */
     extractEntityNames(text) {
         // Replace linked entities with their display text
-        const cleanedText = text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
+        const cleanedText = text.replace(AbstractEntityLinkLinterAdapter_1.LINK_REGEX, "$1");
         return cleanedText.split(",").map((name) => name.trim());
     }
     /**
@@ -30363,7 +30379,7 @@ class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.Abstr
      * @returns True if text contains a markdown link
      */
     hasLink(text) {
-        return AbstractEntityLinkLinterAdapter.LINK_REGEX.test(text);
+        return AbstractEntityLinkLinterAdapter_1.LINK_REGEX.test(text);
     }
     /**
      * Extracts a single entity name from text that may contain a markdown link.
@@ -30371,7 +30387,7 @@ class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.Abstr
      * @returns Entity name
      */
     extractEntityName(text) {
-        return text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
+        return text.replace(AbstractEntityLinkLinterAdapter_1.LINK_REGEX, "$1");
     }
     /**
      * Formats an entity name with its URL as a markdown link.
@@ -30390,8 +30406,17 @@ class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.Abstr
     isValidEntity(entityName) {
         return this.nameToUrl.has(entityName);
     }
-}
+};
 exports.AbstractEntityLinkLinterAdapter = AbstractEntityLinkLinterAdapter;
+exports.AbstractEntityLinkLinterAdapter = AbstractEntityLinkLinterAdapter = AbstractEntityLinkLinterAdapter_1 = __decorate([
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    }),
+    __param(0, (0, inversify_1.inject)(meetup_issue_service_1.MeetupIssueService)),
+    __param(1, (0, inversify_1.unmanaged)()),
+    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService, Array])
+], AbstractEntityLinkLinterAdapter);
 
 
 /***/ }),
@@ -30426,23 +30451,39 @@ let AbstractLinkLinterAdapter = class AbstractLinkLinterAdapter extends abtract_
 };
 exports.AbstractLinkLinterAdapter = AbstractLinkLinterAdapter;
 exports.AbstractLinkLinterAdapter = AbstractLinkLinterAdapter = __decorate([
-    (0, inversify_1.injectable)()
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    })
 ], AbstractLinkLinterAdapter);
 
 
 /***/ }),
 
 /***/ 4053:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AbstractZodLinterAdapter = void 0;
 const zod_validation_error_1 = __nccwpck_require__(4042);
 const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
-class AbstractZodLinterAdapter {
+const inversify_1 = __nccwpck_require__(4871);
+let AbstractZodLinterAdapter = class AbstractZodLinterAdapter {
     meetupIssueService;
     constructor(meetupIssueService) {
         this.meetupIssueService = meetupIssueService;
@@ -30476,8 +30517,13 @@ class AbstractZodLinterAdapter {
     getDependencies() {
         return [];
     }
-}
+};
 exports.AbstractZodLinterAdapter = AbstractZodLinterAdapter;
+exports.AbstractZodLinterAdapter = AbstractZodLinterAdapter = __decorate([
+    (0, inversify_1.injectable)(),
+    __param(0, (0, inversify_1.inject)(meetup_issue_service_1.MeetupIssueService)),
+    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService])
+], AbstractZodLinterAdapter);
 
 
 /***/ }),
@@ -30495,6 +30541,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
 };
 var AgendaLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
@@ -30598,7 +30647,13 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abstract_entity_link
 exports.AgendaLinterAdapter = AgendaLinterAdapter;
 exports.AgendaLinterAdapter = AgendaLinterAdapter = AgendaLinterAdapter_1 = __decorate([
     (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService, input_service_1.InputService])
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    }),
+    __param(0, (0, inversify_1.inject)(meetup_issue_service_1.MeetupIssueService)),
+    __param(1, (0, inversify_1.inject)(input_service_1.InputService)),
+    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService,
+        input_service_1.InputService])
 ], AgendaLinterAdapter);
 
 
@@ -30672,7 +30727,10 @@ let DriveLinkLinterAdapter = class DriveLinkLinterAdapter extends abstract_link_
 };
 exports.DriveLinkLinterAdapter = DriveLinkLinterAdapter;
 exports.DriveLinkLinterAdapter = DriveLinkLinterAdapter = DriveLinkLinterAdapter_1 = __decorate([
-    (0, inversify_1.injectable)()
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    })
 ], DriveLinkLinterAdapter);
 
 
@@ -30704,7 +30762,10 @@ let EventDateLinterAdapter = class EventDateLinterAdapter extends abtract_zod_li
 };
 exports.EventDateLinterAdapter = EventDateLinterAdapter;
 exports.EventDateLinterAdapter = EventDateLinterAdapter = __decorate([
-    (0, inversify_1.injectable)()
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    })
 ], EventDateLinterAdapter);
 
 
@@ -30738,7 +30799,10 @@ let EventDescriptionLinterAdapter = class EventDescriptionLinterAdapter extends 
 };
 exports.EventDescriptionLinterAdapter = EventDescriptionLinterAdapter;
 exports.EventDescriptionLinterAdapter = EventDescriptionLinterAdapter = __decorate([
-    (0, inversify_1.injectable)()
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    })
 ], EventDescriptionLinterAdapter);
 
 
@@ -30772,7 +30836,10 @@ let EventTitleLinterAdapter = class EventTitleLinterAdapter extends abtract_zod_
 };
 exports.EventTitleLinterAdapter = EventTitleLinterAdapter;
 exports.EventTitleLinterAdapter = EventTitleLinterAdapter = __decorate([
-    (0, inversify_1.injectable)()
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    })
 ], EventTitleLinterAdapter);
 
 
@@ -30791,6 +30858,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HosterLinterAdapter = void 0;
@@ -30835,7 +30905,13 @@ let HosterLinterAdapter = class HosterLinterAdapter extends abstract_entity_link
 exports.HosterLinterAdapter = HosterLinterAdapter;
 exports.HosterLinterAdapter = HosterLinterAdapter = __decorate([
     (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService, input_service_1.InputService])
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    }),
+    __param(0, (0, inversify_1.inject)(meetup_issue_service_1.MeetupIssueService)),
+    __param(1, (0, inversify_1.inject)(input_service_1.InputService)),
+    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService,
+        input_service_1.InputService])
 ], HosterLinterAdapter);
 
 
@@ -30959,7 +31035,10 @@ let MeetupLinkLinterAdapter = class MeetupLinkLinterAdapter extends abstract_lin
 };
 exports.MeetupLinkLinterAdapter = MeetupLinkLinterAdapter;
 exports.MeetupLinkLinterAdapter = MeetupLinkLinterAdapter = MeetupLinkLinterAdapter_1 = __decorate([
-    (0, inversify_1.injectable)()
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    })
 ], MeetupLinkLinterAdapter);
 
 
@@ -31126,6 +31205,7 @@ exports.LinterService = LinterService;
 exports.LinterService = LinterService = __decorate([
     (0, inversify_1.injectable)(),
     __param(0, (0, inversify_1.multiInject)(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER)),
+    __param(1, (0, inversify_1.inject)(meetup_issue_service_1.MeetupIssueService)),
     __metadata("design:paramtypes", [Array, meetup_issue_service_1.MeetupIssueService])
 ], LinterService);
 
@@ -31261,8 +31341,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GithubService = exports.UpdatableGithubIssueFields = void 0;
+exports.GitHubService = exports.UpdatableGithubIssueFields = void 0;
 const github_1 = __nccwpck_require__(3228);
 const inversify_1 = __nccwpck_require__(4871);
 const input_service_1 = __nccwpck_require__(2301);
@@ -31271,7 +31354,7 @@ exports.UpdatableGithubIssueFields = Object.keys({
     labels: [],
     body: "",
 });
-let GithubService = class GithubService {
+let GitHubService = class GitHubService {
     inputService;
     octokit;
     constructor(inputService) {
@@ -31311,11 +31394,12 @@ let GithubService = class GithubService {
         return (this.octokit = (0, github_1.getOctokit)(this.inputService.getGithubToken()));
     }
 };
-exports.GithubService = GithubService;
-exports.GithubService = GithubService = __decorate([
+exports.GitHubService = GitHubService;
+exports.GitHubService = GitHubService = __decorate([
     (0, inversify_1.injectable)(),
+    __param(0, (0, inversify_1.inject)(input_service_1.InputService)),
     __metadata("design:paramtypes", [input_service_1.InputService])
-], GithubService);
+], GitHubService);
 
 
 /***/ }),
@@ -31479,6 +31563,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MeetupIssueService = exports.MEETUP_ISSUE_BODY_FIELD_LABELS = void 0;
 const inversify_1 = __nccwpck_require__(4871);
@@ -31548,7 +31635,8 @@ let MeetupIssueService = class MeetupIssueService {
 exports.MeetupIssueService = MeetupIssueService;
 exports.MeetupIssueService = MeetupIssueService = __decorate([
     (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [github_service_1.GithubService])
+    __param(0, (0, inversify_1.inject)(github_service_1.GitHubService)),
+    __metadata("design:paramtypes", [github_service_1.GitHubService])
 ], MeetupIssueService);
 
 

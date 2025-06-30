@@ -9,12 +9,16 @@ import {
 } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
 import { LinterAdapter } from "./linter.adapter";
+import { inject, injectable } from "inversify";
 
+@injectable()
 export abstract class AbstractZodLinterAdapter<
   MeetupIssueBodyField extends MeetupIssueBodyFields = MeetupIssueBodyFields,
 > implements LinterAdapter
 {
-  constructor(protected readonly meetupIssueService: MeetupIssueService) {}
+  constructor(
+    @inject(MeetupIssueService) protected readonly meetupIssueService: MeetupIssueService
+  ) {}
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const fieldName = this.getFieldName();

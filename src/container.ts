@@ -3,7 +3,7 @@ import { LoggerService } from "./services/logger.service";
 import { CORE_SERVICE_IDENTIFIER, coreService, CoreService } from "./services/core.service";
 import { InputService } from "./services/input.service";
 import { LinterService } from "./linter/linter.service";
-import { GithubService } from "./services/github.service";
+import { GitHubService } from "./services/github.service";
 import { EventDateLinterAdapter } from "./linter/adapter/event-date-linter.adapter";
 import { LINTER_ADAPTER_IDENTIFIER, LinterAdapter } from "./linter/adapter/linter.adapter";
 import { MeetupIssueService } from "./services/meetup-issue.service";
@@ -21,7 +21,7 @@ const container = new Container();
 
 container.bind<CoreService>(CORE_SERVICE_IDENTIFIER).toConstantValue(coreService);
 
-container.bind(GithubService).toSelf();
+container.bind(GitHubService).toSelf();
 container.bind(InputService).toSelf();
 container.bind(LinterService).toSelf();
 container.bind(LoggerService).toSelf();

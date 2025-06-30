@@ -4,7 +4,7 @@ import { LinterService } from "./linter.service";
 import { LinterAdapter, LinterDependency } from "./adapter/linter.adapter";
 import { getMeetupIssueFixture } from "../__fixtures__/meetup-issue.fixture";
 import { LintError } from "./lint.error";
-import { MeetupIssueService } from "src/services/meetup-issue.service";
+import { MeetupIssueService } from "../services/meetup-issue.service";
 
 class TestLinterWithoutDependency {}
 

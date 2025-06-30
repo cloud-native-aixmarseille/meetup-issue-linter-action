@@ -58,7 +58,7 @@ ${parsedBody.drive_link}
     title: "[Meetup] - 2021-12-31 - Meetup Event",
     labels: ["meetup"],
     body,
-    parsedBody,
     ...(override ?? {}),
+    parsedBody,
   };
 }

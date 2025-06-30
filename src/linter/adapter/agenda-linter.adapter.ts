@@ -1,4 +1,4 @@
-import { injectable } from "inversify";
+import { inject, injectable, injectFromBase } from "inversify";
 import { string } from "zod";
 import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter";
 import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service";
@@ -11,10 +11,16 @@ type AgendaEntry = {
 };
 
 @injectable()
+@injectFromBase({
+  extendConstructorArguments: true,
+})
 export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<SpeakerWithUrl> {
   private static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
 
-  constructor(meetupIssueService: MeetupIssueService, inputService: InputService) {
+  constructor(
+    @inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
+    @inject(InputService) inputService: InputService
+  ) {
     const speakers = inputService.getSpeakers();
     super(meetupIssueService, speakers);
   }

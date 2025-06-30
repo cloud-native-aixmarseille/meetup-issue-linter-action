@@ -1,4 +1,4 @@
-import { injectable, multiInject } from "inversify";
+import { inject, injectable, multiInject } from "inversify";
 import { LINTER_ADAPTER_IDENTIFIER, LinterAdapter } from "./adapter/linter.adapter";
 import { MeetupIssue, MeetupIssueService } from "../services/meetup-issue.service";
 import { LintError } from "./lint.error";
@@ -13,7 +13,7 @@ type LintResult = {
 export class LinterService {
   constructor(
     @multiInject(LINTER_ADAPTER_IDENTIFIER) private readonly linters: LinterAdapter[],
-    private readonly meetupIssueService: MeetupIssueService
+    @inject(MeetupIssueService) private readonly meetupIssueService: MeetupIssueService
   ) {}
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<void> {

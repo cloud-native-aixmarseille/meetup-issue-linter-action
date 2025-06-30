@@ -1,5 +1,6 @@
-import { MeetupIssueService } from "src/services/meetup-issue.service";
+import { MeetupIssueService } from "../../services/meetup-issue.service";
 import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
+import { inject, injectable, injectFromBase, unmanaged } from "inversify";
 
 export type EntityWithUrl = {
   name: string;
@@ -11,6 +12,10 @@ export type EntityWithUrl = {
  * Provides common functionality for extracting names from markdown links,
  * validating entities against a known list, and formatting entities with links.
  */
+@injectable()
+@injectFromBase({
+  extendConstructorArguments: true,
+})
 export abstract class AbstractEntityLinkLinterAdapter<
   TEntity extends EntityWithUrl,
 > extends AbstractZodLinterAdapter {
@@ -18,7 +23,10 @@ export abstract class AbstractEntityLinkLinterAdapter<
 
   protected readonly nameToUrl: Map<string, string>;
 
-  constructor(meetupIssueService: MeetupIssueService, entities: TEntity[]) {
+  constructor(
+    @inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
+    @unmanaged() entities: TEntity[]
+  ) {
     super(meetupIssueService);
     this.nameToUrl = new Map(entities.map((entity) => [entity.name, entity.url]));
   }
