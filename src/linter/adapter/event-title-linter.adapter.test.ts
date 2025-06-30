@@ -1,12 +1,17 @@
 import { EventTitleLinterAdapter } from "./event-title-linter.adapter";
 import { LintError } from "../lint.error";
 import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture";
+import { MockProxy, mock } from "jest-mock-extended";
+import { MeetupIssueService } from "../../services/meetup-issue.service";
 
 describe("EventTitleLinterAdapter", () => {
+  let meetupIssueService: MockProxy<MeetupIssueService>;
   let eventTitleLinterAdapter: EventTitleLinterAdapter;
 
   beforeEach(() => {
-    eventTitleLinterAdapter = new EventTitleLinterAdapter();
+    meetupIssueService = mock<MeetupIssueService>();
+
+    eventTitleLinterAdapter = new EventTitleLinterAdapter(meetupIssueService);
   });
 
   describe("lint", () => {
@@ -19,24 +24,43 @@ describe("EventTitleLinterAdapter", () => {
       const result = await eventTitleLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
+      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
       expect(result).toEqual(meetupIssue);
     });
 
-    it("should throw a LintError if the event title is invalid", async () => {
+    it.each([
+      {
+        description: "event title is empty",
+        event_title: "",
+        error: "Must not be empty",
+      },
+    ])("should throw a LintError if $description", async ({ event_title, error }) => {
       // Arrange
       const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          event_title: "",
+        parsedBody: {
+          event_title,
         },
       });
       const shouldFix = false;
 
       // Act & Assert
-      const expectedError = new LintError(["Event Title: Must not be empty"]);
+      const expectedError = new LintError([`Event Title: ${error}`]);
 
       await expect(
         eventTitleLinterAdapter.lint(invalidMeetupIssue, shouldFix)
       ).rejects.toStrictEqual(expectedError);
+
+      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getDependencies", () => {
+    it("should return an empty array", () => {
+      // Act
+      const result = eventTitleLinterAdapter.getDependencies();
+
+      // Assert
+      expect(result).toEqual([]);
     });
   });
 });

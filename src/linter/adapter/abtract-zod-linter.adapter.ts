@@ -5,6 +5,7 @@ import {
   MeetupIssue,
   MeetupIssueBody,
   MeetupIssueBodyFields,
+  MeetupIssueService,
 } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
 import { LinterAdapter } from "./linter.adapter";
@@ -13,18 +14,19 @@ export abstract class AbstractZodLinterAdapter<
   MeetupIssueBodyField extends MeetupIssueBodyFields = MeetupIssueBodyFields,
 > implements LinterAdapter
 {
-  constructor() {}
+  constructor(protected readonly meetupIssueService: MeetupIssueService) {}
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const fieldName = this.getFieldName();
     const validator = this.getValidator();
 
-    const fieldToValidate = meetupIssue.body[fieldName];
+    const fieldToValidate = meetupIssue.parsedBody[fieldName];
 
     const result = await validator.safeParseAsync(fieldToValidate);
     if (result.success) {
-      if (shouldFix) {
-        meetupIssue.body[fieldName] = result.data;
+      if (shouldFix && meetupIssue.parsedBody[fieldName] !== result.data) {
+        meetupIssue.parsedBody[fieldName] = result.data;
+        this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
       }
 
       return meetupIssue;

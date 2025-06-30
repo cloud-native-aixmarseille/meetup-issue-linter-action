@@ -1,3 +1,4 @@
+import { MeetupIssueService } from "src/services/meetup-issue.service";
 import { AbstractZodLinterAdapter } from "./abtract-zod-linter.adapter";
 
 export type EntityWithUrl = {
@@ -10,13 +11,15 @@ export type EntityWithUrl = {
  * Provides common functionality for extracting names from markdown links,
  * validating entities against a known list, and formatting entities with links.
  */
-export abstract class AbstractEntityLinkLinterAdapter extends AbstractZodLinterAdapter {
+export abstract class AbstractEntityLinkLinterAdapter<
+  TEntity extends EntityWithUrl,
+> extends AbstractZodLinterAdapter {
   private static LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
 
   protected readonly nameToUrl: Map<string, string>;
 
-  constructor(entities: EntityWithUrl[]) {
-    super();
+  constructor(meetupIssueService: MeetupIssueService, entities: TEntity[]) {
+    super(meetupIssueService);
     this.nameToUrl = new Map(entities.map((entity) => [entity.name, entity.url]));
   }
 
@@ -66,13 +69,5 @@ export abstract class AbstractEntityLinkLinterAdapter extends AbstractZodLinterA
    */
   protected isValidEntity(entityName: string): boolean {
     return this.nameToUrl.has(entityName);
-  }
-
-  /**
-   * Gets all valid entity names.
-   * @returns Array of valid entity names
-   */
-  protected getValidEntityNames(): string[] {
-    return Array.from(this.nameToUrl.keys());
   }
 }

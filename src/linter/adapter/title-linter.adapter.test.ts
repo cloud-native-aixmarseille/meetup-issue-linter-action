@@ -1,72 +1,98 @@
-import { mock, MockProxy } from "jest-mock-extended";
 import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture";
-import { MeetupIssueService } from "../../services/meetup-issue.service";
 import { TitleLinterAdapter } from "./title-linter.adapter";
 import { LintError } from "../lint.error";
 
-describe("TitleLinterAdapter - lint", () => {
-  let meetupIssueServiceMock: MockProxy<MeetupIssueService>;
-  let adapter: TitleLinterAdapter;
+describe("TitleLinterAdapter", () => {
+  let titleLinterAdapter: TitleLinterAdapter;
 
   beforeEach(() => {
-    meetupIssueServiceMock = mock<MeetupIssueService>();
-    adapter = new TitleLinterAdapter(meetupIssueServiceMock);
+    titleLinterAdapter = new TitleLinterAdapter();
   });
 
   describe("lint", () => {
-    it("should return the meetupIssue as is if the title matches the expected format", async () => {
-      const meetupIssue = getMeetupIssueFixture();
+    it("should return the meetup issue if the title matches the expected format", async () => {
+      // Arrange
+      const meetupIssue = getMeetupIssueFixture({
+        title: "[Meetup] - 2021-12-31 - December - Meetup Event",
+      });
+      const shouldFix = false;
 
-      const result = await adapter.lint(meetupIssue, false);
+      // Act
+      const result = await titleLinterAdapter.lint(meetupIssue, shouldFix);
+
+      // Assert
       expect(result).toBe(meetupIssue);
-      expect(meetupIssueServiceMock.updateMeetupIssueTitle).not.toHaveBeenCalled();
     });
 
-    it("should throw LintError if the title is invalid and shouldFix is false", async () => {
-      const invalidMeetupIssue = getMeetupIssueFixture({
+    it.each([
+      {
+        description: "title is invalid",
         title: "Wrong Title",
+        error: 'Invalid, expected "[Meetup] - 2021-12-31 - December - Meetup Event"',
+      },
+    ])("should throw a LintError if $description", async ({ title, error }) => {
+      // Arrange
+      const invalidMeetupIssue = getMeetupIssueFixture({
+        title,
       });
+      const shouldFix = false;
 
-      const expectedError = new LintError([
-        'Title: Invalid, expected "[Meetup] - 2021-12-31 - Meetup Event"',
-      ]);
+      // Act & Assert
+      const expectedError = new LintError([`Title: ${error}`]);
 
-      await expect(adapter.lint(invalidMeetupIssue, false)).rejects.toStrictEqual(expectedError);
-      expect(meetupIssueServiceMock.updateMeetupIssueTitle).not.toHaveBeenCalled();
+      await expect(titleLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
+        expectedError
+      );
     });
 
     it("should fix the title if it is invalid and shouldFix is true", async () => {
+      // Arrange
       const invalidMeetupIssue = getMeetupIssueFixture({
         title: "Wrong Title",
       });
+      const shouldFix = true;
 
-      const result = await adapter.lint(invalidMeetupIssue, true);
-      expect(result.title).toBe("[Meetup] - 2021-12-31 - Meetup Event");
-      expect(meetupIssueServiceMock.updateMeetupIssueTitle).toHaveBeenCalledWith(result);
+      // Act
+      const result = await titleLinterAdapter.lint(invalidMeetupIssue, shouldFix);
+
+      // Assert
+      expect(result.title).toBe("[Meetup] - 2021-12-31 - December - Meetup Event");
     });
 
-    it("should throw an error if there is no event_date", async () => {
+    it.each([
+      {
+        description: "there is no event_date",
+        parsedBody: { event_date: undefined },
+        error: "Event Date is required to lint the title",
+      },
+      {
+        description: "there is no event_title",
+        parsedBody: { event_date: "2021-12-31", event_title: undefined },
+        error: "Event Title is required to lint the title",
+      },
+    ])("should throw an error if $description", async ({ parsedBody, error }) => {
+      // Arrange
       const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          event_date: undefined,
-        },
+        parsedBody,
       });
+      const shouldFix = false;
 
-      const expectedError = new Error("Event Date is required to lint the title");
+      // Act & Assert
+      const expectedError = new Error(error);
 
-      await expect(adapter.lint(invalidMeetupIssue, false)).rejects.toStrictEqual(expectedError);
+      await expect(titleLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
+        expectedError
+      );
     });
+  });
 
-    it("should throw an error if there is no event_title", async () => {
-      const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          event_date: "2021-12-31",
-          event_title: undefined,
-        },
-      });
+  describe("getDependencies", () => {
+    it("should return a non-empty array", () => {
+      // Act
+      const result = titleLinterAdapter.getDependencies();
 
-      const expectedError = new Error("Event Title is required to lint the title");
-      await expect(adapter.lint(invalidMeetupIssue, false)).rejects.toStrictEqual(expectedError);
+      // Assert
+      expect(result).toBeTruthy();
     });
   });
 });

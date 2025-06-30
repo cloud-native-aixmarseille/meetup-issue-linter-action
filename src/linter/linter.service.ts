@@ -1,6 +1,6 @@
 import { injectable, multiInject } from "inversify";
 import { LINTER_ADAPTER_IDENTIFIER, LinterAdapter } from "./adapter/linter.adapter";
-import { MeetupIssue } from "../services/meetup-issue.service";
+import { MeetupIssue, MeetupIssueService } from "../services/meetup-issue.service";
 import { LintError } from "./lint.error";
 import { LinterSortedQueue } from "./linter.sorted-queue";
 
@@ -11,10 +11,13 @@ type LintResult = {
 
 @injectable()
 export class LinterService {
-  constructor(@multiInject(LINTER_ADAPTER_IDENTIFIER) private readonly linters: LinterAdapter[]) {}
+  constructor(
+    @multiInject(LINTER_ADAPTER_IDENTIFIER) private readonly linters: LinterAdapter[],
+    private readonly meetupIssueService: MeetupIssueService
+  ) {}
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<void> {
-    let lintedMeetupIssue = meetupIssue;
+    let lintedMeetupIssue = { ...meetupIssue };
     let aggregatedError: LintError | undefined;
 
     const linterQueue = new LinterSortedQueue(this.linters);
@@ -27,6 +30,10 @@ export class LinterService {
 
       lintedMeetupIssue = lintResult.meetupIssue;
       aggregatedError = this.getAggregatedError(lintResult, aggregatedError);
+    }
+
+    if (shouldFix) {
+      await this.meetupIssueService.updateMeetupIssue(meetupIssue, lintedMeetupIssue);
     }
 
     if (aggregatedError) {

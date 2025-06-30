@@ -11,8 +11,6 @@ export enum InputNames {
   GithubToken = "github-token",
 }
 
-type NonEmptyArrayOfStrings = [string, ...string[]];
-
 export type SpeakerWithUrl = {
   name: string;
   url: string;
@@ -109,31 +107,5 @@ export class InputService {
     }
 
     return parsedInput as EntityWithUrl[];
-  }
-
-  private getNonEmptyArrayOfStringsInput(inputName: InputNames): NonEmptyArrayOfStrings {
-    const inputValue = this.coreService.getInput(inputName, {
-      required: true,
-    });
-
-    const parsedInput = JSON.parse(inputValue);
-
-    if (!Array.isArray(parsedInput)) {
-      throw new Error(`"${inputName}" input must be an array`);
-    }
-
-    if (parsedInput.length === 0) {
-      throw new Error(`"${inputName}" input must not be empty`);
-    }
-
-    for (const parsedInputValue of parsedInput) {
-      if (typeof parsedInputValue !== "string") {
-        throw new Error(
-          `"${inputName}" input value "${JSON.stringify(parsedInputValue)}" (${typeof parsedInputValue}) must be of string`
-        );
-      }
-    }
-
-    return parsedInput as NonEmptyArrayOfStrings;
   }
 }

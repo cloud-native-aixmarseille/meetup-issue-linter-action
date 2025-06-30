@@ -66,22 +66,22 @@ This action lint the meetup issue for required fields and format
 <!-- end usage -->
 <!-- start inputs -->
 
-| **Input**                      | **Description**                                                                                                                                                                    | **Default**       | **Required** |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------ |
-| <code>issue-number</code>      | The issue number to lint.                                                                                                                                                          |                   | **true**     |
-| <code>issue-parsed-body</code> | The parsed issue body. See <https://github.com/issue-ops/parser>.                                                                                                                  |                   | **true**     |
-| <code>hosters</code>           | JSON List of hosters to update. Example: ["Hoster 1", "Hoster 2"]                                                                                                                  |                   | **true**     |
-| <code>speakers</code>          | JSON List of speakers with name and URL. Example: [{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}] |                   | **true**     |
-| <code>should-fix</code>        | Whether to fix the issue or not.                                                                                                                                                   | <code>true</code> | **false**    |
-| <code>fail-on-error</code>     | Whether to fail on error or not.                                                                                                                                                   | <code>true</code> | **false**    |
-| <code>github-token</code>      | The GitHub token with permissions to update the issue.                                                                                                                             |                   | **true**     |
+| **Input**                      | **Description**                                                                                                                                                                      | **Default**       | **Required** |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------ |
+| <code>issue-number</code>      | The issue number to lint.                                                                                                                                                            |                   | **true**     |
+| <code>issue-parsed-body</code> | The parsed issue body. See <https://github.com/issue-ops/parser>.                                                                                                                    |                   | **true**     |
+| <code>hosters</code>           | JSON List of hosters to update. Example: ["Hoster 1", "Hoster 2"]                                                                                                                    |                   | **true**     |
+| <code>speakers</code>          | JSON List of speakers with name and URL. Example: `[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]` |                   | **true**     |
+| <code>should-fix</code>        | Whether to fix the issue or not.                                                                                                                                                     | <code>true</code> | **false**    |
+| <code>fail-on-error</code>     | Whether to fail on error or not.                                                                                                                                                     | <code>true</code> | **false**    |
+| <code>github-token</code>      | The GitHub token with permissions to update the issue.                                                                                                                               |                   | **true**     |
 
 <!-- end inputs -->
 <!-- start outputs -->
 
-| **Output**               | **Description**                           |
-| ------------------------ | ----------------------------------------- |
-| <code>lint-issues</code> | List of issues found in the meetup issue. |
+| **Output**                 | **Description**                           |
+| -------------------------- | ----------------------------------------- |
+| <code>`lint-issues`</code> | List of issues found in the meetup issue. |
 
 <!-- end outputs -->
 <!-- start [.github/ghadocs/examples/] -->

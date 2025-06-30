@@ -108,6 +108,7 @@ jobs:
           Meetup Link: Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789
           CNCF Link: Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event
           Drive Link: Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j
+          Labels: Missing label(s) "hoster:confirmed"
           EOF
           )
 

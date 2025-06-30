@@ -1,37 +1,21 @@
 import { injectable } from "inversify";
 import { string } from "zod";
 import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter";
-import { MeetupIssue } from "../../services/meetup-issue.service";
+import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
 import { InputService, HosterWithUrl } from "../../services/input.service";
 
 @injectable()
-export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter {
-  private readonly hosters: [HosterWithUrl, ...HosterWithUrl[]];
-
-  constructor(private readonly inputService: InputService) {
+export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter<HosterWithUrl> {
+  constructor(meetupIssueService: MeetupIssueService, inputService: InputService) {
     const hosters = inputService.getHosters();
-    super(hosters);
-
-    this.hosters = hosters;
+    super(meetupIssueService, hosters);
   }
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const result = await super.lint(meetupIssue, shouldFix);
 
-    const hosterArray = result.body[this.getFieldName()]!;
-
-    if (!Array.isArray(hosterArray)) {
-      throw new LintError([this.getLintErrorMessage("Must be an array")]);
-    }
-
-    if (hosterArray.length === 0) {
-      throw new LintError([this.getLintErrorMessage("Must not be empty")]);
-    }
-
-    if (hosterArray.length > 1) {
-      throw new LintError([this.getLintErrorMessage("Must have exactly one entry")]);
-    }
+    const hosterArray = result.parsedBody[this.getFieldName()]!;
 
     const hosterName = this.extractEntityName(hosterArray[0]);
 
@@ -41,7 +25,7 @@ export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter {
 
     // Format hoster with link if shouldFix is true or if it already doesn't have a link
     if (shouldFix || !this.hasLink(hosterArray[0])) {
-      result.body[this.getFieldName()] = [this.formatEntityWithLink(hosterName)];
+      result.parsedBody[this.getFieldName()] = [this.formatEntityWithLink(hosterName)];
     }
 
     return result;
