@@ -119,6 +119,11 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<Speaker
       .join("\n");
   }
 
+  protected updateMeetupIssueIfNeeded(): void {
+    // No need to update the meetup issue here, it is done in the lint method
+    return;
+  }
+
   protected getValidator() {
     return string().nonempty({
       message: "Must not be empty",

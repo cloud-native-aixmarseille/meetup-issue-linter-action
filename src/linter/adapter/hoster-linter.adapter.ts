@@ -21,7 +21,9 @@ export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter<HosterW
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const result = await super.lint(meetupIssue, shouldFix);
 
-    const hosterArray = result.parsedBody[this.getFieldName()]!;
+    const fieldName = this.getFieldName();
+
+    const hosterArray = result.parsedBody[fieldName]!;
 
     const hosterName = this.extractEntityName(hosterArray[0]);
 
@@ -29,12 +31,24 @@ export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter<HosterW
       throw new LintError([this.getLintErrorMessage(`"${hosterName}" is not an existing hoster`)]);
     }
 
+    const expectedHoster = this.formatEntityWithLink(hosterName);
+
     // Format hoster with link if shouldFix is true or if it already doesn't have a link
-    if (shouldFix || !this.hasLink(hosterArray[0])) {
-      result.parsedBody[this.getFieldName()] = [this.formatEntityWithLink(hosterName)];
+    if (
+      shouldFix &&
+      (result.parsedBody[fieldName]?.length !== 1 ||
+        result.parsedBody[fieldName][0] !== expectedHoster)
+    ) {
+      result.parsedBody[fieldName] = [expectedHoster];
+      this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
     }
 
     return result;
+  }
+
+  protected updateMeetupIssueIfNeeded(): void {
+    // No need to update the meetup issue here, it is done in the lint method
+    return;
   }
 
   protected getValidator() {

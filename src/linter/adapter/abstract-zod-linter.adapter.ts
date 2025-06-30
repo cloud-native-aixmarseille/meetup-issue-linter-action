@@ -28,9 +28,8 @@ export abstract class AbstractZodLinterAdapter<
 
     const result = await validator.safeParseAsync(fieldToValidate);
     if (result.success) {
-      if (shouldFix && meetupIssue.parsedBody[fieldName] !== result.data) {
-        meetupIssue.parsedBody[fieldName] = result.data;
-        this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
+      if (shouldFix) {
+        this.updateMeetupIssueIfNeeded(meetupIssue, result.data);
       }
 
       return meetupIssue;
@@ -46,6 +45,18 @@ export abstract class AbstractZodLinterAdapter<
       .filter(Boolean);
 
     throw new LintError(errors);
+  }
+
+  protected updateMeetupIssueIfNeeded(
+    meetupIssue: MeetupIssue,
+    data: MeetupIssueBody[MeetupIssueBodyField]
+  ): void {
+    const fieldName = this.getFieldName();
+
+    if (meetupIssue.parsedBody[fieldName] !== data) {
+      meetupIssue.parsedBody[fieldName] = data;
+      this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
+    }
   }
 
   protected getLintErrorMessage(message: string): string {

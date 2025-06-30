@@ -30348,14 +30348,14 @@ var AbstractEntityLinkLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AbstractEntityLinkLinterAdapter = void 0;
 const meetup_issue_service_1 = __nccwpck_require__(9759);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
+const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
 const inversify_1 = __nccwpck_require__(4871);
 /**
  * Abstract adapter for linting fields that contain entities with URLs.
  * Provides common functionality for extracting names from markdown links,
  * validating entities against a known list, and formatting entities with links.
  */
-let AbstractEntityLinkLinterAdapter = class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+let AbstractEntityLinkLinterAdapter = class AbstractEntityLinkLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     static { AbstractEntityLinkLinterAdapter_1 = this; }
     static LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
     nameToUrl;
@@ -30436,8 +30436,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AbstractLinkLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
-let AbstractLinkLinterAdapter = class AbstractLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
+let AbstractLinkLinterAdapter = class AbstractLinkLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
         const linkRegex = this.getLinkRegex();
         const errorMessage = this.getErrorMessage();
@@ -30460,7 +30460,7 @@ exports.AbstractLinkLinterAdapter = AbstractLinkLinterAdapter = __decorate([
 
 /***/ }),
 
-/***/ 4053:
+/***/ 9884:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -30494,9 +30494,8 @@ let AbstractZodLinterAdapter = class AbstractZodLinterAdapter {
         const fieldToValidate = meetupIssue.parsedBody[fieldName];
         const result = await validator.safeParseAsync(fieldToValidate);
         if (result.success) {
-            if (shouldFix && meetupIssue.parsedBody[fieldName] !== result.data) {
-                meetupIssue.parsedBody[fieldName] = result.data;
-                this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
+            if (shouldFix) {
+                this.updateMeetupIssueIfNeeded(meetupIssue, result.data);
             }
             return meetupIssue;
         }
@@ -30508,6 +30507,13 @@ let AbstractZodLinterAdapter = class AbstractZodLinterAdapter {
             .map((error) => this.getLintErrorMessage(error))
             .filter(Boolean);
         throw new lint_error_1.LintError(errors);
+    }
+    updateMeetupIssueIfNeeded(meetupIssue, data) {
+        const fieldName = this.getFieldName();
+        if (meetupIssue.parsedBody[fieldName] !== data) {
+            meetupIssue.parsedBody[fieldName] = data;
+            this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
+        }
     }
     getLintErrorMessage(message) {
         const fieldName = this.getFieldName();
@@ -30635,6 +30641,10 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abstract_entity_link
         })
             .join("\n");
     }
+    updateMeetupIssueIfNeeded() {
+        // No need to update the meetup issue here, it is done in the lint method
+        return;
+    }
     getValidator() {
         return (0, zod_1.string)().nonempty({
             message: "Must not be empty",
@@ -30690,7 +30700,10 @@ let CNCFLinkLinterAdapter = class CNCFLinkLinterAdapter extends abstract_link_li
 };
 exports.CNCFLinkLinterAdapter = CNCFLinkLinterAdapter;
 exports.CNCFLinkLinterAdapter = CNCFLinkLinterAdapter = CNCFLinkLinterAdapter_1 = __decorate([
-    (0, inversify_1.injectable)()
+    (0, inversify_1.injectable)(),
+    (0, inversify_1.injectFromBase)({
+        extendConstructorArguments: true,
+    })
 ], CNCFLinkLinterAdapter);
 
 
@@ -30751,8 +30764,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventDateLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
-let EventDateLinterAdapter = class EventDateLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
+let EventDateLinterAdapter = class EventDateLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
         return (0, zod_1.string)().date();
     }
@@ -30786,8 +30799,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventDescriptionLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
-let EventDescriptionLinterAdapter = class EventDescriptionLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
+let EventDescriptionLinterAdapter = class EventDescriptionLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
         return (0, zod_1.string)().nonempty({
             message: "Must not be empty",
@@ -30823,8 +30836,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventTitleLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
-const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
-let EventTitleLinterAdapter = class EventTitleLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
+const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
+let EventTitleLinterAdapter = class EventTitleLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
         return (0, zod_1.string)().nonempty({
             message: "Must not be empty",
@@ -30877,16 +30890,25 @@ let HosterLinterAdapter = class HosterLinterAdapter extends abstract_entity_link
     }
     async lint(meetupIssue, shouldFix) {
         const result = await super.lint(meetupIssue, shouldFix);
-        const hosterArray = result.parsedBody[this.getFieldName()];
+        const fieldName = this.getFieldName();
+        const hosterArray = result.parsedBody[fieldName];
         const hosterName = this.extractEntityName(hosterArray[0]);
         if (!this.isValidEntity(hosterName)) {
             throw new lint_error_1.LintError([this.getLintErrorMessage(`"${hosterName}" is not an existing hoster`)]);
         }
+        const expectedHoster = this.formatEntityWithLink(hosterName);
         // Format hoster with link if shouldFix is true or if it already doesn't have a link
-        if (shouldFix || !this.hasLink(hosterArray[0])) {
-            result.parsedBody[this.getFieldName()] = [this.formatEntityWithLink(hosterName)];
+        if (shouldFix &&
+            (result.parsedBody[fieldName]?.length !== 1 ||
+                result.parsedBody[fieldName][0] !== expectedHoster)) {
+            result.parsedBody[fieldName] = [expectedHoster];
+            this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
         }
         return result;
+    }
+    updateMeetupIssueIfNeeded() {
+        // No need to update the meetup issue here, it is done in the lint method
+        return;
     }
     getValidator() {
         return (0, zod_1.string)()
@@ -31609,6 +31631,9 @@ let MeetupIssueService = class MeetupIssueService {
         };
         for (const field of github_service_1.UpdatableGithubIssueFields) {
             assignFieldIfChanged(field, originalIssue[field], updatedIssue[field]);
+        }
+        if (Object.keys(issueFieldsToUpdate).length === 0) {
+            return;
         }
         await this.githubService.updateIssue(originalIssue.number, issueFieldsToUpdate);
     }
