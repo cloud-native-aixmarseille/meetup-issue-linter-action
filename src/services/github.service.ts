@@ -10,7 +10,16 @@ export type GithubIssue = {
   number: number;
   title: string;
   labels: string[];
+  body: string;
 };
+
+export type UpdatableGithubIssue = Partial<Omit<GithubIssue, "number">>;
+
+export const UpdatableGithubIssueFields = Object.keys({
+  title: "",
+  labels: [],
+  body: "",
+} as UpdatableGithubIssue) as (keyof UpdatableGithubIssue)[];
 
 @injectable()
 export class GithubService {
@@ -32,25 +41,21 @@ export class GithubService {
     return {
       number: issue.number,
       title: issue.title,
+      body: issue.body || "",
       labels,
     };
   }
 
-  async updateIssueTitle(issueNumber: number, title: string): Promise<void> {
-    await this.getOctokit().rest.issues.update({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: issueNumber,
-      title: title,
-    });
-  }
+  async updateIssue(issueNumber: number, issue: UpdatableGithubIssue): Promise<void> {
+    const { title, body, labels } = issue;
 
-  async updateIssueLabels(issueNumber: number, labels: string[]) {
     await this.getOctokit().rest.issues.update({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: issueNumber,
-      labels: labels,
+      title,
+      body,
+      labels,
     });
   }
 

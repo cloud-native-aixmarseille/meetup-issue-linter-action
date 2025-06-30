@@ -30244,6 +30244,7 @@ const agenda_linter_adapter_1 = __nccwpck_require__(3066);
 const meetup_link_linter_adapter_1 = __nccwpck_require__(4595);
 const drive_link_linter_adapter_1 = __nccwpck_require__(3271);
 const cncf_link_linter_adapter_1 = __nccwpck_require__(8321);
+const labels_linter_adapter_1 = __nccwpck_require__(7139);
 const container = new inversify_1.Container();
 exports.container = container;
 container.bind(core_service_1.CORE_SERVICE_IDENTIFIER).toConstantValue(core_service_1.coreService);
@@ -30262,6 +30263,7 @@ container.bind(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER).to(agenda_linter_adap
 container.bind(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER).to(meetup_link_linter_adapter_1.MeetupLinkLinterAdapter);
 container.bind(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER).to(cncf_link_linter_adapter_1.CNCFLinkLinterAdapter);
 container.bind(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER).to(drive_link_linter_adapter_1.DriveLinkLinterAdapter);
+container.bind(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER).to(labels_linter_adapter_1.LabelsLinterAdapter);
 
 
 /***/ }),
@@ -30341,8 +30343,8 @@ const abtract_zod_linter_adapter_1 = __nccwpck_require__(4053);
 class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     static LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
     nameToUrl;
-    constructor(entities) {
-        super();
+    constructor(meetupIssueService, entities) {
+        super(meetupIssueService);
         this.nameToUrl = new Map(entities.map((entity) => [entity.name, entity.url]));
     }
     /**
@@ -30387,13 +30389,6 @@ class AbstractEntityLinkLinterAdapter extends abtract_zod_linter_adapter_1.Abstr
      */
     isValidEntity(entityName) {
         return this.nameToUrl.has(entityName);
-    }
-    /**
-     * Gets all valid entity names.
-     * @returns Array of valid entity names
-     */
-    getValidEntityNames() {
-        return Array.from(this.nameToUrl.keys());
     }
 }
 exports.AbstractEntityLinkLinterAdapter = AbstractEntityLinkLinterAdapter;
@@ -30448,15 +30443,19 @@ const zod_validation_error_1 = __nccwpck_require__(4042);
 const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
 class AbstractZodLinterAdapter {
-    constructor() { }
+    meetupIssueService;
+    constructor(meetupIssueService) {
+        this.meetupIssueService = meetupIssueService;
+    }
     async lint(meetupIssue, shouldFix) {
         const fieldName = this.getFieldName();
         const validator = this.getValidator();
-        const fieldToValidate = meetupIssue.body[fieldName];
+        const fieldToValidate = meetupIssue.parsedBody[fieldName];
         const result = await validator.safeParseAsync(fieldToValidate);
         if (result.success) {
-            if (shouldFix) {
-                meetupIssue.body[fieldName] = result.data;
+            if (shouldFix && meetupIssue.parsedBody[fieldName] !== result.data) {
+                meetupIssue.parsedBody[fieldName] = result.data;
+                this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
             }
             return meetupIssue;
         }
@@ -30503,22 +30502,20 @@ exports.AgendaLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
 const abstract_entity_link_linter_adapter_1 = __nccwpck_require__(881);
+const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
 const input_service_1 = __nccwpck_require__(2301);
 let AgendaLinterAdapter = class AgendaLinterAdapter extends abstract_entity_link_linter_adapter_1.AbstractEntityLinkLinterAdapter {
     static { AgendaLinterAdapter_1 = this; }
-    inputService;
     static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
-    speakers;
-    constructor(inputService) {
+    constructor(meetupIssueService, inputService) {
         const speakers = inputService.getSpeakers();
-        super(speakers);
-        this.inputService = inputService;
-        this.speakers = speakers;
+        super(meetupIssueService, speakers);
     }
     async lint(meetupIssue, shouldFix) {
         const result = await super.lint(meetupIssue, shouldFix);
-        const agenda = result.body[this.getFieldName()];
+        const fieldName = this.getFieldName();
+        const agenda = result.parsedBody[fieldName];
         // Parse agenda lines
         const agendaLines = agenda.split("\n");
         const agendaEntries = [];
@@ -30545,7 +30542,11 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abstract_entity_link
         if (!agendaEntries.length) {
             throw new lint_error_1.LintError([this.getLintErrorMessage("Must contain at least one entry")]);
         }
-        result.body[this.getFieldName()] = this.formatAgenda(agendaEntries);
+        const expectedAgenda = this.formatAgenda(agendaEntries);
+        if (shouldFix && result.parsedBody[fieldName] !== expectedAgenda) {
+            result.parsedBody[fieldName] = expectedAgenda;
+            this.meetupIssueService.updateMeetupIssueBodyField(result, fieldName);
+        }
         return result;
     }
     lintAgendaLine(agendaLine) {
@@ -30576,9 +30577,6 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abstract_entity_link
             talkDescription: talkDescription.trim(),
         };
     }
-    extractSpeakerNames(speakersText) {
-        return this.extractEntityNames(speakersText);
-    }
     formatAgenda(agendaEntries) {
         // Format each agenda entry with linked speakers using provided URLs
         return agendaEntries
@@ -30600,7 +30598,7 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends abstract_entity_link
 exports.AgendaLinterAdapter = AgendaLinterAdapter;
 exports.AgendaLinterAdapter = AgendaLinterAdapter = AgendaLinterAdapter_1 = __decorate([
     (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [input_service_1.InputService])
+    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService, input_service_1.InputService])
 ], AgendaLinterAdapter);
 
 
@@ -30799,36 +30797,24 @@ exports.HosterLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const zod_1 = __nccwpck_require__(2046);
 const abstract_entity_link_linter_adapter_1 = __nccwpck_require__(881);
+const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
 const input_service_1 = __nccwpck_require__(2301);
 let HosterLinterAdapter = class HosterLinterAdapter extends abstract_entity_link_linter_adapter_1.AbstractEntityLinkLinterAdapter {
-    inputService;
-    hosters;
-    constructor(inputService) {
+    constructor(meetupIssueService, inputService) {
         const hosters = inputService.getHosters();
-        super(hosters);
-        this.inputService = inputService;
-        this.hosters = hosters;
+        super(meetupIssueService, hosters);
     }
     async lint(meetupIssue, shouldFix) {
         const result = await super.lint(meetupIssue, shouldFix);
-        const hosterArray = result.body[this.getFieldName()];
-        if (!Array.isArray(hosterArray)) {
-            throw new lint_error_1.LintError([this.getLintErrorMessage("Must be an array")]);
-        }
-        if (hosterArray.length === 0) {
-            throw new lint_error_1.LintError([this.getLintErrorMessage("Must not be empty")]);
-        }
-        if (hosterArray.length > 1) {
-            throw new lint_error_1.LintError([this.getLintErrorMessage("Must have exactly one entry")]);
-        }
+        const hosterArray = result.parsedBody[this.getFieldName()];
         const hosterName = this.extractEntityName(hosterArray[0]);
         if (!this.isValidEntity(hosterName)) {
             throw new lint_error_1.LintError([this.getLintErrorMessage(`"${hosterName}" is not an existing hoster`)]);
         }
         // Format hoster with link if shouldFix is true or if it already doesn't have a link
         if (shouldFix || !this.hasLink(hosterArray[0])) {
-            result.body[this.getFieldName()] = [this.formatEntityWithLink(hosterName)];
+            result.parsedBody[this.getFieldName()] = [this.formatEntityWithLink(hosterName)];
         }
         return result;
     }
@@ -30849,8 +30835,83 @@ let HosterLinterAdapter = class HosterLinterAdapter extends abstract_entity_link
 exports.HosterLinterAdapter = HosterLinterAdapter;
 exports.HosterLinterAdapter = HosterLinterAdapter = __decorate([
     (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [input_service_1.InputService])
+    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService, input_service_1.InputService])
 ], HosterLinterAdapter);
+
+
+/***/ }),
+
+/***/ 7139:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var LabelsLinterAdapter_1;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LabelsLinterAdapter = void 0;
+const inversify_1 = __nccwpck_require__(4871);
+const lint_error_1 = __nccwpck_require__(4225);
+let LabelsLinterAdapter = class LabelsLinterAdapter {
+    static { LabelsLinterAdapter_1 = this; }
+    static LABEL_MEETUP = "meetup";
+    static LABEL_HOSTER_NEEDED = "hoster:needed";
+    static LABEL_HOSTER_CONFIRMED = "hoster:confirmed";
+    static LABEL_SPEAKERS_NEEDED = "speakers:needed";
+    static LABEL_SPEAKERS_CONFIRMED = "speakers:confirmed";
+    static ALLOWED_LABELS = [
+        LabelsLinterAdapter_1.LABEL_MEETUP,
+        LabelsLinterAdapter_1.LABEL_HOSTER_NEEDED,
+        LabelsLinterAdapter_1.LABEL_HOSTER_CONFIRMED,
+        LabelsLinterAdapter_1.LABEL_SPEAKERS_NEEDED,
+        LabelsLinterAdapter_1.LABEL_SPEAKERS_CONFIRMED,
+    ];
+    async lint(meetupIssue, shouldFix) {
+        const expectedLabels = [LabelsLinterAdapter_1.LABEL_MEETUP];
+        // Add hoster needed label if hoster is needed
+        if (meetupIssue.parsedBody.hoster?.length === 0) {
+            expectedLabels.push(LabelsLinterAdapter_1.LABEL_HOSTER_NEEDED);
+        }
+        else {
+            expectedLabels.push(LabelsLinterAdapter_1.LABEL_HOSTER_CONFIRMED);
+        }
+        // Add speakers needed label if speakers are needed
+        if (meetupIssue.parsedBody.agenda?.length === 0) {
+            expectedLabels.push(LabelsLinterAdapter_1.LABEL_SPEAKERS_NEEDED);
+        }
+        const meetupIssueLabels = meetupIssue.labels;
+        // Ensure that the meetup issue has the expected labels and no other labels
+        const missingLabels = expectedLabels.filter((label) => !meetupIssueLabels.includes(label));
+        const extraLabels = meetupIssueLabels.filter((label) => !LabelsLinterAdapter_1.ALLOWED_LABELS.includes(label));
+        if (missingLabels.length === 0 && extraLabels.length === 0) {
+            return meetupIssue;
+        }
+        if (shouldFix) {
+            meetupIssue.labels = expectedLabels;
+            return meetupIssue;
+        }
+        const lintErrors = [];
+        if (missingLabels.length > 0) {
+            lintErrors.push(`Labels: Missing label(s) "${missingLabels.join(", ")}"`);
+        }
+        if (extraLabels.length > 0) {
+            lintErrors.push(`Labels: Extra label(s) "${extraLabels.join(", ")}"`);
+        }
+        throw new lint_error_1.LintError(lintErrors);
+    }
+    getDependencies() {
+        return [];
+    }
+};
+exports.LabelsLinterAdapter = LabelsLinterAdapter;
+exports.LabelsLinterAdapter = LabelsLinterAdapter = LabelsLinterAdapter_1 = __decorate([
+    (0, inversify_1.injectable)()
+], LabelsLinterAdapter);
 
 
 /***/ }),
@@ -30915,24 +30976,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
 var TitleLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TitleLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
 const event_title_linter_adapter_1 = __nccwpck_require__(8877);
 const event_date_linter_adapter_1 = __nccwpck_require__(5451);
 let TitleLinterAdapter = class TitleLinterAdapter {
     static { TitleLinterAdapter_1 = this; }
-    meetupIssueService;
     static TITLE_PATTERN = "[Meetup] - <date> - <title>";
-    constructor(meetupIssueService) {
-        this.meetupIssueService = meetupIssueService;
-    }
     async lint(meetupIssue, shouldFix) {
         const expectedTitle = this.getExpectedTitle(meetupIssue);
         if (meetupIssue.title === expectedTitle) {
@@ -30940,7 +30993,6 @@ let TitleLinterAdapter = class TitleLinterAdapter {
         }
         if (shouldFix) {
             meetupIssue.title = expectedTitle;
-            await this.meetupIssueService.updateMeetupIssueTitle(meetupIssue);
             return meetupIssue;
         }
         throw new lint_error_1.LintError([`Title: Invalid, expected "${expectedTitle}"`]);
@@ -30949,11 +31001,11 @@ let TitleLinterAdapter = class TitleLinterAdapter {
         return [event_title_linter_adapter_1.EventTitleLinterAdapter, event_date_linter_adapter_1.EventDateLinterAdapter];
     }
     getExpectedTitle(meetupIssue) {
-        const date = meetupIssue.body.event_date;
+        const date = meetupIssue.parsedBody.event_date;
         if (!date) {
             throw new Error("Event Date is required to lint the title");
         }
-        const title = meetupIssue.body.event_title;
+        const title = meetupIssue.parsedBody.event_title;
         if (!title) {
             throw new Error("Event Title is required to lint the title");
         }
@@ -30962,8 +31014,7 @@ let TitleLinterAdapter = class TitleLinterAdapter {
 };
 exports.TitleLinterAdapter = TitleLinterAdapter;
 exports.TitleLinterAdapter = TitleLinterAdapter = TitleLinterAdapter_1 = __decorate([
-    (0, inversify_1.injectable)(),
-    __metadata("design:paramtypes", [meetup_issue_service_1.MeetupIssueService])
+    (0, inversify_1.injectable)()
 ], TitleLinterAdapter);
 
 
@@ -31017,15 +31068,18 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LinterService = void 0;
 const inversify_1 = __nccwpck_require__(4871);
 const linter_adapter_1 = __nccwpck_require__(9595);
+const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
 const linter_sorted_queue_1 = __nccwpck_require__(7981);
 let LinterService = class LinterService {
     linters;
-    constructor(linters) {
+    meetupIssueService;
+    constructor(linters, meetupIssueService) {
         this.linters = linters;
+        this.meetupIssueService = meetupIssueService;
     }
     async lint(meetupIssue, shouldFix) {
-        let lintedMeetupIssue = meetupIssue;
+        let lintedMeetupIssue = { ...meetupIssue };
         let aggregatedError;
         const linterQueue = new linter_sorted_queue_1.LinterSortedQueue(this.linters);
         let linter;
@@ -31034,6 +31088,9 @@ let LinterService = class LinterService {
             linterQueue.setCompletedLinter(linter, !lintResult.lintError);
             lintedMeetupIssue = lintResult.meetupIssue;
             aggregatedError = this.getAggregatedError(lintResult, aggregatedError);
+        }
+        if (shouldFix) {
+            await this.meetupIssueService.updateMeetupIssue(meetupIssue, lintedMeetupIssue);
         }
         if (aggregatedError) {
             throw aggregatedError;
@@ -31069,7 +31126,7 @@ exports.LinterService = LinterService;
 exports.LinterService = LinterService = __decorate([
     (0, inversify_1.injectable)(),
     __param(0, (0, inversify_1.multiInject)(linter_adapter_1.LINTER_ADAPTER_IDENTIFIER)),
-    __metadata("design:paramtypes", [Array])
+    __metadata("design:paramtypes", [Array, meetup_issue_service_1.MeetupIssueService])
 ], LinterService);
 
 
@@ -31205,10 +31262,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GithubService = void 0;
+exports.GithubService = exports.UpdatableGithubIssueFields = void 0;
 const github_1 = __nccwpck_require__(3228);
 const inversify_1 = __nccwpck_require__(4871);
 const input_service_1 = __nccwpck_require__(2301);
+exports.UpdatableGithubIssueFields = Object.keys({
+    title: "",
+    labels: [],
+    body: "",
+});
 let GithubService = class GithubService {
     inputService;
     octokit;
@@ -31227,23 +31289,19 @@ let GithubService = class GithubService {
         return {
             number: issue.number,
             title: issue.title,
+            body: issue.body || "",
             labels,
         };
     }
-    async updateIssueTitle(issueNumber, title) {
+    async updateIssue(issueNumber, issue) {
+        const { title, body, labels } = issue;
         await this.getOctokit().rest.issues.update({
             owner: github_1.context.repo.owner,
             repo: github_1.context.repo.repo,
             issue_number: issueNumber,
-            title: title,
-        });
-    }
-    async updateIssueLabels(issueNumber, labels) {
-        await this.getOctokit().rest.issues.update({
-            owner: github_1.context.repo.owner,
-            repo: github_1.context.repo.repo,
-            issue_number: issueNumber,
-            labels: labels,
+            title,
+            body,
+            labels,
         });
     }
     getOctokit() {
@@ -31350,24 +31408,6 @@ let InputService = class InputService {
         }
         return parsedInput;
     }
-    getNonEmptyArrayOfStringsInput(inputName) {
-        const inputValue = this.coreService.getInput(inputName, {
-            required: true,
-        });
-        const parsedInput = JSON.parse(inputValue);
-        if (!Array.isArray(parsedInput)) {
-            throw new Error(`"${inputName}" input must be an array`);
-        }
-        if (parsedInput.length === 0) {
-            throw new Error(`"${inputName}" input must not be empty`);
-        }
-        for (const parsedInputValue of parsedInput) {
-            if (typeof parsedInputValue !== "string") {
-                throw new Error(`"${inputName}" input value "${JSON.stringify(parsedInputValue)}" (${typeof parsedInputValue}) must be of string`);
-            }
-        }
-        return parsedInput;
-    }
 };
 exports.InputService = InputService;
 exports.InputService = InputService = __decorate([
@@ -31458,21 +31498,51 @@ let MeetupIssueService = class MeetupIssueService {
     constructor(githubService) {
         this.githubService = githubService;
     }
-    async getMeetupIssue(issueNumber, IssueParsedBody) {
-        const issue = await this.githubService.getIssue(issueNumber);
+    async getMeetupIssue(issueNumber, issueParsedBody) {
+        const { number, title, labels, body } = await this.githubService.getIssue(issueNumber);
         const meetupIssue = {
-            number: issue.number,
-            title: issue.title,
-            labels: issue.labels,
-            body: IssueParsedBody,
+            number,
+            title,
+            labels,
+            body,
+            parsedBody: issueParsedBody,
         };
         return meetupIssue;
     }
-    async updateMeetupIssueTitle(meetupIssue) {
-        await this.githubService.updateIssueTitle(meetupIssue.number, meetupIssue.title);
+    async updateMeetupIssue(originalIssue, updatedIssue) {
+        if (originalIssue.number !== updatedIssue.number) {
+            throw new Error("Issue number mismatch");
+        }
+        const issueFieldsToUpdate = {};
+        // Helper function to safely assign field values with proper type narrowing
+        const assignFieldIfChanged = (field, originalValue, updatedValue) => {
+            if (originalValue !== updatedValue) {
+                issueFieldsToUpdate[field] = updatedValue;
+            }
+        };
+        for (const field of github_service_1.UpdatableGithubIssueFields) {
+            assignFieldIfChanged(field, originalIssue[field], updatedIssue[field]);
+        }
+        await this.githubService.updateIssue(originalIssue.number, issueFieldsToUpdate);
     }
-    async updateMeetupIssueLabels(meetupIssue) {
-        await this.githubService.updateIssueLabels(meetupIssue.number, meetupIssue.labels);
+    updateMeetupIssueBodyField(meetupIssue, field) {
+        if (!Object.keys(exports.MEETUP_ISSUE_BODY_FIELD_LABELS).includes(field)) {
+            throw new Error(`Invalid field: ${field}`);
+        }
+        let body = meetupIssue.body;
+        // Find the field in the body
+        const fieldRegex = new RegExp(`### ${exports.MEETUP_ISSUE_BODY_FIELD_LABELS[field]}\\s*\\n(.*?)(?=\\n###|$)`, "s");
+        const match = body.match(fieldRegex);
+        if (!match) {
+            throw new Error(`Field "${field}" not found in issue body`);
+        }
+        let newValue = meetupIssue.parsedBody[field] || "";
+        if (Array.isArray(newValue)) {
+            // If the field is an array, join it with a semicolon and a space
+            newValue = newValue.join(", ");
+        }
+        body = body.replace(fieldRegex, `### ${exports.MEETUP_ISSUE_BODY_FIELD_LABELS[field]}\n\n${newValue.trim()}\n`);
+        meetupIssue.body = body;
     }
 };
 exports.MeetupIssueService = MeetupIssueService;

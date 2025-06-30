@@ -4,9 +4,11 @@ import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture";
 import { MockProxy, mock } from "jest-mock-extended";
 import { InputService } from "../../services/input.service";
 import { getSpeakersFixture } from "../../__fixtures__/speakers.fixture";
+import { MeetupIssueService } from "../../services/meetup-issue.service";
 
 describe("AgendaLinterAdapter", () => {
   let inputServiceMock: MockProxy<InputService>;
+  let meetupIssueService: MockProxy<MeetupIssueService>;
 
   let agendaLinterAdapter: AgendaLinterAdapter;
 
@@ -14,57 +16,56 @@ describe("AgendaLinterAdapter", () => {
     inputServiceMock = mock<InputService>();
     inputServiceMock.getSpeakers.mockReturnValue(getSpeakersFixture());
 
-    agendaLinterAdapter = new AgendaLinterAdapter(inputServiceMock);
+    meetupIssueService = mock<MeetupIssueService>();
+
+    agendaLinterAdapter = new AgendaLinterAdapter(meetupIssueService, inputServiceMock);
   });
 
   describe("lint", () => {
-    it("should return the meetup issue if the Agenda is valid", async () => {
-      // Arrange
-      const meetupIssue = getMeetupIssueFixture();
-      const shouldFix = false;
+    const speakers = getSpeakersFixture();
 
-      // Act
-      const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
+    it.each([
+      {
+        description: "single speaker without link",
+        agenda: `- ${speakers[0].name}: Talk Description`,
+      },
+      {
+        description: "description containing colon",
+        agenda: `- ${speakers[0].name}: Talk Description with colon:`,
+      },
+      {
+        description: "multiple speakers without links",
+        agenda: `- ${speakers[0].name}, ${speakers[1].name}: Talk Description with multiple speakers`,
+      },
+      {
+        description: "some speakers having links and others not",
+        agenda: [
+          `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speaker with link`,
+          `- ${speakers[0].name}: Talk Description with speaker without link`,
+          `- [${speakers[0].name}](https://example.com/speaker1), ${speakers[1].name}: Talk Description with multiple speakers with link and without`,
+        ].join("\n"),
+      },
+    ])(
+      "should return the meetup issue if the Agenda is valid with $description",
+      async ({ agenda }) => {
+        // Arrange
+        const shouldFix = false;
 
-      // Assert
-      expect(result).toEqual(meetupIssue);
-    });
+        const meetupIssue = getMeetupIssueFixture({
+          body: `### Agenda:\n\n${agenda}`,
+          parsedBody: {
+            agenda,
+          },
+        });
 
-    it("should accept agenda description containing colon", async () => {
-      // Arrange
-      const speakers = getSpeakersFixture();
+        // Act
+        const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
 
-      const meetupIssue = getMeetupIssueFixture({
-        body: {
-          agenda: `- ${speakers[0].name}: Talk Description: with colon`,
-        },
-      });
-      const shouldFix = false;
-
-      // Act
-      const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
-
-      // Assert
-      expect(result).toEqual(meetupIssue);
-    });
-
-    it("should accept multiple speakers for an agenda entry", async () => {
-      // Arrange
-      const speakers = getSpeakersFixture();
-
-      const meetupIssue = getMeetupIssueFixture({
-        body: {
-          agenda: `- ${speakers[0].name}, ${speakers[1].name}: Talk Description with multiple speakers`,
-        },
-      });
-      const shouldFix = false;
-
-      // Act
-      const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
-
-      // Assert
-      expect(result).toEqual(meetupIssue);
-    });
+        // Assert
+        expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
+        expect(result).toEqual(meetupIssue);
+      }
+    );
 
     it("should fix the Agenda if shouldFix is true", async () => {
       // Arrange
@@ -77,7 +78,8 @@ describe("AgendaLinterAdapter", () => {
       ].join("\n");
 
       const meetupIssue = getMeetupIssueFixture({
-        body: {
+        body: `### Agenda:\n\n${agenda}`,
+        parsedBody: {
           agenda,
         },
       });
@@ -88,129 +90,72 @@ describe("AgendaLinterAdapter", () => {
       const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(result.body.agenda).toBe(
-        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with space at the end\n` +
-          `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speakers containing space\n` +
-          `- [${speakers[0].name}](https://example.com/speaker1), [${speakers[1].name}](https://example.com/speaker2): Talk Description with multiple speakers containing space`
+      expect(meetupIssueService.updateMeetupIssueBodyField).toHaveBeenCalledWith(
+        meetupIssue,
+        "agenda"
       );
+
+      const expectedAgenda =
+        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with space at the end\n` +
+        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speakers containing space\n` +
+        `- [${speakers[0].name}](https://example.com/speaker1), [${speakers[1].name}](https://example.com/speaker2): Talk Description with multiple speakers containing space`;
+
+      expect(result.parsedBody.agenda).toBe(expectedAgenda);
     });
 
-    it("should handle mixed scenarios with some speakers having links and others not", async () => {
+    it.each([
+      {
+        description: "agenda is empty",
+        agenda: "",
+        error: "Must not be empty",
+      },
+      {
+        description: "agenda has no entries",
+        agenda: "\n\n",
+        error: "Must contain at least one entry",
+      },
+      {
+        description: "agenda entry is wrongly formatted",
+        agenda: "wrong-line",
+        error: `Entry "wrong-line" must follow the format: "- <speaker(s)>: <talk_description>"`,
+      },
+      {
+        description: "agenda entry speaker is empty",
+        agenda: "- ,: Talk Description",
+        error: "Speaker must not be empty",
+      },
+      {
+        description: "agenda entry speaker does not exist",
+        agenda: "- Wrong Speaker: Talk Description",
+        error: `Speaker "Wrong Speaker" is not in the list of speakers`,
+      },
+    ])("should throw a LintError if $description", async ({ agenda, error }) => {
       // Arrange
-      const speakers = getSpeakersFixture();
-
-      const agenda = [
-        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speaker with link`,
-        `- ${speakers[0].name}: Talk Description with speaker without link`,
-        `- [${speakers[0].name}](https://example.com/speaker1), ${speakers[1].name}: Talk Description with multiple speakers with link and without`,
-      ].join("\n");
-
-      const meetupIssue = getMeetupIssueFixture({
-        body: {
+      const invalidMeetupIssue = getMeetupIssueFixture({
+        parsedBody: {
           agenda,
         },
       });
-
       const shouldFix = false;
 
+      // Act & Assert
+      const expectedError = new LintError([`Agenda: ${error}`]);
+
+      await expect(agendaLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
+        expectedError
+      );
+
+      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getDependencies", () => {
+    it("should return an empty array", () => {
       // Act
-      const result = await agendaLinterAdapter.lint(meetupIssue, shouldFix);
+      const result = agendaLinterAdapter.getDependencies();
 
       // Assert
-      expect(result.body.agenda).toBe(
-        `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speaker with link\n` +
-          `- [${speakers[0].name}](https://example.com/speaker1): Talk Description with speaker without link\n` +
-          `- [${speakers[0].name}](https://example.com/speaker1), [${speakers[1].name}](https://example.com/speaker2): Talk Description with multiple speakers with link and without`
-      );
-    });
-
-    it("should throw a LintError if the Agenda is invalid", async () => {
-      // Arrange
-      const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          agenda: "",
-        },
-      });
-      const shouldFix = false;
-
-      // Act & Assert
-      const expectedError = new LintError(["Agenda: Must not be empty"]);
-
-      await expect(agendaLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
-        expectedError
-      );
-    });
-
-    it("should throw a LintError if the Agenda has agenda entries", async () => {
-      // Arrange
-      const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          agenda: "\n\n",
-        },
-      });
-      const shouldFix = false;
-
-      // Act & Assert
-      const expectedError = new LintError(["Agenda: Must contain at least one entry"]);
-
-      await expect(agendaLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
-        expectedError
-      );
-    });
-
-    it("should throw a LintError if the Agenda line is invalid", async () => {
-      // Arrange
-      const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          agenda: "wrong-line",
-        },
-      });
-      const shouldFix = false;
-
-      // Act & Assert
-      const expectedError = new LintError([
-        'Agenda: Entry "wrong-line" must follow the format: "- <speaker(s)>: <talk_description>"',
-      ]);
-
-      await expect(agendaLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
-        expectedError
-      );
-    });
-
-    it("should throw a LintError if the Agenda speaker is empty", async () => {
-      // Arrange
-      const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          agenda: "- ,: Talk Description",
-        },
-      });
-      const shouldFix = false;
-
-      // Act & Assert
-      const expectedError = new LintError(["Agenda: Speaker must not be empty"]);
-
-      await expect(agendaLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
-        expectedError
-      );
-    });
-
-    it("should throw a LintError if the Agenda line Speaker does not exist", async () => {
-      // Arrange
-      const invalidMeetupIssue = getMeetupIssueFixture({
-        body: {
-          agenda: "- Wrong Speaker: Talk Description",
-        },
-      });
-      const shouldFix = false;
-
-      // Act & Assert
-      const expectedError = new LintError([
-        'Agenda: Speaker "Wrong Speaker" is not in the list of speakers',
-      ]);
-
-      await expect(agendaLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
-        expectedError
-      );
+      expect(result).toEqual([]);
     });
   });
 });

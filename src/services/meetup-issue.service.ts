@@ -1,6 +1,5 @@
 import { injectable } from "inversify";
-
-import { GithubService } from "./github.service";
+import { GithubService, UpdatableGithubIssue, UpdatableGithubIssueFields } from "./github.service";
 
 export type MeetupIssueBodyFields = keyof MeetupIssueBody;
 
@@ -18,7 +17,8 @@ export type MeetupIssueBody = {
 export type MeetupIssue = {
   number: number;
   title: string;
-  body: MeetupIssueBody;
+  body: string;
+  parsedBody: MeetupIssueBody;
   labels: string[];
 };
 
@@ -39,25 +39,76 @@ export class MeetupIssueService {
 
   async getMeetupIssue(
     issueNumber: number,
-    IssueParsedBody: MeetupIssueBody
+    issueParsedBody: MeetupIssueBody
   ): Promise<MeetupIssue> {
-    const issue = await this.githubService.getIssue(issueNumber);
+    const { number, title, labels, body } = await this.githubService.getIssue(issueNumber);
 
     const meetupIssue: MeetupIssue = {
-      number: issue.number,
-      title: issue.title,
-      labels: issue.labels,
-      body: IssueParsedBody,
+      number,
+      title,
+      labels,
+      body,
+      parsedBody: issueParsedBody,
     };
 
     return meetupIssue;
   }
 
-  async updateMeetupIssueTitle(meetupIssue: MeetupIssue): Promise<void> {
-    await this.githubService.updateIssueTitle(meetupIssue.number, meetupIssue.title);
+  async updateMeetupIssue(originalIssue: MeetupIssue, updatedIssue: MeetupIssue): Promise<void> {
+    if (originalIssue.number !== updatedIssue.number) {
+      throw new Error("Issue number mismatch");
+    }
+
+    const issueFieldsToUpdate: UpdatableGithubIssue = {};
+
+    // Helper function to safely assign field values with proper type narrowing
+    const assignFieldIfChanged = <K extends keyof UpdatableGithubIssue>(
+      field: K,
+      originalValue: unknown,
+      updatedValue: unknown
+    ): void => {
+      if (originalValue !== updatedValue) {
+        issueFieldsToUpdate[field] = updatedValue as UpdatableGithubIssue[K];
+      }
+    };
+
+    for (const field of UpdatableGithubIssueFields) {
+      assignFieldIfChanged(field, originalIssue[field], updatedIssue[field]);
+    }
+
+    await this.githubService.updateIssue(originalIssue.number, issueFieldsToUpdate);
   }
 
-  async updateMeetupIssueLabels(meetupIssue: MeetupIssue): Promise<void> {
-    await this.githubService.updateIssueLabels(meetupIssue.number, meetupIssue.labels);
+  updateMeetupIssueBodyField(meetupIssue: MeetupIssue, field: MeetupIssueBodyFields): void {
+    if (!Object.keys(MEETUP_ISSUE_BODY_FIELD_LABELS).includes(field)) {
+      throw new Error(`Invalid field: ${field}`);
+    }
+
+    let body = meetupIssue.body;
+
+    // Find the field in the body
+    const fieldRegex = new RegExp(
+      `### ${MEETUP_ISSUE_BODY_FIELD_LABELS[field]}\\s*\\n(.*?)(?=\\n###|$)`,
+      "s"
+    );
+    const match = body.match(fieldRegex);
+
+    if (!match) {
+      throw new Error(`Field "${field}" not found in issue body`);
+    }
+
+    let newValue = meetupIssue.parsedBody[field] || "";
+
+    if (Array.isArray(newValue)) {
+      // If the field is an array, join it with a semicolon and a space
+      newValue = newValue.join(", ");
+    }
+
+    body = body.replace(
+      fieldRegex,
+      `### ${MEETUP_ISSUE_BODY_FIELD_LABELS[field]}\n\n${newValue.trim()}\n`
+    );
+
+    meetupIssue.body = body;
   }
 }

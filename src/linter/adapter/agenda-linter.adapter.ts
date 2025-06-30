@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import { string } from "zod";
 import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter";
-import { MeetupIssue } from "../../services/meetup-issue.service";
+import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
 import { InputService, SpeakerWithUrl } from "../../services/input.service";
 
@@ -11,22 +11,19 @@ type AgendaEntry = {
 };
 
 @injectable()
-export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter {
+export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<SpeakerWithUrl> {
   private static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
 
-  private readonly speakers: [SpeakerWithUrl, ...SpeakerWithUrl[]];
-
-  constructor(private readonly inputService: InputService) {
+  constructor(meetupIssueService: MeetupIssueService, inputService: InputService) {
     const speakers = inputService.getSpeakers();
-    super(speakers);
-
-    this.speakers = speakers;
+    super(meetupIssueService, speakers);
   }
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const result = await super.lint(meetupIssue, shouldFix);
+    const fieldName = this.getFieldName();
 
-    const agenda = result.body[this.getFieldName()]!;
+    const agenda = result.parsedBody[fieldName]!;
 
     // Parse agenda lines
     const agendaLines = agenda.split("\n");
@@ -57,7 +54,12 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter {
       throw new LintError([this.getLintErrorMessage("Must contain at least one entry")]);
     }
 
-    result.body[this.getFieldName()] = this.formatAgenda(agendaEntries);
+    const expectedAgenda = this.formatAgenda(agendaEntries);
+
+    if (shouldFix && result.parsedBody[fieldName] !== expectedAgenda) {
+      result.parsedBody[fieldName] = expectedAgenda;
+      this.meetupIssueService.updateMeetupIssueBodyField(result, fieldName);
+    }
 
     return result;
   }
@@ -97,10 +99,6 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter {
       speakers: speakerList,
       talkDescription: talkDescription.trim(),
     };
-  }
-
-  private extractSpeakerNames(speakersText: string): string[] {
-    return this.extractEntityNames(speakersText);
   }
 
   private formatAgenda(agendaEntries: AgendaEntry[]): string {

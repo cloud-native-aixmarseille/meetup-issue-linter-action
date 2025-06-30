@@ -14,11 +14,13 @@ inputs:
     required: true
   hosters:
     description: |
-      JSON List of hosters to update. Example: ["Hoster 1", "Hoster 2"]
+      JSON List of hosters to update.
+      Example: `["Hoster 1", "Hoster 2"]`.
     required: true
   speakers:
     description: |
-      JSON List of speakers with name and URL. Example: [{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]
+      JSON List of speakers with name and URL.
+      Example: `[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]`.
     required: true
   should-fix:
     description: "Whether to fix the issue or not."

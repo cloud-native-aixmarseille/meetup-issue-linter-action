@@ -13,7 +13,7 @@
   - "type": "input"
     "id": "event_date"
     "attributes":
-      "label": "Event date"
+      "label": "Event Date"
       "description": "Specify the proposed date for the event.
 
         Format: YYYY-MM-DD\n"
@@ -21,7 +21,7 @@
   - "type": "dropdown"
     "id": "hoster"
     "attributes":
-      "label": "Hosting"
+      "label": "Hoster"
       "description": "Pick a hoster"
       "options":
         - "Hoster 1"
@@ -59,7 +59,8 @@
     "attributes":
       "label": "CNCF Link"
       "description": "Provide the link to the CNCF event page"
-      "placeholder": "https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-xxx"
+      "placeholder": "https://community.cncf.io/events/details/cncf-cloud-native-aix-\
+        marseille-presents-xxx"
   - "type": "input"
     "id": "drive_link"
     "attributes":
@@ -72,10 +73,10 @@
       "label": "Slides & Content"
       "description": "Check items for slides and event content"
       "options":
-        - "label": "Cover image"
         - "label": "Basic Slides"
+        - "label": "Attendance sheet"
         - "label": "Announcements / surveys / news etc..."
-        - "label": "Slides hosting"
+        - "label": "Slides hoster"
         - "label": "Slides speaker(s)"
         - "label": "Kahoot / Game"
         - "label": "Openfeedback"
@@ -86,12 +87,11 @@
       "label": "Communication"
       "description": "Select communication items to be prepared"
       "options":
-        - "label": "Announcement"
         - "label": "Cover image"
+        - "label": "Announcement"
         - "label": "Slack - AixMarseille.Tech"
         - "label": "Slack - OpenBaR"
         - "label": "LinkedIn"
-        - "label": "BlueSky"
   - "type": "dropdown"
     "id": "aperitif"
     "attributes":
@@ -115,6 +115,7 @@
       "description": "Select Post event items to be done"
       "options":
         - "label": "Thanks hoster"
-        - "label": "Thanks speakers"
-        - "label": "Share slides to Meetup"
+        - "label": "Thanks speakers and share openfeedback reports"
+        - "label": "Share slides to meetup"
+        - "label": "Sync attendees from tally sheet to CNCF"
         - "label": "Social networks"

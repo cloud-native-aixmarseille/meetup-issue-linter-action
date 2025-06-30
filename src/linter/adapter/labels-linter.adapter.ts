@@ -1,21 +1,47 @@
 import { injectable } from "inversify";
 import { LinterAdapter } from "./linter.adapter";
-import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service";
+import { MeetupIssue } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
 
 @injectable()
 export class LabelsLinterAdapter implements LinterAdapter {
-  private static EXPECTED_LABELS = ["meetup"];
+  private static LABEL_MEETUP = "meetup";
+  private static LABEL_HOSTER_NEEDED = "hoster:needed";
+  private static LABEL_HOSTER_CONFIRMED = "hoster:confirmed";
+  private static LABEL_SPEAKERS_NEEDED = "speakers:needed";
+  private static LABEL_SPEAKERS_CONFIRMED = "speakers:confirmed";
 
-  constructor(private readonly meetupIssueService: MeetupIssueService) {}
+  private static ALLOWED_LABELS = [
+    LabelsLinterAdapter.LABEL_MEETUP,
+    LabelsLinterAdapter.LABEL_HOSTER_NEEDED,
+    LabelsLinterAdapter.LABEL_HOSTER_CONFIRMED,
+    LabelsLinterAdapter.LABEL_SPEAKERS_NEEDED,
+    LabelsLinterAdapter.LABEL_SPEAKERS_CONFIRMED,
+  ];
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
-    const expectedLabels = LabelsLinterAdapter.EXPECTED_LABELS;
+    const expectedLabels = [LabelsLinterAdapter.LABEL_MEETUP];
+
+    // Add hoster needed label if hoster is needed
+    if (meetupIssue.parsedBody.hoster?.length === 0) {
+      expectedLabels.push(LabelsLinterAdapter.LABEL_HOSTER_NEEDED);
+    } else {
+      expectedLabels.push(LabelsLinterAdapter.LABEL_HOSTER_CONFIRMED);
+    }
+
+    // Add speakers needed label if speakers are needed
+    if (meetupIssue.parsedBody.agenda?.length === 0) {
+      expectedLabels.push(LabelsLinterAdapter.LABEL_SPEAKERS_NEEDED);
+    }
+
     const meetupIssueLabels = meetupIssue.labels;
 
     // Ensure that the meetup issue has the expected labels and no other labels
     const missingLabels = expectedLabels.filter((label) => !meetupIssueLabels.includes(label));
-    const extraLabels = meetupIssueLabels.filter((label) => !expectedLabels.includes(label));
+
+    const extraLabels = meetupIssueLabels.filter(
+      (label) => !LabelsLinterAdapter.ALLOWED_LABELS.includes(label)
+    );
 
     if (missingLabels.length === 0 && extraLabels.length === 0) {
       return meetupIssue;
@@ -23,7 +49,6 @@ export class LabelsLinterAdapter implements LinterAdapter {
 
     if (shouldFix) {
       meetupIssue.labels = expectedLabels;
-      await this.meetupIssueService.updateMeetupIssueLabels(meetupIssue);
       return meetupIssue;
     }
 
