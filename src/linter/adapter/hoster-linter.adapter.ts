@@ -1,4 +1,4 @@
-import { injectable } from "inversify";
+import { inject, injectable, injectFromBase } from "inversify";
 import { string } from "zod";
 import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter";
 import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service";
@@ -6,8 +6,14 @@ import { LintError } from "../lint.error";
 import { InputService, HosterWithUrl } from "../../services/input.service";
 
 @injectable()
+@injectFromBase({
+  extendConstructorArguments: true,
+})
 export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter<HosterWithUrl> {
-  constructor(meetupIssueService: MeetupIssueService, inputService: InputService) {
+  constructor(
+    @inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
+    @inject(InputService) inputService: InputService
+  ) {
     const hosters = inputService.getHosters();
     super(meetupIssueService, hosters);
   }

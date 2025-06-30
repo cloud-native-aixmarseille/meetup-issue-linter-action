@@ -1,6 +1,6 @@
 import { context, getOctokit } from "@actions/github";
 import { GitHub } from "@actions/github/lib/utils";
-import { injectable } from "inversify";
+import { inject, injectable } from "inversify";
 
 import { InputService } from "./input.service";
 
@@ -22,10 +22,10 @@ export const UpdatableGithubIssueFields = Object.keys({
 } as UpdatableGithubIssue) as (keyof UpdatableGithubIssue)[];
 
 @injectable()
-export class GithubService {
+export class GitHubService {
   private octokit: Octokit | undefined;
 
-  constructor(private readonly inputService: InputService) {}
+  constructor(@inject(InputService) private readonly inputService: InputService) {}
 
   async getIssue(issueNumber: number): Promise<GithubIssue> {
     const { data: issue } = await this.getOctokit().rest.issues.get({

@@ -1,7 +1,10 @@
-import { injectable } from "inversify";
+import { injectable, injectFromBase } from "inversify";
 import { AbstractLinkLinterAdapter } from "./abstract-link-linter.adapter";
 
 @injectable()
+@injectFromBase({
+  extendConstructorArguments: true,
+})
 export class MeetupLinkLinterAdapter extends AbstractLinkLinterAdapter {
   private static readonly MEETUP_LINK_REGEX =
     /^https:\/\/www\.meetup\.com\/cloud-native-aix-marseille\/events\/[0-9]+\/?$/;

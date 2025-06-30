@@ -1,15 +1,15 @@
 import { mock, MockProxy } from "jest-mock-extended";
-import { GithubService } from "./github.service";
+import { GitHubService } from "./github.service";
 import { MeetupIssueBodyFields, MeetupIssueService } from "./meetup-issue.service";
 import { getMeetupIssueFixture } from "../__fixtures__/meetup-issue.fixture";
 
 describe("MeetupIssueService", () => {
-  let githubServiceMock: MockProxy<GithubService>;
+  let githubServiceMock: MockProxy<GitHubService>;
 
   let meetupIssueService: MeetupIssueService;
 
   beforeEach(() => {
-    githubServiceMock = mock<GithubService>();
+    githubServiceMock = mock<GitHubService>();
 
     meetupIssueService = new MeetupIssueService(githubServiceMock);
   });
