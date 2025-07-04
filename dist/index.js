@@ -30003,10 +30003,10 @@ function isValidationErrorLike(err) {
 }
 
 // lib/v3/fromZodIssue.ts
-var zod2 = __toESM(__nccwpck_require__(2046));
+var zod2 = __toESM(__nccwpck_require__(924));
 
 // lib/v3/MessageBuilder.ts
-var zod = __toESM(__nccwpck_require__(2046));
+var zod = __toESM(__nccwpck_require__(924));
 
 // lib/utils/NonEmptyArray.ts
 function isNonEmptyArray(value) {
@@ -30435,7 +30435,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AbstractLinkLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
+const zod_1 = __nccwpck_require__(924);
 const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
 let AbstractLinkLinterAdapter = class AbstractLinkLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
@@ -30555,7 +30555,7 @@ var AgendaLinterAdapter_1;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AgendaLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
+const zod_1 = __nccwpck_require__(924);
 const abstract_entity_link_linter_adapter_1 = __nccwpck_require__(881);
 const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
@@ -30763,7 +30763,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventDateLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
+const zod_1 = __nccwpck_require__(924);
 const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
 let EventDateLinterAdapter = class EventDateLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
@@ -30798,7 +30798,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventDescriptionLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
+const zod_1 = __nccwpck_require__(924);
 const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
 let EventDescriptionLinterAdapter = class EventDescriptionLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
@@ -30835,7 +30835,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.EventTitleLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
+const zod_1 = __nccwpck_require__(924);
 const abstract_zod_linter_adapter_1 = __nccwpck_require__(9884);
 let EventTitleLinterAdapter = class EventTitleLinterAdapter extends abstract_zod_linter_adapter_1.AbstractZodLinterAdapter {
     getValidator() {
@@ -30878,7 +30878,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HosterLinterAdapter = void 0;
 const inversify_1 = __nccwpck_require__(4871);
-const zod_1 = __nccwpck_require__(2046);
+const zod_1 = __nccwpck_require__(924);
 const abstract_entity_link_linter_adapter_1 = __nccwpck_require__(881);
 const meetup_issue_service_1 = __nccwpck_require__(9759);
 const lint_error_1 = __nccwpck_require__(4225);
@@ -40734,7 +40734,7 @@ var Reflect;
 
 /***/ }),
 
-/***/ 2046:
+/***/ 924:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -40750,28 +40750,39 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
 }));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const index_js_1 = __importDefault(__nccwpck_require__(1059));
-__exportStar(__nccwpck_require__(1059), exports);
-exports["default"] = index_js_1.default;
+exports.z = void 0;
+const z = __importStar(__nccwpck_require__(8953));
+exports.z = z;
+__exportStar(__nccwpck_require__(8953), exports);
+exports["default"] = z;
 
 
 /***/ }),
 
-/***/ 2111:
+/***/ 1087:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ZodError = exports.quotelessJson = exports.ZodIssueCode = void 0;
-const util_js_1 = __nccwpck_require__(3304);
+const util_js_1 = __nccwpck_require__(2046);
 exports.ZodIssueCode = util_js_1.util.arrayToEnum([
     "invalid_type",
     "invalid_literal",
@@ -40887,8 +40898,9 @@ class ZodError extends Error {
         const formErrors = [];
         for (const sub of this.issues) {
             if (sub.path.length > 0) {
-                fieldErrors[sub.path[0]] = fieldErrors[sub.path[0]] || [];
-                fieldErrors[sub.path[0]].push(mapper(sub));
+                const firstEl = sub.path[0];
+                fieldErrors[firstEl] = fieldErrors[firstEl] || [];
+                fieldErrors[firstEl].push(mapper(sub));
             }
             else {
                 formErrors.push(mapper(sub));
@@ -40909,7 +40921,7 @@ ZodError.create = (issues) => {
 
 /***/ }),
 
-/***/ 7665:
+/***/ 1977:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -40921,7 +40933,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.defaultErrorMap = void 0;
 exports.setErrorMap = setErrorMap;
 exports.getErrorMap = getErrorMap;
-const en_js_1 = __importDefault(__nccwpck_require__(2929));
+const en_js_1 = __importDefault(__nccwpck_require__(4097));
 exports.defaultErrorMap = en_js_1.default;
 let overrideErrorMap = en_js_1.default;
 function setErrorMap(map) {
@@ -40934,7 +40946,7 @@ function getErrorMap() {
 
 /***/ }),
 
-/***/ 8101:
+/***/ 8953:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -40954,17 +40966,17 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-__exportStar(__nccwpck_require__(7665), exports);
-__exportStar(__nccwpck_require__(937), exports);
-__exportStar(__nccwpck_require__(6822), exports);
-__exportStar(__nccwpck_require__(3304), exports);
-__exportStar(__nccwpck_require__(4741), exports);
-__exportStar(__nccwpck_require__(2111), exports);
+__exportStar(__nccwpck_require__(1977), exports);
+__exportStar(__nccwpck_require__(991), exports);
+__exportStar(__nccwpck_require__(3006), exports);
+__exportStar(__nccwpck_require__(2046), exports);
+__exportStar(__nccwpck_require__(5063), exports);
+__exportStar(__nccwpck_require__(1087), exports);
 
 
 /***/ }),
 
-/***/ 1344:
+/***/ 8508:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -40981,7 +40993,7 @@ var errorUtil;
 
 /***/ }),
 
-/***/ 937:
+/***/ 991:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -40992,8 +41004,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isAsync = exports.isValid = exports.isDirty = exports.isAborted = exports.OK = exports.DIRTY = exports.INVALID = exports.ParseStatus = exports.EMPTY_PATH = exports.makeIssue = void 0;
 exports.addIssueToContext = addIssueToContext;
-const errors_js_1 = __nccwpck_require__(7665);
-const en_js_1 = __importDefault(__nccwpck_require__(2929));
+const errors_js_1 = __nccwpck_require__(1977);
+const en_js_1 = __importDefault(__nccwpck_require__(4097));
 const makeIssue = (params) => {
     const { data, path, errorMaps, issueData } = params;
     const fullPath = [...path, ...(issueData.path || [])];
@@ -41113,7 +41125,7 @@ exports.isAsync = isAsync;
 
 /***/ }),
 
-/***/ 6822:
+/***/ 3006:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -41123,7 +41135,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 /***/ }),
 
-/***/ 3304:
+/***/ 2046:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -41268,55 +41280,14 @@ exports.getParsedType = getParsedType;
 
 /***/ }),
 
-/***/ 1059:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.z = void 0;
-const z = __importStar(__nccwpck_require__(8101));
-exports.z = z;
-__exportStar(__nccwpck_require__(8101), exports);
-exports["default"] = z;
-
-
-/***/ }),
-
-/***/ 2929:
+/***/ 4097:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const ZodError_js_1 = __nccwpck_require__(2111);
-const util_js_1 = __nccwpck_require__(3304);
+const ZodError_js_1 = __nccwpck_require__(1087);
+const util_js_1 = __nccwpck_require__(2046);
 const errorMap = (issue, _ctx) => {
     let message;
     switch (issue.code) {
@@ -41384,6 +41355,8 @@ const errorMap = (issue, _ctx) => {
                 message = `String must contain ${issue.exact ? "exactly" : issue.inclusive ? `at least` : `over`} ${issue.minimum} character(s)`;
             else if (issue.type === "number")
                 message = `Number must be ${issue.exact ? `exactly equal to ` : issue.inclusive ? `greater than or equal to ` : `greater than `}${issue.minimum}`;
+            else if (issue.type === "bigint")
+                message = `Number must be ${issue.exact ? `exactly equal to ` : issue.inclusive ? `greater than or equal to ` : `greater than `}${issue.minimum}`;
             else if (issue.type === "date")
                 message = `Date must be ${issue.exact ? `exactly equal to ` : issue.inclusive ? `greater than or equal to ` : `greater than `}${new Date(Number(issue.minimum))}`;
             else
@@ -41426,7 +41399,7 @@ exports["default"] = errorMap;
 
 /***/ }),
 
-/***/ 4741:
+/***/ 5063:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -41436,11 +41409,11 @@ exports.discriminatedUnion = exports.date = exports.boolean = exports.bigint = e
 exports.NEVER = exports["void"] = exports.unknown = exports.union = exports.undefined = exports.tuple = exports.transformer = exports.symbol = exports.string = exports.strictObject = exports.set = exports.record = exports.promise = exports.preprocess = exports.pipeline = exports.ostring = exports.optional = exports.onumber = exports.oboolean = exports.object = exports.number = exports.nullable = exports["null"] = exports.never = exports.nativeEnum = exports.nan = exports.map = exports.literal = exports.lazy = exports.intersection = exports["instanceof"] = exports["function"] = exports["enum"] = exports.effect = void 0;
 exports.datetimeRegex = datetimeRegex;
 exports.custom = custom;
-const ZodError_js_1 = __nccwpck_require__(2111);
-const errors_js_1 = __nccwpck_require__(7665);
-const errorUtil_js_1 = __nccwpck_require__(1344);
-const parseUtil_js_1 = __nccwpck_require__(937);
-const util_js_1 = __nccwpck_require__(3304);
+const ZodError_js_1 = __nccwpck_require__(1087);
+const errors_js_1 = __nccwpck_require__(1977);
+const errorUtil_js_1 = __nccwpck_require__(8508);
+const parseUtil_js_1 = __nccwpck_require__(991);
+const util_js_1 = __nccwpck_require__(2046);
 class ParseInputLazyPath {
     constructor(parent, value, path, key) {
         this._cachedPath = [];
@@ -41884,6 +41857,8 @@ function isValidJWT(jwt, alg) {
         return false;
     try {
         const [header] = jwt.split(".");
+        if (!header)
+            return false;
         // Convert base64url to base64
         const base64 = header
             .replace(/-/g, "+")
