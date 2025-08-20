@@ -77,8 +77,8 @@
     "@actions/github": "^6.0.1",
     "inversify": "^7.5.1",
     "reflect-metadata": "^0.2.2",
-    "zod": "^3.25.72",
-    "zod-validation-error": "^3.4.1"
+    "zod": "^4.0.17",
+    "zod-validation-error": "^4.0.1"
   },
   "devDependencies": {
     "@ts-dev-tools/core": "^1.7.2",

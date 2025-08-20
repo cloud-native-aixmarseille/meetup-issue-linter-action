@@ -33,7 +33,7 @@ describe("DriveLinkLinterAdapter", () => {
         description: "Drive Link is invalid",
         drive_link: "invalid-link",
         error:
-          "Invalid url; Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j",
+          "Invalid URL; Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j",
       },
       {
         description: "Drive Link is not a Drive Link",

@@ -33,7 +33,7 @@ describe("CNCFLinkLinterAdapter", () => {
         description: "CNCF link is invalid",
         cncf_link: "invalid-link",
         error:
-          "Invalid url; Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
+          "Invalid URL; Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
       },
       {
         description: "CNCF link is not a CNCF link",

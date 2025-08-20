@@ -32,7 +32,7 @@ describe("EventDateLinterAdapter", () => {
       {
         description: "event date is invalid",
         event_date: "invalid-date",
-        error: "Invalid date",
+        error: "Invalid ISO date",
       },
     ])("should throw a LintError if $description", async ({ event_date, error }) => {
       // Arrange
