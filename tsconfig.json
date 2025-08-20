@@ -25,5 +25,6 @@
     "./src/**/*.test.ts",
     "./coverage"
   ],
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*"],
+  "isolatedModules": true
 }
