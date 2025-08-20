@@ -56579,7 +56579,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
  * The entrypoint for the action.
  */
 const index_runner_1 = __nccwpck_require__(5310);
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
 (0, index_runner_1.run)();
 
 })();
