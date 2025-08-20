@@ -33,7 +33,7 @@ describe("MeetupLinkLinterAdapter", () => {
         description: "Meetup link is invalid",
         meetup_link: "invalid-link",
         error:
-          "Invalid url; Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789",
+          "Invalid URL; Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789",
       },
       {
         description: "Meetup link is not a Meetup link",
