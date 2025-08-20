@@ -15,9 +15,14 @@ jobs:
   linter:
     uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@b4883995e100e291a1fed68678d47a560328ed08 # 0.24.0
     with:
+      # FIXME: remove VALIDATE_*_PRETTIER when supported (https://github.com/super-linter/super-linter/issues/6089)
       linter-env: |
         FILTER_REGEX_EXCLUDE=dist/**/*
         VALIDATE_TYPESCRIPT_ES=false
+        VALIDATE_JSON_PRETTIER=false
+        VALIDATE_MARKDOWN_PRETTIER=false
+        VALIDATE_TYPESCRIPT_PRETTIER=false
+        VALIDATE_YAML_PRETTIER=false
 
   check-nodejs:
     name: Test nodejs
