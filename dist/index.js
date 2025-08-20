@@ -34200,6 +34200,21 @@ function isBindingIdentifier(value) {
 
 /***/ }),
 
+/***/ 7334:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isMultipleResolvedValueMetadataInjectOptions = isMultipleResolvedValueMetadataInjectOptions;
+function isMultipleResolvedValueMetadataInjectOptions(options) {
+    return (options
+        .isMultiple === true);
+}
+//# sourceMappingURL=isMultipleResolvedValueMetadataInjectOptions.js.map
+
+/***/ }),
+
 /***/ 9798:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -34418,9 +34433,12 @@ function isResolvedValueMetadataInjectOptions(options) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BindInWhenOnFluentSyntaxImplementation = exports.BindWhenOnFluentSyntaxImplementation = exports.BindWhenFluentSyntaxImplementation = exports.BindOnFluentSyntaxImplementation = exports.BindToFluentSyntaxImplementation = exports.BindInFluentSyntaxImplementation = void 0;
+const common_1 = __nccwpck_require__(9160);
 const core_1 = __nccwpck_require__(4922);
 const core_2 = __nccwpck_require__(4922);
 const BindingConstraintUtils_1 = __nccwpck_require__(7647);
+const InversifyContainerError_1 = __nccwpck_require__(8360);
+const InversifyContainerErrorKind_1 = __nccwpck_require__(2418);
 const buildBindingIdentifier_1 = __nccwpck_require__(8129);
 const isAnyAncestorBindingConstraints_1 = __nccwpck_require__(439);
 const isAnyAncestorBindingConstraintsWithName_1 = __nccwpck_require__(8752);
@@ -34429,6 +34447,7 @@ const isAnyAncestorBindingConstraintsWithTag_1 = __nccwpck_require__(4007);
 const isBindingConstraintsWithName_1 = __nccwpck_require__(5967);
 const isBindingConstraintsWithNoNameNorTags_1 = __nccwpck_require__(5132);
 const isBindingConstraintsWithTag_1 = __nccwpck_require__(9362);
+const isMultipleResolvedValueMetadataInjectOptions_1 = __nccwpck_require__(7334);
 const isNoAncestorBindingConstraints_1 = __nccwpck_require__(9798);
 const isNoAncestorBindingConstraintsWithName_1 = __nccwpck_require__(8637);
 const isNoAncestorBindingConstraintsWithServiceId_1 = __nccwpck_require__(1870);
@@ -34614,18 +34633,31 @@ class BindToFluentSyntaxImplementation {
         const resolvedValueMetadata = {
             arguments: (options ?? []).map((injectOption) => {
                 if ((0, isResolvedValueMetadataInjectOptions_1.isResolvedValueMetadataInjectOptions)(injectOption)) {
-                    return {
-                        kind: injectOption.isMultiple === true
-                            ? core_1.ResolvedValueElementMetadataKind.multipleInjection
-                            : core_1.ResolvedValueElementMetadataKind.singleInjection,
-                        name: injectOption.name,
-                        optional: injectOption.optional ?? false,
-                        tags: new Map((injectOption.tags ?? []).map((tag) => [
-                            tag.key,
-                            tag.value,
-                        ])),
-                        value: injectOption.serviceIdentifier,
-                    };
+                    if ((0, isMultipleResolvedValueMetadataInjectOptions_1.isMultipleResolvedValueMetadataInjectOptions)(injectOption)) {
+                        return {
+                            chained: injectOption.chained ?? false,
+                            kind: core_1.ResolvedValueElementMetadataKind.multipleInjection,
+                            name: injectOption.name,
+                            optional: injectOption.optional ?? false,
+                            tags: new Map((injectOption.tags ?? []).map((tag) => [
+                                tag.key,
+                                tag.value,
+                            ])),
+                            value: injectOption.serviceIdentifier,
+                        };
+                    }
+                    else {
+                        return {
+                            kind: core_1.ResolvedValueElementMetadataKind.singleInjection,
+                            name: injectOption.name,
+                            optional: injectOption.optional ?? false,
+                            tags: new Map((injectOption.tags ?? []).map((tag) => [
+                                tag.key,
+                                tag.value,
+                            ])),
+                            value: injectOption.serviceIdentifier,
+                        };
+                    }
                 }
                 else {
                     return {
@@ -34656,6 +34688,9 @@ class BindOnFluentSyntaxImplementation {
     }
     onDeactivation(deactivation) {
         this.#binding.onDeactivation = deactivation;
+        if (this.#binding.scope !== core_1.bindingScopeValues.Singleton) {
+            throw new InversifyContainerError_1.InversifyContainerError(InversifyContainerErrorKind_1.InversifyContainerErrorKind.invalidOperation, `Binding for service "${(0, common_1.stringifyServiceIdentifier)(this.#binding.serviceIdentifier)}" has a deactivation function, but its scope is not singleton. Deactivation functions can only be used with singleton bindings.`);
+        }
         return new BindWhenFluentSyntaxImplementation(this.#binding);
     }
 }
@@ -34837,6 +34872,25 @@ function getContainerModuleId() {
 
 /***/ }),
 
+/***/ 776:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.resetDeactivationParams = resetDeactivationParams;
+function resetDeactivationParams(serviceReferenceManager, deactivationParams) {
+    deactivationParams.getBindings =
+        serviceReferenceManager.bindingService.get.bind(serviceReferenceManager.bindingService);
+    deactivationParams.getBindingsFromModule =
+        serviceReferenceManager.bindingService.getByModuleId.bind(serviceReferenceManager.bindingService);
+    deactivationParams.getDeactivations =
+        serviceReferenceManager.deactivationService.get.bind(serviceReferenceManager.deactivationService);
+}
+//# sourceMappingURL=resetDeactivationParams.js.map
+
+/***/ }),
+
 /***/ 7647:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -34918,10 +34972,12 @@ const InversifyContainerErrorKind_1 = __nccwpck_require__(2418);
 class BindingManager {
     #deactivationParams;
     #defaultScope;
+    #planResultCacheManager;
     #serviceReferenceManager;
-    constructor(deactivationParams, defaultScope, serviceReferenceManager) {
+    constructor(deactivationParams, defaultScope, planResultCacheManager, serviceReferenceManager) {
         this.#deactivationParams = deactivationParams;
         this.#defaultScope = defaultScope;
+        this.#planResultCacheManager = planResultCacheManager;
         this.#serviceReferenceManager = serviceReferenceManager;
     }
     bind(serviceIdentifier) {
@@ -34976,7 +35032,10 @@ class BindingManager {
     }
     #setBinding(binding) {
         this.#serviceReferenceManager.bindingService.set(binding);
-        this.#serviceReferenceManager.planResultCacheService.clearCache();
+        this.#planResultCacheManager.invalidateService({
+            binding: binding,
+            kind: core_1.CacheBindingInvalidationKind.bindingAdded,
+        });
     }
     #throwUnexpectedAsyncUnbindOperation(identifier) {
         let errorMessage;
@@ -35003,37 +35062,54 @@ class BindingManager {
         return this.#unbindServiceIdentifier(identifier);
     }
     #unbindBindingIdentifier(identifier) {
-        const bindings = this.#serviceReferenceManager.bindingService.getById(identifier.id);
-        const result = (0, core_1.resolveBindingsDeactivations)(this.#deactivationParams, bindings);
+        const bindingsIterable = this.#serviceReferenceManager.bindingService.getById(identifier.id);
+        const bindings = bindingsIterable === undefined ? undefined : [...bindingsIterable];
+        const result = (0, core_1.resolveBindingsDeactivations)(this.#deactivationParams, bindingsIterable);
         if (result === undefined) {
-            this.#clearAfterUnbindBindingIdentifier(identifier);
+            this.#clearAfterUnbindBindingIdentifier(bindings, identifier);
         }
         else {
             return result.then(() => {
-                this.#clearAfterUnbindBindingIdentifier(identifier);
+                this.#clearAfterUnbindBindingIdentifier(bindings, identifier);
             });
         }
     }
-    #clearAfterUnbindBindingIdentifier(identifier) {
+    #clearAfterUnbindBindingIdentifier(bindings, identifier) {
         this.#serviceReferenceManager.bindingService.removeById(identifier.id);
-        this.#serviceReferenceManager.planResultCacheService.clearCache();
+        if (bindings !== undefined) {
+            for (const binding of bindings) {
+                this.#planResultCacheManager.invalidateService({
+                    binding,
+                    kind: core_1.CacheBindingInvalidationKind.bindingRemoved,
+                });
+            }
+        }
     }
     #unbindServiceIdentifier(identifier) {
-        const result = (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, identifier);
+        const bindingsIterable = this.#serviceReferenceManager.bindingService.get(identifier);
+        const bindings = bindingsIterable === undefined ? undefined : [...bindingsIterable];
+        const result = (0, core_1.resolveBindingsDeactivations)(this.#deactivationParams, bindingsIterable);
         if (result === undefined) {
-            this.#clearAfterUnbindServiceIdentifier(identifier);
+            this.#clearAfterUnbindServiceIdentifier(identifier, bindings);
         }
         else {
             return result.then(() => {
-                this.#clearAfterUnbindServiceIdentifier(identifier);
+                this.#clearAfterUnbindServiceIdentifier(identifier, bindings);
             });
         }
     }
-    #clearAfterUnbindServiceIdentifier(identifier) {
+    #clearAfterUnbindServiceIdentifier(identifier, bindings) {
         this.#serviceReferenceManager.activationService.removeAllByServiceId(identifier);
         this.#serviceReferenceManager.bindingService.removeAllByServiceId(identifier);
         this.#serviceReferenceManager.deactivationService.removeAllByServiceId(identifier);
-        this.#serviceReferenceManager.planResultCacheService.clearCache();
+        if (bindings !== undefined) {
+            for (const binding of bindings) {
+                this.#planResultCacheManager.invalidateService({
+                    binding,
+                    kind: core_1.CacheBindingInvalidationKind.bindingRemoved,
+                });
+            }
+        }
     }
     #isAnyValidBinding(serviceIdentifier, bindings, options) {
         if (bindings === undefined) {
@@ -35069,9 +35145,11 @@ exports.BindingManager = BindingManager;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Container = void 0;
 const core_1 = __nccwpck_require__(4922);
-const buildDeactivationParams_1 = __nccwpck_require__(2992);
 const BindingManager_1 = __nccwpck_require__(4039);
 const ContainerModuleManager_1 = __nccwpck_require__(6293);
+const DeactivationParamsManager_1 = __nccwpck_require__(6871);
+const PlanParamsOperationsManager_1 = __nccwpck_require__(6541);
+const PlanResultCacheManager_1 = __nccwpck_require__(5300);
 const PluginManager_1 = __nccwpck_require__(837);
 const ServiceReferenceManager_1 = __nccwpck_require__(2140);
 const ServiceResolutionManager_1 = __nccwpck_require__(3151);
@@ -35088,10 +35166,12 @@ class Container {
         this.#serviceReferenceManager = this.#buildServiceReferenceManager(options);
         const autobind = options?.autobind ?? false;
         const defaultScope = options?.defaultScope ?? DEFAULT_DEFAULT_SCOPE;
-        const deactivationParams = (0, buildDeactivationParams_1.buildDeactivationParams)(this.#serviceReferenceManager);
-        this.#bindingManager = new BindingManager_1.BindingManager(deactivationParams, defaultScope, this.#serviceReferenceManager);
-        this.#containerModuleManager = new ContainerModuleManager_1.ContainerModuleManager(this.#bindingManager, deactivationParams, defaultScope, this.#serviceReferenceManager);
-        this.#serviceResolutionManager = new ServiceResolutionManager_1.ServiceResolutionManager(this.#serviceReferenceManager, autobind, defaultScope);
+        const planParamsOperationsManager = new PlanParamsOperationsManager_1.PlanParamsOperationsManager(this.#serviceReferenceManager);
+        const planResultCacheManager = new PlanResultCacheManager_1.PlanResultCacheManager(planParamsOperationsManager, this.#serviceReferenceManager);
+        const deactivationParamsManager = new DeactivationParamsManager_1.DeactivationParamsManager(this.#serviceReferenceManager);
+        this.#bindingManager = new BindingManager_1.BindingManager(deactivationParamsManager.deactivationParams, defaultScope, planResultCacheManager, this.#serviceReferenceManager);
+        this.#containerModuleManager = new ContainerModuleManager_1.ContainerModuleManager(this.#bindingManager, deactivationParamsManager.deactivationParams, defaultScope, planResultCacheManager, this.#serviceReferenceManager);
+        this.#serviceResolutionManager = new ServiceResolutionManager_1.ServiceResolutionManager(planParamsOperationsManager, this.#serviceReferenceManager, autobind, defaultScope);
         this.#pluginManager = new PluginManager_1.PluginManager(this, this.#serviceReferenceManager, this.#serviceResolutionManager);
         this.#snapshotManager = new SnapshotManager_1.SnapshotManager(this.#serviceReferenceManager);
     }
@@ -35164,11 +35244,12 @@ class Container {
     }
     #buildServiceReferenceManager(options) {
         if (options?.parent === undefined) {
-            return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(undefined), core_1.BindingService.build(undefined), core_1.DeactivationsService.build(undefined), new core_1.PlanResultCacheService());
+            return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(() => undefined), core_1.BindingService.build(() => undefined), core_1.DeactivationsService.build(() => undefined), new core_1.PlanResultCacheService());
         }
         const planResultCacheService = new core_1.PlanResultCacheService();
-        options.parent.#serviceReferenceManager.planResultCacheService.subscribe(planResultCacheService);
-        return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(options.parent.#serviceReferenceManager.activationService), core_1.BindingService.build(options.parent.#serviceReferenceManager.bindingService), core_1.DeactivationsService.build(options.parent.#serviceReferenceManager.deactivationService), planResultCacheService);
+        const parent = options.parent;
+        parent.#serviceReferenceManager.planResultCacheService.subscribe(planResultCacheService);
+        return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(() => parent.#serviceReferenceManager.activationService), core_1.BindingService.build(() => parent.#serviceReferenceManager.bindingService), core_1.DeactivationsService.build(() => parent.#serviceReferenceManager.deactivationService), planResultCacheService);
     }
 }
 exports.Container = Container;
@@ -35191,11 +35272,13 @@ class ContainerModuleManager {
     #bindingManager;
     #deactivationParams;
     #defaultScope;
+    #planResultCacheManager;
     #serviceReferenceManager;
-    constructor(bindingManager, deactivationParams, defaultScope, serviceReferenceManager) {
+    constructor(bindingManager, deactivationParams, defaultScope, planResultCacheManager, serviceReferenceManager) {
         this.#bindingManager = bindingManager;
         this.#deactivationParams = deactivationParams;
         this.#defaultScope = defaultScope;
+        this.#planResultCacheManager = planResultCacheManager;
         this.#serviceReferenceManager = serviceReferenceManager;
     }
     async load(...modules) {
@@ -35277,7 +35360,10 @@ class ContainerModuleManager {
     }
     #setBinding(binding) {
         this.#serviceReferenceManager.bindingService.set(binding);
-        this.#serviceReferenceManager.planResultCacheService.clearCache();
+        this.#planResultCacheManager.invalidateService({
+            binding: binding,
+            kind: core_1.CacheBindingInvalidationKind.bindingAdded,
+        });
     }
     #unload(...modules) {
         return modules.map((module) => (0, core_1.resolveModuleDeactivations)(this.#deactivationParams, module.id));
@@ -35285,6 +35371,102 @@ class ContainerModuleManager {
 }
 exports.ContainerModuleManager = ContainerModuleManager;
 //# sourceMappingURL=ContainerModuleManager.js.map
+
+/***/ }),
+
+/***/ 6871:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DeactivationParamsManager = void 0;
+const resetDeactivationParams_1 = __nccwpck_require__(776);
+const buildDeactivationParams_1 = __nccwpck_require__(2992);
+class DeactivationParamsManager {
+    deactivationParams;
+    constructor(serviceReferenceManager) {
+        this.deactivationParams = (0, buildDeactivationParams_1.buildDeactivationParams)(serviceReferenceManager);
+        serviceReferenceManager.onReset(() => {
+            (0, resetDeactivationParams_1.resetDeactivationParams)(serviceReferenceManager, this.deactivationParams);
+        });
+    }
+}
+exports.DeactivationParamsManager = DeactivationParamsManager;
+//# sourceMappingURL=DeactivationParamsManager.js.map
+
+/***/ }),
+
+/***/ 6541:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PlanParamsOperationsManager = void 0;
+const core_1 = __nccwpck_require__(4922);
+class PlanParamsOperationsManager {
+    planParamsOperations;
+    #serviceReferenceManager;
+    constructor(serviceReferenceManager) {
+        this.#serviceReferenceManager = serviceReferenceManager;
+        this.planParamsOperations = {
+            getBindings: this.#serviceReferenceManager.bindingService.get.bind(this.#serviceReferenceManager.bindingService),
+            getBindingsChained: this.#serviceReferenceManager.bindingService.getChained.bind(this.#serviceReferenceManager.bindingService),
+            getClassMetadata: core_1.getClassMetadata,
+            getPlan: this.#serviceReferenceManager.planResultCacheService.get.bind(this.#serviceReferenceManager.planResultCacheService),
+            setBinding: this.#setBinding.bind(this),
+            setNonCachedServiceNode: this.#serviceReferenceManager.planResultCacheService.setNonCachedServiceNode.bind(this.#serviceReferenceManager.planResultCacheService),
+            setPlan: this.#serviceReferenceManager.planResultCacheService.set.bind(this.#serviceReferenceManager.planResultCacheService),
+        };
+        this.#serviceReferenceManager.onReset(() => {
+            this.#resetComputedProperties();
+        });
+    }
+    #resetComputedProperties() {
+        this.planParamsOperations.getBindings =
+            this.#serviceReferenceManager.bindingService.get.bind(this.#serviceReferenceManager.bindingService);
+        this.planParamsOperations.getBindingsChained =
+            this.#serviceReferenceManager.bindingService.getChained.bind(this.#serviceReferenceManager.bindingService);
+        this.planParamsOperations.setBinding = this.#setBinding.bind(this);
+    }
+    #setBinding(binding) {
+        this.#serviceReferenceManager.bindingService.set(binding);
+        this.#serviceReferenceManager.planResultCacheService.invalidateServiceBinding({
+            binding: binding,
+            kind: core_1.CacheBindingInvalidationKind.bindingAdded,
+            operations: this.planParamsOperations,
+        });
+    }
+}
+exports.PlanParamsOperationsManager = PlanParamsOperationsManager;
+//# sourceMappingURL=PlanParamsOperationsManager.js.map
+
+/***/ }),
+
+/***/ 5300:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PlanResultCacheManager = void 0;
+class PlanResultCacheManager {
+    #planParamsOperationsManager;
+    #serviceReferenceManager;
+    constructor(planParamsOperationsManager, serviceReferenceManager) {
+        this.#planParamsOperationsManager = planParamsOperationsManager;
+        this.#serviceReferenceManager = serviceReferenceManager;
+    }
+    invalidateService(invalidation) {
+        this.#serviceReferenceManager.planResultCacheService.invalidateServiceBinding({
+            ...invalidation,
+            operations: this.#planParamsOperationsManager.planParamsOperations,
+        });
+    }
+}
+exports.PlanResultCacheManager = PlanResultCacheManager;
+//# sourceMappingURL=PlanResultCacheManager.js.map
 
 /***/ }),
 
@@ -35410,21 +35592,18 @@ class ServiceResolutionManager {
     #autobind;
     #defaultScope;
     #getActivationsResolutionParam;
-    #getBindingsPlanParams;
     #resolutionContext;
     #onPlanHandlers;
+    #planParamsOperationsManager;
     #serviceReferenceManager;
-    #setBindingParamsPlan;
-    constructor(serviceReferenceManager, autobind, defaultScope) {
+    constructor(planParamsOperationsManager, serviceReferenceManager, autobind, defaultScope) {
+        this.#planParamsOperationsManager = planParamsOperationsManager;
         this.#serviceReferenceManager = serviceReferenceManager;
         this.#resolutionContext = this.#buildResolutionContext();
         this.#autobind = autobind;
         this.#defaultScope = defaultScope;
         this.#getActivationsResolutionParam = (serviceIdentifier) => this.#serviceReferenceManager.activationService.get(serviceIdentifier);
-        this.#getBindingsPlanParams =
-            this.#serviceReferenceManager.bindingService.get.bind(this.#serviceReferenceManager.bindingService);
         this.#onPlanHandlers = [];
-        this.#setBindingParamsPlan = this.#setBinding.bind(this);
         this.#serviceReferenceManager.onReset(() => {
             this.#resetComputedProperties();
         });
@@ -35457,19 +35636,31 @@ class ServiceResolutionManager {
         this.#onPlanHandlers.push(handler);
     }
     #resetComputedProperties() {
-        this.#getBindingsPlanParams =
-            this.#serviceReferenceManager.bindingService.get.bind(this.#serviceReferenceManager.bindingService);
-        this.#setBindingParamsPlan = this.#setBinding.bind(this);
         this.#resolutionContext = this.#buildResolutionContext();
     }
     #buildGetPlanOptions(isMultiple, serviceIdentifier, options) {
-        return {
-            isMultiple,
-            name: options?.name,
-            optional: options?.optional,
-            serviceIdentifier,
-            tag: options?.tag,
-        };
+        const name = options?.name;
+        const optional = options?.optional ?? false;
+        const tag = options?.tag;
+        if (isMultiple) {
+            return {
+                chained: options?.chained ?? false,
+                isMultiple,
+                name,
+                optional,
+                serviceIdentifier,
+                tag,
+            };
+        }
+        else {
+            return {
+                isMultiple,
+                name,
+                optional,
+                serviceIdentifier,
+                tag,
+            };
+        }
     }
     #buildPlanParams(serviceIdentifier, isMultiple, options) {
         const planParams = {
@@ -35478,17 +35669,27 @@ class ServiceResolutionManager {
                     scope: this.#defaultScope,
                 }
                 : undefined,
-            getBindings: this.#getBindingsPlanParams,
-            getClassMetadata: core_1.getClassMetadata,
-            rootConstraints: {
-                isMultiple,
-                serviceIdentifier,
-            },
+            operations: this.#planParamsOperationsManager.planParamsOperations,
+            rootConstraints: this.#buildPlanParamsConstraints(serviceIdentifier, isMultiple, options),
             servicesBranch: [],
-            setBinding: this.#setBindingParamsPlan,
         };
         this.#handlePlanParamsRootConstraints(planParams, options);
         return planParams;
+    }
+    #buildPlanParamsConstraints(serviceIdentifier, isMultiple, options) {
+        if (isMultiple) {
+            return {
+                chained: options?.chained ?? false,
+                isMultiple,
+                serviceIdentifier,
+            };
+        }
+        else {
+            return {
+                isMultiple,
+                serviceIdentifier,
+            };
+        }
     }
     #buildPlanResult(isMultiple, serviceIdentifier, options) {
         const getPlanOptions = this.#buildGetPlanOptions(isMultiple, serviceIdentifier, options);
@@ -35497,7 +35698,6 @@ class ServiceResolutionManager {
             return planResultFromCache;
         }
         const planResult = (0, core_1.plan)(this.#buildPlanParams(serviceIdentifier, isMultiple, options));
-        this.#serviceReferenceManager.planResultCacheService.set(getPlanOptions, planResult);
         for (const handler of this.#onPlanHandlers) {
             handler(getPlanOptions, planResult);
         }
@@ -35536,10 +35736,10 @@ class ServiceResolutionManager {
                 value: options.tag.value,
             };
         }
-    }
-    #setBinding(binding) {
-        this.#serviceReferenceManager.bindingService.set(binding);
-        this.#serviceReferenceManager.planResultCacheService.clearCache();
+        if (planParams.rootConstraints.isMultiple) {
+            planParams.rootConstraints.chained =
+                options?.chained ?? false;
+        }
     }
 }
 exports.ServiceResolutionManager = ServiceResolutionManager;
@@ -35998,6 +36198,7 @@ class BindingConstraintsImplementation {
         return this.#node.elem.tags;
     }
     getAncestor() {
+        this.#node.elem.getAncestorsCalled = true;
         if (this.#node.previous === undefined) {
             return undefined;
         }
@@ -36061,8 +36262,8 @@ var ActivationRelationKind;
 })(ActivationRelationKind || (ActivationRelationKind = {}));
 class ActivationsService {
     #activationMaps;
-    #parent;
-    constructor(parent, activationMaps) {
+    #getParent;
+    constructor(getParent, activationMaps) {
         this.#activationMaps =
             activationMaps ??
                 new OneToManyMapStar_1.OneToManyMapStar({
@@ -36073,16 +36274,16 @@ class ActivationsService {
                         isOptional: false,
                     },
                 });
-        this.#parent = parent;
+        this.#getParent = getParent;
     }
-    static build(parent) {
-        return new ActivationsService(parent);
+    static build(getParent) {
+        return new ActivationsService(getParent);
     }
     add(activation, relation) {
         this.#activationMaps.add(activation, relation);
     }
     clone() {
-        const clone = new ActivationsService(this.#parent, this.#activationMaps.clone());
+        const clone = new ActivationsService(this.#getParent, this.#activationMaps.clone());
         return clone;
     }
     get(serviceIdentifier) {
@@ -36091,7 +36292,7 @@ class ActivationsService {
         if (activations !== undefined) {
             activationIterables.push(activations);
         }
-        const parentActivations = this.#parent?.get(serviceIdentifier);
+        const parentActivations = this.#getParent()?.get(serviceIdentifier);
         if (parentActivations !== undefined) {
             activationIterables.push(parentActivations);
         }
@@ -36138,8 +36339,8 @@ class OneToManyBindingMapStar extends OneToManyMapStar_1.OneToManyMapStar {
 exports.OneToManyBindingMapStar = OneToManyBindingMapStar;
 class BindingService {
     #bindingMaps;
-    #parent;
-    constructor(parent, bindingMaps) {
+    #getParent;
+    constructor(getParent, bindingMaps) {
         this.#bindingMaps =
             bindingMaps ??
                 new OneToManyBindingMapStar({
@@ -36153,33 +36354,44 @@ class BindingService {
                         isOptional: false,
                     },
                 });
-        this.#parent = parent;
+        this.#getParent = getParent;
     }
-    static build(parent) {
-        return new BindingService(parent);
+    static build(getParent) {
+        return new BindingService(getParent);
     }
     clone() {
-        const clone = new BindingService(this.#parent, this.#bindingMaps.clone());
+        const clone = new BindingService(this.#getParent, this.#bindingMaps.clone());
         return clone;
     }
     get(serviceIdentifier) {
         return (this.getNonParentBindings(serviceIdentifier) ??
-            this.#parent?.get(serviceIdentifier));
+            this.#getParent()?.get(serviceIdentifier));
+    }
+    *getChained(serviceIdentifier) {
+        const currentBindings = this.getNonParentBindings(serviceIdentifier);
+        if (currentBindings !== undefined) {
+            yield* currentBindings;
+        }
+        const parent = this.#getParent();
+        if (parent !== undefined) {
+            yield* parent.getChained(serviceIdentifier);
+        }
     }
     getBoundServices() {
         const serviceIdentifierSet = new Set(this.#bindingMaps.getAllKeys(BindingRelationKind.serviceId));
-        if (this.#parent !== undefined) {
-            for (const serviceIdentifier of this.#parent.getBoundServices()) {
+        const parent = this.#getParent();
+        if (parent !== undefined) {
+            for (const serviceIdentifier of parent.getBoundServices()) {
                 serviceIdentifierSet.add(serviceIdentifier);
             }
         }
         return serviceIdentifierSet;
     }
     getById(id) {
-        return (this.#bindingMaps.get(BindingRelationKind.id, id) ?? this.#parent?.getById(id));
+        return (this.#bindingMaps.get(BindingRelationKind.id, id) ?? this.#getParent()?.getById(id));
     }
     getByModuleId(moduleId) {
-        return (this.#bindingMaps.get(BindingRelationKind.moduleId, moduleId) ?? this.#parent?.getByModuleId(moduleId));
+        return (this.#bindingMaps.get(BindingRelationKind.moduleId, moduleId) ?? this.#getParent()?.getByModuleId(moduleId));
     }
     getNonParentBindings(serviceId) {
         return this.#bindingMaps.get(BindingRelationKind.serviceId, serviceId);
@@ -36228,8 +36440,8 @@ var DeactivationRelationKind;
 })(DeactivationRelationKind || (DeactivationRelationKind = {}));
 class DeactivationsService {
     #deactivationMaps;
-    #parent;
-    constructor(parent, deactivationMaps) {
+    #getParent;
+    constructor(getParent, deactivationMaps) {
         this.#deactivationMaps =
             deactivationMaps ??
                 new OneToManyMapStar_1.OneToManyMapStar({
@@ -36240,16 +36452,16 @@ class DeactivationsService {
                         isOptional: false,
                     },
                 });
-        this.#parent = parent;
+        this.#getParent = getParent;
     }
-    static build(parent) {
-        return new DeactivationsService(parent);
+    static build(getParent) {
+        return new DeactivationsService(getParent);
     }
     add(deactivation, relation) {
         this.#deactivationMaps.add(deactivation, relation);
     }
     clone() {
-        const clone = new DeactivationsService(this.#parent, this.#deactivationMaps.clone());
+        const clone = new DeactivationsService(this.#getParent, this.#deactivationMaps.clone());
         return clone;
     }
     get(serviceIdentifier) {
@@ -36258,7 +36470,7 @@ class DeactivationsService {
         if (deactivations !== undefined) {
             deactivationIterables.push(deactivations);
         }
-        const parentDeactivations = this.#parent?.get(serviceIdentifier);
+        const parentDeactivations = this.#getParent()?.get(serviceIdentifier);
         if (parentDeactivations !== undefined) {
             deactivationIterables.push(parentDeactivations);
         }
@@ -36472,20 +36684,20 @@ exports.OneToManyMapStar = OneToManyMapStar;
 
 /***/ }),
 
-/***/ 6479:
+/***/ 6112:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.SingleInmutableLinkedList = void 0;
-class SingleInmutableLinkedList {
+exports.SingleImmutableLinkedList = void 0;
+class SingleImmutableLinkedList {
     last;
     constructor(last) {
         this.last = last;
     }
     concat(elem) {
-        return new SingleInmutableLinkedList({
+        return new SingleImmutableLinkedList({
             elem,
             previous: this.last,
         });
@@ -36510,8 +36722,8 @@ class SingleInmutableLinkedList {
         };
     }
 }
-exports.SingleInmutableLinkedList = SingleInmutableLinkedList;
-//# sourceMappingURL=SingleInmutableLinkedList.js.map
+exports.SingleImmutableLinkedList = SingleImmutableLinkedList;
+//# sourceMappingURL=SingleImmutableLinkedList.js.map
 
 /***/ }),
 
@@ -36783,7 +36995,7 @@ var InversifyCoreErrorKind;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolveBindingsDeactivations = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.getBindingId = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
+exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolveBindingsDeactivations = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.injectFromHierarchy = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.getBindingId = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.CacheBindingInvalidationKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
 const getBindingId_1 = __nccwpck_require__(4470);
 Object.defineProperty(exports, "getBindingId", ({ enumerable: true, get: function () { return getBindingId_1.getBindingId; } }));
 const BindingScope_1 = __nccwpck_require__(2412);
@@ -36806,6 +37018,8 @@ const injectable_1 = __nccwpck_require__(8772);
 Object.defineProperty(exports, "injectable", ({ enumerable: true, get: function () { return injectable_1.injectable; } }));
 const injectFromBase_1 = __nccwpck_require__(6285);
 Object.defineProperty(exports, "injectFromBase", ({ enumerable: true, get: function () { return injectFromBase_1.injectFromBase; } }));
+const injectFromHierarchy_1 = __nccwpck_require__(7925);
+Object.defineProperty(exports, "injectFromHierarchy", ({ enumerable: true, get: function () { return injectFromHierarchy_1.injectFromHierarchy; } }));
 const multiInject_1 = __nccwpck_require__(765);
 Object.defineProperty(exports, "multiInject", ({ enumerable: true, get: function () { return multiInject_1.multiInject; } }));
 const named_1 = __nccwpck_require__(4960);
@@ -36824,8 +37038,10 @@ const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
 Object.defineProperty(exports, "ClassElementMetadataKind", ({ enumerable: true, get: function () { return ClassElementMetadataKind_1.ClassElementMetadataKind; } }));
 const ResolvedValueElementMetadataKind_1 = __nccwpck_require__(2645);
 Object.defineProperty(exports, "ResolvedValueElementMetadataKind", ({ enumerable: true, get: function () { return ResolvedValueElementMetadataKind_1.ResolvedValueElementMetadataKind; } }));
-const plan_1 = __nccwpck_require__(478);
+const plan_1 = __nccwpck_require__(7743);
 Object.defineProperty(exports, "plan", ({ enumerable: true, get: function () { return plan_1.plan; } }));
+const CacheBindingInvalidationKind_1 = __nccwpck_require__(7344);
+Object.defineProperty(exports, "CacheBindingInvalidationKind", ({ enumerable: true, get: function () { return CacheBindingInvalidationKind_1.CacheBindingInvalidationKind; } }));
 const PlanResultCacheService_1 = __nccwpck_require__(2852);
 Object.defineProperty(exports, "PlanResultCacheService", ({ enumerable: true, get: function () { return PlanResultCacheService_1.PlanResultCacheService; } }));
 const resolve_1 = __nccwpck_require__(3765);
@@ -37155,20 +37371,33 @@ function buildClassElementMetadataFromTypescriptParameterType(type) {
 /***/ }),
 
 /***/ 626:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildDefaultManagedMetadata = buildDefaultManagedMetadata;
-function buildDefaultManagedMetadata(kind, serviceIdentifier) {
-    return {
-        kind,
-        name: undefined,
-        optional: false,
-        tags: new Map(),
-        value: serviceIdentifier,
-    };
+const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
+function buildDefaultManagedMetadata(kind, serviceIdentifier, options) {
+    if (kind === ClassElementMetadataKind_1.ClassElementMetadataKind.multipleInjection) {
+        return {
+            chained: options?.chained ?? false,
+            kind,
+            name: undefined,
+            optional: false,
+            tags: new Map(),
+            value: serviceIdentifier,
+        };
+    }
+    else {
+        return {
+            kind,
+            name: undefined,
+            optional: false,
+            tags: new Map(),
+            value: serviceIdentifier,
+        };
+    }
 }
 //# sourceMappingURL=buildDefaultManagedMetadata.js.map
 
@@ -37233,14 +37462,25 @@ exports.buildManagedMetadataFromMaybeClassElementMetadata = (0, buildClassElemen
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildManagedMetadataFromMaybeManagedMetadata = buildManagedMetadataFromMaybeManagedMetadata;
+const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
 const assertMetadataFromTypescriptIfManaged_1 = __nccwpck_require__(8705);
-function buildManagedMetadataFromMaybeManagedMetadata(metadata, kind, serviceIdentifier) {
+function buildManagedMetadataFromMaybeManagedMetadata(metadata, kind, serviceIdentifier, options) {
     (0, assertMetadataFromTypescriptIfManaged_1.assertMetadataFromTypescriptIfManaged)(metadata);
-    return {
-        ...metadata,
-        kind,
-        value: serviceIdentifier,
-    };
+    if (kind === ClassElementMetadataKind_1.ClassElementMetadataKind.multipleInjection) {
+        return {
+            ...metadata,
+            chained: options?.chained ?? false,
+            kind,
+            value: serviceIdentifier,
+        };
+    }
+    else {
+        return {
+            ...metadata,
+            kind,
+            value: serviceIdentifier,
+        };
+    }
 }
 //# sourceMappingURL=buildManagedMetadataFromMaybeManagedMetadata.js.map
 
@@ -37739,6 +37979,35 @@ function injectFromBase(options) {
 
 /***/ }),
 
+/***/ 7925:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.injectFromHierarchy = injectFromHierarchy;
+const prototype_utils_1 = __nccwpck_require__(4747);
+const injectFrom_1 = __nccwpck_require__(8764);
+function injectFromHierarchy(options) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    return (target) => {
+        const chain = [];
+        let current = (0, prototype_utils_1.getBaseType)(target);
+        while (current !== undefined && current !== Object) {
+            const ancestor = current;
+            chain.push(ancestor);
+            current = (0, prototype_utils_1.getBaseType)(ancestor);
+        }
+        chain.reverse();
+        for (const type of chain) {
+            (0, injectFrom_1.injectFrom)({ ...options, type })(target);
+        }
+    };
+}
+//# sourceMappingURL=injectFromHierarchy.js.map
+
+/***/ }),
+
 /***/ 8772:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -37779,8 +38048,8 @@ const decrementPendingClassMetadataCount_1 = __nccwpck_require__(7388);
 const buildManagedMetadataFromMaybeClassElementMetadata_1 = __nccwpck_require__(3540);
 const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
 const injectBase_1 = __nccwpck_require__(6713);
-function multiInject(serviceIdentifier) {
-    const updateMetadata = (0, buildManagedMetadataFromMaybeClassElementMetadata_1.buildManagedMetadataFromMaybeClassElementMetadata)(ClassElementMetadataKind_1.ClassElementMetadataKind.multipleInjection, serviceIdentifier);
+function multiInject(serviceIdentifier, options) {
+    const updateMetadata = (0, buildManagedMetadataFromMaybeClassElementMetadata_1.buildManagedMetadataFromMaybeClassElementMetadata)(ClassElementMetadataKind_1.ClassElementMetadataKind.multipleInjection, serviceIdentifier, options);
     return (0, injectBase_1.injectBase)(updateMetadata, decrementPendingClassMetadataCount_1.decrementPendingClassMetadataCount);
 }
 //# sourceMappingURL=multiInject.js.map
@@ -37962,6 +38231,757 @@ var ResolvedValueElementMetadataKind;
 
 /***/ }),
 
+/***/ 1981:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.addRootServiceNodeBindingIfContextFree = addRootServiceNodeBindingIfContextFree;
+const buildPlanBindingConstraintsList_1 = __nccwpck_require__(5229);
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+const addServiceNodeBindingIfContextFree_1 = __nccwpck_require__(4414);
+/**
+ * Attach a binding to the root service node if the binding is context-free.
+ * @param params The plan parameters.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function addRootServiceNodeBindingIfContextFree(params, serviceNode, binding) {
+    if (LazyPlanServiceNode_1.LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            isContextFreeBinding: true,
+            shouldInvalidateServiceNode: false,
+        };
+    }
+    const bindingConstraintsList = (0, buildPlanBindingConstraintsList_1.buildPlanBindingConstraintsList)(params);
+    const chained = params.rootConstraints.isMultiple && params.rootConstraints.chained;
+    return (0, addServiceNodeBindingIfContextFree_1.addServiceNodeBindingIfContextFree)(params, serviceNode, binding, bindingConstraintsList, chained);
+}
+//# sourceMappingURL=addRootServiceNodeBindingIfContextFree.js.map
+
+/***/ }),
+
+/***/ 4414:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.addServiceNodeBindingIfContextFree = addServiceNodeBindingIfContextFree;
+const BindingConstraintsImplementation_1 = __nccwpck_require__(414);
+const isStackOverflowError_1 = __nccwpck_require__(1960);
+const InversifyCoreError_1 = __nccwpck_require__(120);
+const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+const curryBuildServiceNodeBindings_1 = __nccwpck_require__(9168);
+const curryLazyBuildPlanServiceNodeFromClassElementMetadata_1 = __nccwpck_require__(2436);
+const curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata_1 = __nccwpck_require__(5143);
+const currySubplan_1 = __nccwpck_require__(5380);
+const plan_1 = __nccwpck_require__(7743);
+const subplan = (0, currySubplan_1.currySubplan)(plan_1.buildPlanServiceNodeFromClassElementMetadata, plan_1.buildPlanServiceNodeFromResolvedValueElementMetadata, circularLazyBuildPlanServiceNodeFromClassElementMetadata, circularLazyBuildPlanServiceNodeFromResolvedValueElementMetadata);
+const buildServiceNodeBindings = (0, curryBuildServiceNodeBindings_1.curryBuildServiceNodeBindings)(subplan);
+const lazyBuildPlanServiceNodeFromClassElementMetadata = (0, curryLazyBuildPlanServiceNodeFromClassElementMetadata_1.curryLazyBuildPlanServiceNodeFromClassElementMetadata)(buildServiceNodeBindings);
+const lazyBuildPlanServiceNodeFromResolvedValueElementMetadata = (0, curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata_1.curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata)(buildServiceNodeBindings);
+function circularLazyBuildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata) {
+    return lazyBuildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+}
+function circularLazyBuildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata) {
+    return lazyBuildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+}
+/**
+ * Attach a binding to a service node if the binding is context-free.
+ * @param params The plan parameters.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @param bindingConstraintsList The list of binding constraints.
+ * @param chainedBindings Whether the bindings are chained.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function addServiceNodeBindingIfContextFree(params, serviceNode, binding, bindingConstraintsList, chainedBindings) {
+    if (LazyPlanServiceNode_1.LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            isContextFreeBinding: true,
+            shouldInvalidateServiceNode: false,
+        };
+    }
+    const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
+    if (!binding.isSatisfiedBy(bindingConstraints) ||
+        bindingConstraintsList.last.elem.getAncestorsCalled) {
+        return {
+            isContextFreeBinding: !bindingConstraintsList.last.elem.getAncestorsCalled,
+            shouldInvalidateServiceNode: false,
+        };
+    }
+    return addServiceNodeSatisfiedBindingIfContextFree(params, serviceNode, binding, bindingConstraintsList, chainedBindings);
+}
+function addServiceNodeSatisfiedBindingIfContextFree(params, serviceNode, binding, bindingConstraintsList, chainedBindings) {
+    let serviceNodeBinding;
+    try {
+        [serviceNodeBinding] = buildServiceNodeBindings(params, bindingConstraintsList, [binding], serviceNode, chainedBindings);
+    }
+    catch (error) {
+        if ((0, isStackOverflowError_1.isStackOverflowError)(error)) {
+            /**
+             * We could potentially detect if we managed to traverse at least one iteration of the circular dependency loop.
+             * If so, the binding is context free if and only if bindingConstraintsList.last.elem.getAncestorsCalled is false.
+             *
+             * Having said that, computing this does not solve an underlying issue with circular dependencies: further cache
+             * refreshes are likely to encounter the same issue again and again. Recovering from stack overflow errors constantly
+             * is not feasible, so we prefer to declare the binding as non context free, asking for a more aggressive cache
+             * invalidation strategy, which is likely to be a cache clear.
+             */
+            return {
+                isContextFreeBinding: false,
+                shouldInvalidateServiceNode: true,
+            };
+        }
+        throw error;
+    }
+    return addServiceNodeBindingNodeIfContextFree(serviceNode, serviceNodeBinding);
+}
+function addServiceNodeBindingNodeIfContextFree(serviceNode, serviceNodeBinding) {
+    if (Array.isArray(serviceNode.bindings)) {
+        serviceNode.bindings.push(serviceNodeBinding);
+    }
+    else {
+        if (serviceNode.bindings === undefined) {
+            serviceNode.bindings = serviceNodeBinding;
+        }
+        else {
+            if (!LazyPlanServiceNode_1.LazyPlanServiceNode.is(serviceNode)) {
+                throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning, 'Unexpected non-lazy plan service node. This is likely a bug in the planning logic. Please, report this issue');
+            }
+            return {
+                isContextFreeBinding: true,
+                shouldInvalidateServiceNode: true,
+            };
+        }
+    }
+    return {
+        isContextFreeBinding: true,
+        shouldInvalidateServiceNode: false,
+    };
+}
+//# sourceMappingURL=addServiceNodeBindingIfContextFree.js.map
+
+/***/ }),
+
+/***/ 7255:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.cacheNonRootPlanServiceNode = cacheNonRootPlanServiceNode;
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+function cacheNonRootPlanServiceNode(getPlanOptions, operations, planServiceNode, context) {
+    if (getPlanOptions !== undefined &&
+        ((LazyPlanServiceNode_1.LazyPlanServiceNode.is(planServiceNode) &&
+            !planServiceNode.isExpanded()) ||
+            planServiceNode.isContextFree)) {
+        const planResult = {
+            tree: {
+                root: planServiceNode,
+            },
+        };
+        operations.setPlan(getPlanOptions, planResult);
+    }
+    else {
+        operations.setNonCachedServiceNode(planServiceNode, context);
+    }
+}
+//# sourceMappingURL=cacheNonRootPlanServiceNode.js.map
+
+/***/ }),
+
+/***/ 5839:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.curryBuildPlanServiceNode = curryBuildPlanServiceNode;
+const BindingConstraintsImplementation_1 = __nccwpck_require__(414);
+const buildFilteredServiceBindings_1 = __nccwpck_require__(3769);
+const buildPlanBindingConstraintsList_1 = __nccwpck_require__(5229);
+const checkServiceNodeSingleInjectionBindings_1 = __nccwpck_require__(8455);
+function curryBuildPlanServiceNode(buildServiceNodeBindings) {
+    return (params) => {
+        const bindingConstraintsList = (0, buildPlanBindingConstraintsList_1.buildPlanBindingConstraintsList)(params);
+        const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
+        const chained = params.rootConstraints.isMultiple && params.rootConstraints.chained;
+        const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints, {
+            chained,
+        });
+        const serviceNodeBindings = [];
+        const serviceNode = {
+            bindings: serviceNodeBindings,
+            isContextFree: true,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+        };
+        serviceNodeBindings.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, serviceNode, chained));
+        serviceNode.isContextFree =
+            !bindingConstraintsList.last.elem.getAncestorsCalled;
+        if (!params.rootConstraints.isMultiple) {
+            (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, params.rootConstraints.isOptional ?? false, bindingConstraintsList.last);
+            const [planBindingNode] = serviceNodeBindings;
+            serviceNode.bindings = planBindingNode;
+        }
+        return serviceNode;
+    };
+}
+//# sourceMappingURL=curryBuildPlanServiceNode.js.map
+
+/***/ }),
+
+/***/ 4598:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.curryBuildPlanServiceNodeFromClassElementMetadata = curryBuildPlanServiceNodeFromClassElementMetadata;
+const BindingConstraintsImplementation_1 = __nccwpck_require__(414);
+const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
+const buildFilteredServiceBindings_1 = __nccwpck_require__(3769);
+const checkServiceNodeSingleInjectionBindings_1 = __nccwpck_require__(8455);
+const getServiceFromMaybeLazyServiceIdentifier_1 = __nccwpck_require__(5108);
+function curryBuildPlanServiceNodeFromClassElementMetadata(buildServiceNodeBindings) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        const serviceIdentifier = (0, getServiceFromMaybeLazyServiceIdentifier_1.getServiceFromMaybeLazyServiceIdentifier)(elementMetadata.value);
+        const updatedBindingConstraintsList = bindingConstraintsList.concat({
+            getAncestorsCalled: false,
+            name: elementMetadata.name,
+            serviceIdentifier,
+            tags: elementMetadata.tags,
+        });
+        const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(updatedBindingConstraintsList.last);
+        const chained = elementMetadata.kind === ClassElementMetadataKind_1.ClassElementMetadataKind.multipleInjection &&
+            elementMetadata.chained;
+        const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints, {
+            chained,
+        });
+        const serviceNodeBindings = [];
+        const serviceNode = {
+            bindings: serviceNodeBindings,
+            isContextFree: true,
+            serviceIdentifier,
+        };
+        serviceNodeBindings.push(...buildServiceNodeBindings(params, updatedBindingConstraintsList, filteredServiceBindings, serviceNode, chained));
+        serviceNode.isContextFree =
+            !updatedBindingConstraintsList.last.elem.getAncestorsCalled;
+        if (elementMetadata.kind === ClassElementMetadataKind_1.ClassElementMetadataKind.singleInjection) {
+            (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, elementMetadata.optional, updatedBindingConstraintsList.last);
+            const [planBindingNode] = serviceNodeBindings;
+            serviceNode.bindings = planBindingNode;
+        }
+        return serviceNode;
+    };
+}
+//# sourceMappingURL=curryBuildPlanServiceNodeFromClassElementMetadata.js.map
+
+/***/ }),
+
+/***/ 7609:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.curryBuildPlanServiceNodeFromResolvedValueElementMetadata = curryBuildPlanServiceNodeFromResolvedValueElementMetadata;
+const BindingConstraintsImplementation_1 = __nccwpck_require__(414);
+const ResolvedValueElementMetadataKind_1 = __nccwpck_require__(2645);
+const buildFilteredServiceBindings_1 = __nccwpck_require__(3769);
+const checkServiceNodeSingleInjectionBindings_1 = __nccwpck_require__(8455);
+const getServiceFromMaybeLazyServiceIdentifier_1 = __nccwpck_require__(5108);
+function curryBuildPlanServiceNodeFromResolvedValueElementMetadata(buildServiceNodeBindings) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        const serviceIdentifier = (0, getServiceFromMaybeLazyServiceIdentifier_1.getServiceFromMaybeLazyServiceIdentifier)(elementMetadata.value);
+        const updatedBindingConstraintsList = bindingConstraintsList.concat({
+            getAncestorsCalled: false,
+            name: elementMetadata.name,
+            serviceIdentifier,
+            tags: elementMetadata.tags,
+        });
+        const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(updatedBindingConstraintsList.last);
+        const chained = elementMetadata.kind ===
+            ResolvedValueElementMetadataKind_1.ResolvedValueElementMetadataKind.multipleInjection &&
+            elementMetadata.chained;
+        const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints, {
+            chained,
+        });
+        const serviceNodeBindings = [];
+        const serviceNode = {
+            bindings: serviceNodeBindings,
+            isContextFree: true,
+            serviceIdentifier,
+        };
+        serviceNodeBindings.push(...buildServiceNodeBindings(params, updatedBindingConstraintsList, filteredServiceBindings, serviceNode, chained));
+        serviceNode.isContextFree =
+            !updatedBindingConstraintsList.last.elem.getAncestorsCalled;
+        if (elementMetadata.kind === ResolvedValueElementMetadataKind_1.ResolvedValueElementMetadataKind.singleInjection) {
+            (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, elementMetadata.optional, updatedBindingConstraintsList.last);
+            const [planBindingNode] = serviceNodeBindings;
+            serviceNode.bindings = planBindingNode;
+        }
+        return serviceNode;
+    };
+}
+//# sourceMappingURL=curryBuildPlanServiceNodeFromResolvedValueElementMetadata.js.map
+
+/***/ }),
+
+/***/ 9168:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.curryBuildServiceNodeBindings = curryBuildServiceNodeBindings;
+const BindingConstraintsImplementation_1 = __nccwpck_require__(414);
+const BindingType_1 = __nccwpck_require__(8810);
+const buildFilteredServiceBindings_1 = __nccwpck_require__(3769);
+const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
+function curryBuildServiceNodeBindings(subplan) {
+    const buildInstancePlanBindingNode = curryBuildInstancePlanBindingNode(subplan);
+    const buildResolvedValuePlanBindingNode = curryBuildResolvedValuePlanBindingNode(subplan);
+    const buildServiceNodeBindings = (params, bindingConstraintsList, serviceBindings, parentNode, chainedBindings) => {
+        const serviceIdentifier = (0, isPlanServiceRedirectionBindingNode_1.isPlanServiceRedirectionBindingNode)(parentNode)
+            ? parentNode.binding.targetServiceIdentifier
+            : parentNode.serviceIdentifier;
+        params.servicesBranch.push(serviceIdentifier);
+        const planBindingNodes = [];
+        for (const binding of serviceBindings) {
+            switch (binding.type) {
+                case BindingType_1.bindingTypeValues.Instance: {
+                    planBindingNodes.push(buildInstancePlanBindingNode(params, binding, bindingConstraintsList));
+                    break;
+                }
+                case BindingType_1.bindingTypeValues.ResolvedValue: {
+                    planBindingNodes.push(buildResolvedValuePlanBindingNode(params, binding, bindingConstraintsList));
+                    break;
+                }
+                case BindingType_1.bindingTypeValues.ServiceRedirection: {
+                    const planBindingNode = buildServiceRedirectionPlanBindingNode(params, bindingConstraintsList, binding, chainedBindings);
+                    planBindingNodes.push(planBindingNode);
+                    break;
+                }
+                default:
+                    planBindingNodes.push({
+                        binding: binding,
+                    });
+            }
+        }
+        params.servicesBranch.pop();
+        return planBindingNodes;
+    };
+    const buildServiceRedirectionPlanBindingNode = curryBuildServiceRedirectionPlanBindingNode(buildServiceNodeBindings);
+    return buildServiceNodeBindings;
+}
+function curryBuildInstancePlanBindingNode(subplan) {
+    return (params, binding, bindingConstraintsList) => {
+        const classMetadata = params.operations.getClassMetadata(binding.implementationType);
+        const childNode = {
+            binding: binding,
+            classMetadata,
+            constructorParams: [],
+            propertyParams: new Map(),
+        };
+        const subplanParams = {
+            autobindOptions: params.autobindOptions,
+            node: childNode,
+            operations: params.operations,
+            servicesBranch: params.servicesBranch,
+        };
+        return subplan(subplanParams, bindingConstraintsList);
+    };
+}
+function curryBuildResolvedValuePlanBindingNode(subplan) {
+    return (params, binding, bindingConstraintsList) => {
+        const childNode = {
+            binding: binding,
+            params: [],
+        };
+        const subplanParams = {
+            autobindOptions: params.autobindOptions,
+            node: childNode,
+            operations: params.operations,
+            servicesBranch: params.servicesBranch,
+        };
+        return subplan(subplanParams, bindingConstraintsList);
+    };
+}
+function curryBuildServiceRedirectionPlanBindingNode(buildServiceNodeBindings) {
+    return (params, bindingConstraintsList, binding, chainedBindings) => {
+        const childNode = {
+            binding,
+            redirections: [],
+        };
+        const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
+        const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints, {
+            chained: chainedBindings,
+            customServiceIdentifier: binding.targetServiceIdentifier,
+        });
+        childNode.redirections.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, childNode, chainedBindings));
+        return childNode;
+    };
+}
+//# sourceMappingURL=curryBuildServiceNodeBindings.js.map
+
+/***/ }),
+
+/***/ 2436:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.curryLazyBuildPlanServiceNodeFromClassElementMetadata = curryLazyBuildPlanServiceNodeFromClassElementMetadata;
+const InversifyCoreError_1 = __nccwpck_require__(120);
+const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
+const curryBuildPlanServiceNodeFromClassElementMetadata_1 = __nccwpck_require__(4598);
+function curryLazyBuildPlanServiceNodeFromClassElementMetadata(buildServiceNodeBindings) {
+    const buildPlanServiceNodeFromClassElementMetadata = (0, curryBuildPlanServiceNodeFromClassElementMetadata_1.curryBuildPlanServiceNodeFromClassElementMetadata)(buildServiceNodeBindings);
+    return (params, bindingConstraintsList, elementMetadata) => {
+        try {
+            return buildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        catch (error) {
+            if (InversifyCoreError_1.InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning)) {
+                return undefined;
+            }
+            throw error;
+        }
+    };
+}
+//# sourceMappingURL=curryLazyBuildPlanServiceNodeFromClassElementMetadata.js.map
+
+/***/ }),
+
+/***/ 5143:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata = curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata;
+const InversifyCoreError_1 = __nccwpck_require__(120);
+const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
+const curryBuildPlanServiceNodeFromResolvedValueElementMetadata_1 = __nccwpck_require__(7609);
+function curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata(buildServiceNodeBindings) {
+    const buildPlanServiceNodeFromResolvedValueElementMetadata = (0, curryBuildPlanServiceNodeFromResolvedValueElementMetadata_1.curryBuildPlanServiceNodeFromResolvedValueElementMetadata)(buildServiceNodeBindings);
+    return (params, bindingConstraintsList, elementMetadata) => {
+        try {
+            return buildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        catch (error) {
+            if (InversifyCoreError_1.InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning)) {
+                return undefined;
+            }
+            throw error;
+        }
+    };
+}
+//# sourceMappingURL=curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata.js.map
+
+/***/ }),
+
+/***/ 5380:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.currySubplan = currySubplan;
+const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
+const ResolvedValueElementMetadataKind_1 = __nccwpck_require__(2645);
+const getServiceFromMaybeLazyServiceIdentifier_1 = __nccwpck_require__(5108);
+const isInstanceBindingNode_1 = __nccwpck_require__(513);
+const tryBuildGetPlanOptionsFromManagedClassElementMetadata_1 = __nccwpck_require__(9449);
+const tryBuildGetPlanOptionsFromResolvedValueElementMetadata_1 = __nccwpck_require__(2415);
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+const cacheNonRootPlanServiceNode_1 = __nccwpck_require__(7255);
+class LazyManagedClassMetadataPlanServiceNode extends LazyPlanServiceNode_1.LazyPlanServiceNode {
+    #params;
+    #buildLazyPlanServiceNodeNodeFromClassElementMetadata;
+    #bindingConstraintsList;
+    #elementMetadata;
+    constructor(params, buildLazyPlanServiceNodeNodeFromClassElementMetadata, bindingConstraintsList, elementMetadata, serviceNode) {
+        super(serviceNode, (0, getServiceFromMaybeLazyServiceIdentifier_1.getServiceFromMaybeLazyServiceIdentifier)(elementMetadata.value));
+        this.#buildLazyPlanServiceNodeNodeFromClassElementMetadata =
+            buildLazyPlanServiceNodeNodeFromClassElementMetadata;
+        this.#params = params;
+        this.#bindingConstraintsList = bindingConstraintsList;
+        this.#elementMetadata = elementMetadata;
+    }
+    _buildPlanServiceNode() {
+        return this.#buildLazyPlanServiceNodeNodeFromClassElementMetadata(this.#params, this.#bindingConstraintsList, this.#elementMetadata);
+    }
+}
+class LazyResolvedValueMetadataPlanServiceNode extends LazyPlanServiceNode_1.LazyPlanServiceNode {
+    #params;
+    #buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata;
+    #bindingConstraintsList;
+    #resolvedValueElementMetadata;
+    constructor(params, buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, bindingConstraintsList, resolvedValueElementMetadata, serviceNode) {
+        super(serviceNode, (0, getServiceFromMaybeLazyServiceIdentifier_1.getServiceFromMaybeLazyServiceIdentifier)(resolvedValueElementMetadata.value));
+        this.#params = params;
+        this.#buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata =
+            buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata;
+        this.#bindingConstraintsList = bindingConstraintsList;
+        this.#resolvedValueElementMetadata = resolvedValueElementMetadata;
+    }
+    _buildPlanServiceNode() {
+        return this.#buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata(this.#params, this.#bindingConstraintsList, this.#resolvedValueElementMetadata);
+    }
+}
+function currySubplan(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromClassElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata) {
+    const subplanInstanceBindingNode = currySubplanInstanceBindingNode(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata);
+    const subplanResolvedValueBindingNode = currySubplanResolvedValueBindingNode(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata);
+    return (params, bindingConstraintsList) => {
+        if ((0, isInstanceBindingNode_1.isInstanceBindingNode)(params.node)) {
+            return subplanInstanceBindingNode(params, params.node, bindingConstraintsList);
+        }
+        else {
+            return subplanResolvedValueBindingNode(params, params.node, bindingConstraintsList);
+        }
+    };
+}
+function currySubplanInstanceBindingNode(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata) {
+    const handlePlanServiceNodeBuildFromClassElementMetadata = curryHandlePlanServiceNodeBuildFromClassElementMetadata(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata);
+    return (params, node, bindingConstraintsList) => {
+        const classMetadata = node.classMetadata;
+        for (const [index, elementMetadata,] of classMetadata.constructorArguments.entries()) {
+            node.constructorParams[index] =
+                handlePlanServiceNodeBuildFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        for (const [propertyKey, elementMetadata] of classMetadata.properties) {
+            const planServiceNode = handlePlanServiceNodeBuildFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+            if (planServiceNode !== undefined) {
+                node.propertyParams.set(propertyKey, planServiceNode);
+            }
+        }
+        return params.node;
+    };
+}
+function currySubplanResolvedValueBindingNode(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata) {
+    const handlePlanServiceNodeBuildFromResolvedValueElementMetadata = curryHandlePlanServiceNodeBuildFromResolvedValueElementMetadata(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata);
+    return (params, node, bindingConstraintsList) => {
+        const resolvedValueMetadata = node.binding.metadata;
+        for (const [index, elementMetadata,] of resolvedValueMetadata.arguments.entries()) {
+            node.params[index] =
+                handlePlanServiceNodeBuildFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        return params.node;
+    };
+}
+function curryHandlePlanServiceNodeBuildFromClassElementMetadata(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        if (elementMetadata.kind === ClassElementMetadataKind_1.ClassElementMetadataKind.unmanaged) {
+            return undefined;
+        }
+        const getPlanOptions = (0, tryBuildGetPlanOptionsFromManagedClassElementMetadata_1.tryBuildGetPlanOptionsFromManagedClassElementMetadata)(elementMetadata);
+        if (getPlanOptions !== undefined) {
+            const planResult = params.operations.getPlan(getPlanOptions);
+            if (planResult !== undefined && planResult.tree.root.isContextFree) {
+                return planResult.tree.root;
+            }
+        }
+        const serviceNode = buildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+        const lazyPlanServiceNode = new LazyManagedClassMetadataPlanServiceNode(params, buildLazyPlanServiceNodeNodeFromClassElementMetadata, bindingConstraintsList, elementMetadata, serviceNode);
+        (0, cacheNonRootPlanServiceNode_1.cacheNonRootPlanServiceNode)(getPlanOptions, params.operations, lazyPlanServiceNode, {
+            bindingConstraintsList,
+            chainedBindings: elementMetadata.kind === ClassElementMetadataKind_1.ClassElementMetadataKind.multipleInjection &&
+                elementMetadata.chained,
+            optionalBindings: elementMetadata.optional,
+        });
+        return lazyPlanServiceNode;
+    };
+}
+function curryHandlePlanServiceNodeBuildFromResolvedValueElementMetadata(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        const getPlanOptions = (0, tryBuildGetPlanOptionsFromResolvedValueElementMetadata_1.tryBuildGetPlanOptionsFromResolvedValueElementMetadata)(elementMetadata);
+        if (getPlanOptions !== undefined) {
+            const planResult = params.operations.getPlan(getPlanOptions);
+            if (planResult !== undefined && planResult.tree.root.isContextFree) {
+                return planResult.tree.root;
+            }
+        }
+        const serviceNode = buildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+        const lazyPlanServiceNode = new LazyResolvedValueMetadataPlanServiceNode(params, buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, bindingConstraintsList, elementMetadata, serviceNode);
+        (0, cacheNonRootPlanServiceNode_1.cacheNonRootPlanServiceNode)(getPlanOptions, params.operations, lazyPlanServiceNode, {
+            bindingConstraintsList,
+            chainedBindings: elementMetadata.kind ===
+                ResolvedValueElementMetadataKind_1.ResolvedValueElementMetadataKind.multipleInjection &&
+                elementMetadata.chained,
+            optionalBindings: elementMetadata.optional,
+        });
+        return lazyPlanServiceNode;
+    };
+}
+//# sourceMappingURL=currySubplan.js.map
+
+/***/ }),
+
+/***/ 7743:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildPlanServiceNodeFromResolvedValueElementMetadata = exports.buildPlanServiceNodeFromClassElementMetadata = void 0;
+exports.plan = plan;
+const buildGetPlanOptionsFromPlanParams_1 = __nccwpck_require__(1699);
+const handlePlanError_1 = __nccwpck_require__(7720);
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+const curryBuildPlanServiceNode_1 = __nccwpck_require__(5839);
+const curryBuildPlanServiceNodeFromClassElementMetadata_1 = __nccwpck_require__(4598);
+const curryBuildPlanServiceNodeFromResolvedValueElementMetadata_1 = __nccwpck_require__(7609);
+const curryBuildServiceNodeBindings_1 = __nccwpck_require__(9168);
+const currySubplan_1 = __nccwpck_require__(5380);
+class LazyRootPlanServiceNode extends LazyPlanServiceNode_1.LazyPlanServiceNode {
+    #params;
+    constructor(params, serviceNode) {
+        super(serviceNode, serviceNode.serviceIdentifier);
+        this.#params = params;
+    }
+    _buildPlanServiceNode() {
+        return buildPlanServiceNode(this.#params);
+    }
+}
+exports.buildPlanServiceNodeFromClassElementMetadata = (0, curryBuildPlanServiceNodeFromClassElementMetadata_1.curryBuildPlanServiceNodeFromClassElementMetadata)(circularBuildServiceNodeBindings);
+exports.buildPlanServiceNodeFromResolvedValueElementMetadata = (0, curryBuildPlanServiceNodeFromResolvedValueElementMetadata_1.curryBuildPlanServiceNodeFromResolvedValueElementMetadata)(circularBuildServiceNodeBindings);
+const subplan = (0, currySubplan_1.currySubplan)(exports.buildPlanServiceNodeFromClassElementMetadata, exports.buildPlanServiceNodeFromResolvedValueElementMetadata, exports.buildPlanServiceNodeFromClassElementMetadata, exports.buildPlanServiceNodeFromResolvedValueElementMetadata);
+const buildServiceNodeBindings = (0, curryBuildServiceNodeBindings_1.curryBuildServiceNodeBindings)(subplan);
+function circularBuildServiceNodeBindings(params, bindingConstraintsList, serviceBindings, parentNode, chainedBindings) {
+    return buildServiceNodeBindings(params, bindingConstraintsList, serviceBindings, parentNode, chainedBindings);
+}
+const buildPlanServiceNode = (0, curryBuildPlanServiceNode_1.curryBuildPlanServiceNode)(buildServiceNodeBindings);
+function plan(params) {
+    try {
+        const getPlanOptions = (0, buildGetPlanOptionsFromPlanParams_1.buildGetPlanOptionsFromPlanParams)(params);
+        const planResultFromCache = params.operations.getPlan(getPlanOptions);
+        if (planResultFromCache !== undefined) {
+            return planResultFromCache;
+        }
+        const serviceNode = buildPlanServiceNode(params);
+        const planResult = {
+            tree: {
+                root: new LazyRootPlanServiceNode(params, serviceNode),
+            },
+        };
+        // Set the plan result in the cache no matter what, even if the plan is context dependent
+        params.operations.setPlan(getPlanOptions, planResult);
+        return planResult;
+    }
+    catch (error) {
+        (0, handlePlanError_1.handlePlanError)(params, error);
+    }
+}
+//# sourceMappingURL=plan.js.map
+
+/***/ }),
+
+/***/ 8874:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.removeRootServiceNodeBindingIfContextFree = removeRootServiceNodeBindingIfContextFree;
+const buildPlanBindingConstraintsList_1 = __nccwpck_require__(5229);
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+const removeServiceNodeBindingIfContextFree_1 = __nccwpck_require__(6566);
+/**
+ * Detach a binding to the root service node if it is context-free.
+ * @param params The plan parameters.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function removeRootServiceNodeBindingIfContextFree(params, serviceNode, binding) {
+    if (LazyPlanServiceNode_1.LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            bindingNodeRemoved: undefined,
+            isContextFreeBinding: true,
+        };
+    }
+    const bindingConstraintsList = (0, buildPlanBindingConstraintsList_1.buildPlanBindingConstraintsList)(params);
+    return (0, removeServiceNodeBindingIfContextFree_1.removeServiceNodeBindingIfContextFree)(serviceNode, binding, bindingConstraintsList, params.rootConstraints.isOptional ?? false);
+}
+//# sourceMappingURL=removeRootServiceNodeBindingIfContextFree.js.map
+
+/***/ }),
+
+/***/ 6566:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.removeServiceNodeBindingIfContextFree = removeServiceNodeBindingIfContextFree;
+const BindingConstraintsImplementation_1 = __nccwpck_require__(414);
+const InversifyCoreError_1 = __nccwpck_require__(120);
+const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+/**
+ * Detach a binding to the root service node if it is context-free.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @param bindingConstraintsList The list of binding constraints.
+ * @param optionalBindings Whether the bindings are optional.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function removeServiceNodeBindingIfContextFree(serviceNode, binding, bindingConstraintsList, optionalBindings) {
+    if (LazyPlanServiceNode_1.LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            bindingNodeRemoved: undefined,
+            isContextFreeBinding: true,
+        };
+    }
+    const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
+    if (!binding.isSatisfiedBy(bindingConstraints) ||
+        bindingConstraintsList.last.elem.getAncestorsCalled) {
+        return {
+            bindingNodeRemoved: undefined,
+            isContextFreeBinding: !bindingConstraintsList.last.elem.getAncestorsCalled,
+        };
+    }
+    let bindingNodeRemoved;
+    if (Array.isArray(serviceNode.bindings)) {
+        serviceNode.bindings = serviceNode.bindings.filter((bindingNode) => {
+            if (bindingNode.binding === binding) {
+                bindingNodeRemoved = bindingNode;
+                return false;
+            }
+            return true;
+        });
+    }
+    else {
+        if (serviceNode.bindings?.binding === binding) {
+            bindingNodeRemoved = serviceNode.bindings;
+            if (optionalBindings) {
+                serviceNode.bindings = undefined;
+            }
+            else {
+                if (!LazyPlanServiceNode_1.LazyPlanServiceNode.is(serviceNode)) {
+                    throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning, 'Unexpected non-lazy plan service node. This is likely a bug in the planning logic. Please, report this issue');
+                }
+                serviceNode.invalidate();
+            }
+        }
+    }
+    return {
+        bindingNodeRemoved: bindingNodeRemoved,
+        isContextFreeBinding: true,
+    };
+}
+//# sourceMappingURL=removeServiceNodeBindingIfContextFree.js.map
+
+/***/ }),
+
 /***/ 3769:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -37974,15 +38994,15 @@ const BindingType_1 = __nccwpck_require__(8810);
 const getClassMetadata_1 = __nccwpck_require__(2928);
 function buildFilteredServiceBindings(params, bindingConstraints, options) {
     const serviceIdentifier = options?.customServiceIdentifier ?? bindingConstraints.serviceIdentifier;
-    const serviceBindings = [
-        ...(params.getBindings(serviceIdentifier) ?? []),
-    ];
+    const serviceBindings = options?.chained === true
+        ? [...params.operations.getBindingsChained(serviceIdentifier)]
+        : [...(params.operations.getBindings(serviceIdentifier) ?? [])];
     const filteredBindings = serviceBindings.filter((binding) => binding.isSatisfiedBy(bindingConstraints));
     if (filteredBindings.length === 0 &&
         params.autobindOptions !== undefined &&
         typeof serviceIdentifier === 'function') {
         const binding = buildInstanceBinding(params.autobindOptions, serviceIdentifier);
-        params.setBinding(binding);
+        params.operations.setBinding(binding);
         filteredBindings.push(binding);
     }
     return filteredBindings;
@@ -38010,6 +39030,65 @@ function buildInstanceBinding(autobindOptions, serviceIdentifier) {
 
 /***/ }),
 
+/***/ 1699:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildGetPlanOptionsFromPlanParams = buildGetPlanOptionsFromPlanParams;
+function buildGetPlanOptionsFromPlanParams(params) {
+    if (params.rootConstraints.isMultiple) {
+        return {
+            chained: params.rootConstraints.chained,
+            isMultiple: true,
+            name: params.rootConstraints.name,
+            optional: params.rootConstraints.isOptional ?? false,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+            tag: params.rootConstraints.tag,
+        };
+    }
+    else {
+        return {
+            isMultiple: false,
+            name: params.rootConstraints.name,
+            optional: params.rootConstraints.isOptional ?? false,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+            tag: params.rootConstraints.tag,
+        };
+    }
+}
+//# sourceMappingURL=buildGetPlanOptionsFromPlanParams.js.map
+
+/***/ }),
+
+/***/ 5229:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildPlanBindingConstraintsList = buildPlanBindingConstraintsList;
+const SingleImmutableLinkedList_1 = __nccwpck_require__(6112);
+function buildPlanBindingConstraintsList(params) {
+    const tags = new Map();
+    if (params.rootConstraints.tag !== undefined) {
+        tags.set(params.rootConstraints.tag.key, params.rootConstraints.tag.value);
+    }
+    return new SingleImmutableLinkedList_1.SingleImmutableLinkedList({
+        elem: {
+            getAncestorsCalled: false,
+            name: params.rootConstraints.name,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+            tags,
+        },
+        previous: undefined,
+    });
+}
+//# sourceMappingURL=buildPlanBindingConstraintsList.js.map
+
+/***/ }),
+
 /***/ 6533:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -38020,16 +39099,19 @@ exports.checkPlanServiceRedirectionBindingNodeSingleInjectionBindings = checkPla
 const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
 const throwErrorWhenUnexpectedBindingsAmountFound_1 = __nccwpck_require__(7888);
 const SINGLE_INJECTION_BINDINGS = 1;
-function checkPlanServiceRedirectionBindingNodeSingleInjectionBindings(serviceRedirectionBindingNode, isOptional, bindingConstraints) {
+function checkPlanServiceRedirectionBindingNodeSingleInjectionBindings(serviceRedirectionBindingNode, isOptional, bindingConstraintNode, serviceRedirections) {
     if (serviceRedirectionBindingNode.redirections.length ===
         SINGLE_INJECTION_BINDINGS) {
         const [planBindingNode] = serviceRedirectionBindingNode.redirections;
         if ((0, isPlanServiceRedirectionBindingNode_1.isPlanServiceRedirectionBindingNode)(planBindingNode)) {
-            checkPlanServiceRedirectionBindingNodeSingleInjectionBindings(planBindingNode, isOptional, bindingConstraints);
+            checkPlanServiceRedirectionBindingNodeSingleInjectionBindings(planBindingNode, isOptional, bindingConstraintNode, [
+                ...serviceRedirections,
+                planBindingNode.binding.targetServiceIdentifier,
+            ]);
         }
         return;
     }
-    (0, throwErrorWhenUnexpectedBindingsAmountFound_1.throwErrorWhenUnexpectedBindingsAmountFound)(serviceRedirectionBindingNode.redirections, isOptional, serviceRedirectionBindingNode, bindingConstraints);
+    (0, throwErrorWhenUnexpectedBindingsAmountFound_1.throwErrorWhenUnexpectedBindingsAmountFound)(serviceRedirectionBindingNode.redirections, isOptional, bindingConstraintNode, serviceRedirections);
 }
 //# sourceMappingURL=checkPlanServiceRedirectionBindingNodeSingleInjectionBindings.js.map
 
@@ -38046,19 +39128,36 @@ const checkPlanServiceRedirectionBindingNodeSingleInjectionBindings_1 = __nccwpc
 const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
 const throwErrorWhenUnexpectedBindingsAmountFound_1 = __nccwpck_require__(7888);
 const SINGLE_INJECTION_BINDINGS = 1;
-function checkServiceNodeSingleInjectionBindings(serviceNode, isOptional, bindingConstraints) {
+function checkServiceNodeSingleInjectionBindings(serviceNode, isOptional, bindingConstraintNode) {
     if (Array.isArray(serviceNode.bindings)) {
         if (serviceNode.bindings.length === SINGLE_INJECTION_BINDINGS) {
             const [planBindingNode] = serviceNode.bindings;
             if ((0, isPlanServiceRedirectionBindingNode_1.isPlanServiceRedirectionBindingNode)(planBindingNode)) {
-                (0, checkPlanServiceRedirectionBindingNodeSingleInjectionBindings_1.checkPlanServiceRedirectionBindingNodeSingleInjectionBindings)(planBindingNode, isOptional, bindingConstraints);
+                (0, checkPlanServiceRedirectionBindingNodeSingleInjectionBindings_1.checkPlanServiceRedirectionBindingNodeSingleInjectionBindings)(planBindingNode, isOptional, bindingConstraintNode, [planBindingNode.binding.targetServiceIdentifier]);
             }
             return;
         }
     }
-    (0, throwErrorWhenUnexpectedBindingsAmountFound_1.throwErrorWhenUnexpectedBindingsAmountFound)(serviceNode.bindings, isOptional, serviceNode, bindingConstraints);
+    (0, throwErrorWhenUnexpectedBindingsAmountFound_1.throwErrorWhenUnexpectedBindingsAmountFound)(serviceNode.bindings, isOptional, bindingConstraintNode, []);
 }
 //# sourceMappingURL=checkServiceNodeSingleInjectionBindings.js.map
+
+/***/ }),
+
+/***/ 5108:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getServiceFromMaybeLazyServiceIdentifier = getServiceFromMaybeLazyServiceIdentifier;
+const common_1 = __nccwpck_require__(9160);
+function getServiceFromMaybeLazyServiceIdentifier(serviceIdentifier) {
+    return common_1.LazyServiceIdentifier.is(serviceIdentifier)
+        ? serviceIdentifier.unwrap()
+        : serviceIdentifier;
+}
+//# sourceMappingURL=getServiceFromMaybeLazyServiceIdentifier.js.map
 
 /***/ }),
 
@@ -38112,6 +39211,114 @@ function stringifyServiceIdentifierTrace(serviceIdentifiers) {
 
 /***/ }),
 
+/***/ 3509:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handleResolveError = handleResolveError;
+const common_1 = __nccwpck_require__(9160);
+const BindingType_1 = __nccwpck_require__(8810);
+const isStackOverflowError_1 = __nccwpck_require__(1960);
+const InversifyCoreError_1 = __nccwpck_require__(120);
+const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
+const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
+const INDEX_NOT_FOUND = -1;
+function handleResolveError(params, error) {
+    if ((0, isStackOverflowError_1.isStackOverflowError)(error)) {
+        const stringifiedCircularDependencies = stringifyServiceIdentifierTrace(extractLikelyCircularDependency(params));
+        throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning, `Circular dependency found: ${stringifiedCircularDependencies}`, { cause: error });
+    }
+    throw error;
+}
+function extractLikelyCircularDependency(params) {
+    const root = params.planResult.tree.root;
+    const stack = [];
+    function depthFirstSearch(node) {
+        const existingIndex = stack.indexOf(node);
+        if (existingIndex !== INDEX_NOT_FOUND) {
+            const cycleNodes = [
+                ...stack.slice(existingIndex),
+                node,
+            ];
+            return cycleNodes.map((n) => n.serviceIdentifier);
+        }
+        stack.push(node);
+        try {
+            for (const child of getChildServiceNodes(node)) {
+                const result = depthFirstSearch(child);
+                if (result !== undefined) {
+                    return result;
+                }
+            }
+        }
+        finally {
+            stack.pop();
+        }
+        return undefined;
+    }
+    const result = depthFirstSearch(root);
+    return result ?? [];
+}
+function getChildServiceNodes(serviceNode) {
+    const children = [];
+    const bindings = serviceNode.bindings;
+    if (bindings === undefined) {
+        return children;
+    }
+    const processBindingNode = (bindingNode) => {
+        if ((0, isPlanServiceRedirectionBindingNode_1.isPlanServiceRedirectionBindingNode)(bindingNode)) {
+            for (const redirection of bindingNode.redirections) {
+                processBindingNode(redirection);
+            }
+            return;
+        }
+        switch (bindingNode.binding.type) {
+            case BindingType_1.bindingTypeValues.Instance: {
+                const instanceNode = bindingNode;
+                for (const ctorParam of instanceNode.constructorParams) {
+                    if (ctorParam !== undefined) {
+                        children.push(ctorParam);
+                    }
+                }
+                for (const propParam of instanceNode.propertyParams.values()) {
+                    children.push(propParam);
+                }
+                break;
+            }
+            case BindingType_1.bindingTypeValues.ResolvedValue: {
+                const resolvedValueNode = bindingNode;
+                for (const param of resolvedValueNode.params) {
+                    children.push(param);
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    };
+    if (Array.isArray(bindings)) {
+        for (const bindingNode of bindings) {
+            processBindingNode(bindingNode);
+        }
+    }
+    else {
+        processBindingNode(bindings);
+    }
+    return children;
+}
+function stringifyServiceIdentifierTrace(serviceIdentifiers) {
+    const serviceIdentifiersArray = [...serviceIdentifiers];
+    if (serviceIdentifiersArray.length === 0) {
+        return '(No dependency trace)';
+    }
+    return serviceIdentifiersArray.map(common_1.stringifyServiceIdentifier).join(' -> ');
+}
+//# sourceMappingURL=handleResolveError.js.map
+
+/***/ }),
+
 /***/ 513:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -38142,227 +39349,6 @@ function isPlanServiceRedirectionBindingNode(node) {
 
 /***/ }),
 
-/***/ 478:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.plan = plan;
-const common_1 = __nccwpck_require__(9160);
-const BindingConstraintsImplementation_1 = __nccwpck_require__(414);
-const BindingType_1 = __nccwpck_require__(8810);
-const SingleInmutableLinkedList_1 = __nccwpck_require__(6479);
-const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
-const ResolvedValueElementMetadataKind_1 = __nccwpck_require__(2645);
-const buildFilteredServiceBindings_1 = __nccwpck_require__(3769);
-const checkServiceNodeSingleInjectionBindings_1 = __nccwpck_require__(8455);
-const handlePlanError_1 = __nccwpck_require__(7720);
-const isInstanceBindingNode_1 = __nccwpck_require__(513);
-const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
-function plan(params) {
-    try {
-        const tags = new Map();
-        if (params.rootConstraints.tag !== undefined) {
-            tags.set(params.rootConstraints.tag.key, params.rootConstraints.tag.value);
-        }
-        const bindingConstraintsList = new SingleInmutableLinkedList_1.SingleInmutableLinkedList({
-            elem: {
-                name: params.rootConstraints.name,
-                serviceIdentifier: params.rootConstraints.serviceIdentifier,
-                tags,
-            },
-            previous: undefined,
-        });
-        const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
-        const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints);
-        const serviceNodeBindings = [];
-        const serviceNode = {
-            bindings: serviceNodeBindings,
-            parent: undefined,
-            serviceIdentifier: params.rootConstraints.serviceIdentifier,
-        };
-        serviceNodeBindings.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, serviceNode));
-        if (!params.rootConstraints.isMultiple) {
-            (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, params.rootConstraints.isOptional ?? false, bindingConstraints);
-            const [planBindingNode] = serviceNodeBindings;
-            serviceNode.bindings = planBindingNode;
-        }
-        return {
-            tree: {
-                root: serviceNode,
-            },
-        };
-    }
-    catch (error) {
-        (0, handlePlanError_1.handlePlanError)(params, error);
-    }
-}
-function buildInstancePlanBindingNode(params, binding, bindingConstraintsList, parentNode) {
-    const classMetadata = params.getClassMetadata(binding.implementationType);
-    const childNode = {
-        binding: binding,
-        classMetadata,
-        constructorParams: [],
-        parent: parentNode,
-        propertyParams: new Map(),
-    };
-    const subplanParams = {
-        autobindOptions: params.autobindOptions,
-        getBindings: params.getBindings,
-        getClassMetadata: params.getClassMetadata,
-        node: childNode,
-        servicesBranch: params.servicesBranch,
-        setBinding: params.setBinding,
-    };
-    return subplan(subplanParams, bindingConstraintsList);
-}
-function buildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata) {
-    if (elementMetadata.kind === ClassElementMetadataKind_1.ClassElementMetadataKind.unmanaged) {
-        return undefined;
-    }
-    const serviceIdentifier = common_1.LazyServiceIdentifier.is(elementMetadata.value)
-        ? elementMetadata.value.unwrap()
-        : elementMetadata.value;
-    const updatedBindingConstraintsList = bindingConstraintsList.concat({
-        name: elementMetadata.name,
-        serviceIdentifier,
-        tags: elementMetadata.tags,
-    });
-    const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(updatedBindingConstraintsList.last);
-    const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints);
-    const serviceNodeBindings = [];
-    const serviceNode = {
-        bindings: serviceNodeBindings,
-        parent: params.node,
-        serviceIdentifier,
-    };
-    serviceNodeBindings.push(...buildServiceNodeBindings(params, updatedBindingConstraintsList, filteredServiceBindings, serviceNode));
-    if (elementMetadata.kind === ClassElementMetadataKind_1.ClassElementMetadataKind.singleInjection) {
-        (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, elementMetadata.optional, bindingConstraints);
-        const [planBindingNode] = serviceNodeBindings;
-        serviceNode.bindings = planBindingNode;
-    }
-    return serviceNode;
-}
-function buildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata) {
-    const serviceIdentifier = common_1.LazyServiceIdentifier.is(elementMetadata.value)
-        ? elementMetadata.value.unwrap()
-        : elementMetadata.value;
-    const updatedBindingConstraintsList = bindingConstraintsList.concat({
-        name: elementMetadata.name,
-        serviceIdentifier,
-        tags: elementMetadata.tags,
-    });
-    const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(updatedBindingConstraintsList.last);
-    const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints);
-    const serviceNodeBindings = [];
-    const serviceNode = {
-        bindings: serviceNodeBindings,
-        parent: params.node,
-        serviceIdentifier,
-    };
-    serviceNodeBindings.push(...buildServiceNodeBindings(params, updatedBindingConstraintsList, filteredServiceBindings, serviceNode));
-    if (elementMetadata.kind === ResolvedValueElementMetadataKind_1.ResolvedValueElementMetadataKind.singleInjection) {
-        (0, checkServiceNodeSingleInjectionBindings_1.checkServiceNodeSingleInjectionBindings)(serviceNode, elementMetadata.optional, bindingConstraints);
-        const [planBindingNode] = serviceNodeBindings;
-        serviceNode.bindings = planBindingNode;
-    }
-    return serviceNode;
-}
-function buildResolvedValuePlanBindingNode(params, binding, bindingConstraintsList, parentNode) {
-    const childNode = {
-        binding: binding,
-        params: [],
-        parent: parentNode,
-    };
-    const subplanParams = {
-        autobindOptions: params.autobindOptions,
-        getBindings: params.getBindings,
-        getClassMetadata: params.getClassMetadata,
-        node: childNode,
-        servicesBranch: params.servicesBranch,
-        setBinding: params.setBinding,
-    };
-    return subplan(subplanParams, bindingConstraintsList);
-}
-function buildServiceNodeBindings(params, bindingConstraintsList, serviceBindings, parentNode) {
-    const serviceIdentifier = (0, isPlanServiceRedirectionBindingNode_1.isPlanServiceRedirectionBindingNode)(parentNode)
-        ? parentNode.binding.targetServiceIdentifier
-        : parentNode.serviceIdentifier;
-    params.servicesBranch.push(serviceIdentifier);
-    const planBindingNodes = [];
-    for (const binding of serviceBindings) {
-        switch (binding.type) {
-            case BindingType_1.bindingTypeValues.Instance: {
-                planBindingNodes.push(buildInstancePlanBindingNode(params, binding, bindingConstraintsList, parentNode));
-                break;
-            }
-            case BindingType_1.bindingTypeValues.ResolvedValue: {
-                planBindingNodes.push(buildResolvedValuePlanBindingNode(params, binding, bindingConstraintsList, parentNode));
-                break;
-            }
-            case BindingType_1.bindingTypeValues.ServiceRedirection: {
-                const planBindingNode = buildServiceRedirectionPlanBindingNode(params, bindingConstraintsList, binding, parentNode);
-                planBindingNodes.push(planBindingNode);
-                break;
-            }
-            default:
-                planBindingNodes.push({
-                    binding: binding,
-                    parent: parentNode,
-                });
-        }
-    }
-    params.servicesBranch.pop();
-    return planBindingNodes;
-}
-function buildServiceRedirectionPlanBindingNode(params, bindingConstraintsList, binding, parentNode) {
-    const childNode = {
-        binding,
-        parent: parentNode,
-        redirections: [],
-    };
-    const bindingConstraints = new BindingConstraintsImplementation_1.BindingConstraintsImplementation(bindingConstraintsList.last);
-    const filteredServiceBindings = (0, buildFilteredServiceBindings_1.buildFilteredServiceBindings)(params, bindingConstraints, {
-        customServiceIdentifier: binding.targetServiceIdentifier,
-    });
-    childNode.redirections.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, childNode));
-    return childNode;
-}
-function subplan(params, bindingConstraintsList) {
-    if ((0, isInstanceBindingNode_1.isInstanceBindingNode)(params.node)) {
-        return subplanInstanceBindingNode(params, params.node, bindingConstraintsList);
-    }
-    else {
-        return subplanResolvedValueBindingNode(params, params.node, bindingConstraintsList);
-    }
-}
-function subplanInstanceBindingNode(params, node, bindingConstraintsList) {
-    const classMetadata = node.classMetadata;
-    for (const [index, elementMetadata,] of classMetadata.constructorArguments.entries()) {
-        node.constructorParams[index] =
-            buildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
-    }
-    for (const [propertyKey, elementMetadata] of classMetadata.properties) {
-        const planServiceNode = buildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
-        if (planServiceNode !== undefined) {
-            node.propertyParams.set(propertyKey, planServiceNode);
-        }
-    }
-    return params.node;
-}
-function subplanResolvedValueBindingNode(params, node, bindingConstraintsList) {
-    const resolvedValueMetadata = node.binding.metadata;
-    for (const [index, elementMetadata,] of resolvedValueMetadata.arguments.entries()) {
-        node.params[index] = buildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
-    }
-    return params.node;
-}
-//# sourceMappingURL=plan.js.map
-
-/***/ }),
-
 /***/ 7888:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -38374,58 +39360,44 @@ const common_1 = __nccwpck_require__(9160);
 const stringifyBinding_1 = __nccwpck_require__(1597);
 const InversifyCoreError_1 = __nccwpck_require__(120);
 const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
-const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
-function throwErrorWhenUnexpectedBindingsAmountFound(bindings, isOptional, node, bindingConstraints) {
-    let serviceIdentifier;
-    let parentServiceIdentifier;
-    if ((0, isPlanServiceRedirectionBindingNode_1.isPlanServiceRedirectionBindingNode)(node)) {
-        serviceIdentifier = node.binding.targetServiceIdentifier;
-        parentServiceIdentifier = node.binding.serviceIdentifier;
+function throwErrorWhenUnexpectedBindingsAmountFound(bindingNodes, isOptional, bindingConstraintNode, serviceRedirections) {
+    const serviceIdentifier = bindingConstraintNode.elem.serviceIdentifier;
+    const parentServiceIdentifier = bindingConstraintNode.previous?.elem.serviceIdentifier;
+    if (Array.isArray(bindingNodes)) {
+        throwErrorWhenMultipleUnexpectedBindingsAmountFound(bindingNodes, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraintNode.elem, serviceRedirections);
     }
     else {
-        serviceIdentifier = node.serviceIdentifier;
-        parentServiceIdentifier = node.parent?.binding.serviceIdentifier;
-    }
-    if (Array.isArray(bindings)) {
-        throwErrorWhenMultipleUnexpectedBindingsAmountFound(bindings, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints);
-    }
-    else {
-        throwErrorWhenSingleUnexpectedBindingFound(bindings, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints);
+        throwErrorWhenSingleUnexpectedBindingFound(bindingNodes, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraintNode.elem, serviceRedirections);
     }
 }
-function throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints) {
-    const errorMessage = `No bindings found for service: "${(0, common_1.stringifyServiceIdentifier)(serviceIdentifier)}".
+function throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections) {
+    const lastResolvedServiceIdentifier = serviceRedirections[serviceRedirections.length - 1] ?? serviceIdentifier;
+    const errorMessage = `No bindings found for service: "${(0, common_1.stringifyServiceIdentifier)(lastResolvedServiceIdentifier)}".
 
-Trying to resolve bindings for "${stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier)}".
-
-${stringifyBindingConstraints(bindingConstraints)}`;
+Trying to resolve bindings for "${stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier)}".${stringifyServiceRedirections(serviceRedirections)}${stringifyBindingConstraints(bindingConstraints)}`;
     throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning, errorMessage);
 }
-function throwErrorWhenMultipleUnexpectedBindingsAmountFound(bindings, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints) {
-    if (bindings.length === 0) {
+function throwErrorWhenMultipleUnexpectedBindingsAmountFound(bindingNodes, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections) {
+    if (bindingNodes.length === 0) {
         if (!isOptional) {
-            throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints);
+            throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections);
         }
     }
     else {
-        const errorMessage = `Ambiguous bindings found for service: "${(0, common_1.stringifyServiceIdentifier)(serviceIdentifier)}".
+        const lastResolvedServiceIdentifier = serviceRedirections[serviceRedirections.length - 1] ?? serviceIdentifier;
+        const errorMessage = `Ambiguous bindings found for service: "${(0, common_1.stringifyServiceIdentifier)(lastResolvedServiceIdentifier)}".${stringifyServiceRedirections(serviceRedirections)}
 
 Registered bindings:
 
-${bindings.map((binding) => (0, stringifyBinding_1.stringifyBinding)(binding.binding)).join('\n')}
+${bindingNodes.map((bindingNode) => (0, stringifyBinding_1.stringifyBinding)(bindingNode.binding)).join('\n')}
 
-Trying to resolve bindings for "${stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier)}".
-
-${stringifyBindingConstraints(bindingConstraints)}`;
+Trying to resolve bindings for "${stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier)}".${stringifyBindingConstraints(bindingConstraints)}`;
         throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.planning, errorMessage);
     }
 }
-function throwErrorWhenSingleUnexpectedBindingFound(bindings, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints) {
-    if (bindings === undefined && !isOptional) {
-        throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints);
-    }
-    else {
-        return;
+function throwErrorWhenSingleUnexpectedBindingFound(bindingNode, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections) {
+    if (bindingNode === undefined && !isOptional) {
+        throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections);
     }
 }
 function stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier) {
@@ -38439,11 +39411,194 @@ function stringifyBindingConstraints(bindingConstraints) {
         : `
 - tags:
   - ${[...bindingConstraints.tags.keys()].map((key) => key.toString()).join('\n  - ')}`;
-    return `Binding constraints:
+    return `
+
+Binding constraints:
 - service identifier: ${(0, common_1.stringifyServiceIdentifier)(bindingConstraints.serviceIdentifier)}
 - name: ${bindingConstraints.name?.toString() ?? '-'}${stringifiedTags}`;
 }
+function stringifyServiceRedirections(serviceRedirections) {
+    return serviceRedirections.length === 0
+        ? ''
+        : `
+
+- service redirections:
+  - ${serviceRedirections
+            .map((serviceIdentifier) => (0, common_1.stringifyServiceIdentifier)(serviceIdentifier))
+            .join('\n  - ')}`;
+}
 //# sourceMappingURL=throwErrorWhenUnexpectedBindingsAmountFound.js.map
+
+/***/ }),
+
+/***/ 9449:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.tryBuildGetPlanOptionsFromManagedClassElementMetadata = tryBuildGetPlanOptionsFromManagedClassElementMetadata;
+const common_1 = __nccwpck_require__(9160);
+const ClassElementMetadataKind_1 = __nccwpck_require__(5334);
+function tryBuildGetPlanOptionsFromManagedClassElementMetadata(elementMetadata) {
+    let tag;
+    if (elementMetadata.tags.size === 0) {
+        tag = undefined;
+    }
+    else if (elementMetadata.tags.size === 1) {
+        const [key, value] = elementMetadata.tags
+            .entries()
+            .next().value;
+        tag = { key, value };
+    }
+    else {
+        return undefined;
+    }
+    const serviceIdentifier = common_1.LazyServiceIdentifier.is(elementMetadata.value)
+        ? elementMetadata.value.unwrap()
+        : elementMetadata.value;
+    if (elementMetadata.kind === ClassElementMetadataKind_1.ClassElementMetadataKind.multipleInjection) {
+        return {
+            chained: elementMetadata.chained,
+            isMultiple: true,
+            name: elementMetadata.name,
+            optional: elementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+    else {
+        return {
+            isMultiple: false,
+            name: elementMetadata.name,
+            optional: elementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+}
+//# sourceMappingURL=tryBuildGetPlanOptionsFromManagedClassElementMetadata.js.map
+
+/***/ }),
+
+/***/ 2415:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.tryBuildGetPlanOptionsFromResolvedValueElementMetadata = tryBuildGetPlanOptionsFromResolvedValueElementMetadata;
+const common_1 = __nccwpck_require__(9160);
+const ResolvedValueElementMetadataKind_1 = __nccwpck_require__(2645);
+function tryBuildGetPlanOptionsFromResolvedValueElementMetadata(resolvedValueElementMetadata) {
+    let tag;
+    if (resolvedValueElementMetadata.tags.size === 0) {
+        tag = undefined;
+    }
+    else if (resolvedValueElementMetadata.tags.size === 1) {
+        const [key, value] = resolvedValueElementMetadata.tags.entries().next().value;
+        tag = { key, value };
+    }
+    else {
+        return undefined;
+    }
+    const serviceIdentifier = common_1.LazyServiceIdentifier.is(resolvedValueElementMetadata.value)
+        ? resolvedValueElementMetadata.value.unwrap()
+        : resolvedValueElementMetadata.value;
+    if (resolvedValueElementMetadata.kind ===
+        ResolvedValueElementMetadataKind_1.ResolvedValueElementMetadataKind.multipleInjection) {
+        return {
+            chained: resolvedValueElementMetadata.chained,
+            isMultiple: true,
+            name: resolvedValueElementMetadata.name,
+            optional: resolvedValueElementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+    else {
+        return {
+            isMultiple: false,
+            name: resolvedValueElementMetadata.name,
+            optional: resolvedValueElementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+}
+//# sourceMappingURL=tryBuildGetPlanOptionsFromResolvedValueElementMetadata.js.map
+
+/***/ }),
+
+/***/ 7344:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CacheBindingInvalidationKind = void 0;
+var CacheBindingInvalidationKind;
+(function (CacheBindingInvalidationKind) {
+    CacheBindingInvalidationKind["bindingAdded"] = "bindingAdded";
+    CacheBindingInvalidationKind["bindingRemoved"] = "bindingRemoved";
+})(CacheBindingInvalidationKind || (exports.CacheBindingInvalidationKind = CacheBindingInvalidationKind = {}));
+//# sourceMappingURL=CacheBindingInvalidationKind.js.map
+
+/***/ }),
+
+/***/ 1185:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LazyPlanServiceNode = void 0;
+const isLazyPlanServiceNodeSymbol = Symbol.for('@inversifyjs/core/LazyPlanServiceNode');
+class LazyPlanServiceNode {
+    [isLazyPlanServiceNodeSymbol];
+    _serviceIdentifier;
+    _serviceNode;
+    constructor(serviceNode, serviceIdentifier) {
+        this[isLazyPlanServiceNodeSymbol] = true;
+        this._serviceNode = serviceNode;
+        this._serviceIdentifier = serviceIdentifier;
+    }
+    get bindings() {
+        return this._getNode().bindings;
+    }
+    get isContextFree() {
+        return this._getNode().isContextFree;
+    }
+    get serviceIdentifier() {
+        return this._serviceIdentifier;
+    }
+    set bindings(bindings) {
+        this._getNode().bindings = bindings;
+    }
+    set isContextFree(isContextFree) {
+        this._getNode().isContextFree = isContextFree;
+    }
+    static is(value) {
+        return (typeof value === 'object' &&
+            value !== null &&
+            value[isLazyPlanServiceNodeSymbol] ===
+                true);
+    }
+    invalidate() {
+        this._serviceNode = undefined;
+    }
+    isExpanded() {
+        return this._serviceNode !== undefined;
+    }
+    _getNode() {
+        if (this._serviceNode === undefined) {
+            this._serviceNode = this._buildPlanServiceNode();
+        }
+        return this._serviceNode;
+    }
+}
+exports.LazyPlanServiceNode = LazyPlanServiceNode;
+//# sourceMappingURL=LazyPlanServiceNode.js.map
 
 /***/ }),
 
@@ -38454,16 +39609,18 @@ function stringifyBindingConstraints(bindingConstraints) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PlanResultCacheService = void 0;
+const BindingType_1 = __nccwpck_require__(8810);
 const WeakList_1 = __nccwpck_require__(8613);
-var GetPlanBooleanOptionsMask;
-(function (GetPlanBooleanOptionsMask) {
-    GetPlanBooleanOptionsMask[GetPlanBooleanOptionsMask["singleMandatory"] = 0] = "singleMandatory";
-    GetPlanBooleanOptionsMask[GetPlanBooleanOptionsMask["singleOptional"] = 1] = "singleOptional";
-    GetPlanBooleanOptionsMask[GetPlanBooleanOptionsMask["multipleMandatory"] = 2] = "multipleMandatory";
-    GetPlanBooleanOptionsMask[GetPlanBooleanOptionsMask["multipleOptional"] = 3] = "multipleOptional";
-    // Must be the last one
-    GetPlanBooleanOptionsMask[GetPlanBooleanOptionsMask["length"] = 4] = "length";
-})(GetPlanBooleanOptionsMask || (GetPlanBooleanOptionsMask = {}));
+const addRootServiceNodeBindingIfContextFree_1 = __nccwpck_require__(1981);
+const addServiceNodeBindingIfContextFree_1 = __nccwpck_require__(4414);
+const removeRootServiceNodeBindingIfContextFree_1 = __nccwpck_require__(8874);
+const removeServiceNodeBindingIfContextFree_1 = __nccwpck_require__(6566);
+const CacheBindingInvalidationKind_1 = __nccwpck_require__(7344);
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+const CHAINED_MASK = 0x4;
+const IS_MULTIPLE_MASK = 0x2;
+const OPTIONAL_MASK = 0x1;
+const MAP_ARRAY_LENGTH = 0x8;
 /**
  * Service to cache plans.
  *
@@ -38475,12 +39632,14 @@ var GetPlanBooleanOptionsMask;
  * Ancestor binding constraints are the reason to avoid reusing plans from plan children nodes.
  */
 class PlanResultCacheService {
+    #serviceIdToNonCachedServiceNodeMapMap;
     #serviceIdToValuePlanMap;
     #namedServiceIdToValuePlanMap;
     #namedTaggedServiceIdToValuePlanMap;
     #taggedServiceIdToValuePlanMap;
     #subscribers;
     constructor() {
+        this.#serviceIdToNonCachedServiceNodeMapMap = new Map();
         this.#serviceIdToValuePlanMap = this.#buildInitializedMapArray();
         this.#namedServiceIdToValuePlanMap = this.#buildInitializedMapArray();
         this.#namedTaggedServiceIdToValuePlanMap = this.#buildInitializedMapArray();
@@ -38522,6 +39681,16 @@ class PlanResultCacheService {
             }
         }
     }
+    invalidateServiceBinding(invalidation) {
+        this.#invalidateServiceMap(invalidation);
+        this.#invalidateNamedServiceMap(invalidation);
+        this.#invalidateNamedTaggedServiceMap(invalidation);
+        this.#invalidateTaggedServiceMap(invalidation);
+        this.#invalidateNonCachedServiceNodeSetMap(invalidation);
+        for (const subscriber of this.#subscribers) {
+            subscriber.invalidateServiceBinding(invalidation);
+        }
+    }
     set(options, planResult) {
         if (options.name === undefined) {
             if (options.tag === undefined) {
@@ -38540,15 +39709,57 @@ class PlanResultCacheService {
             }
         }
     }
+    setNonCachedServiceNode(node, context) {
+        let nonCachedMap = this.#serviceIdToNonCachedServiceNodeMapMap.get(node.serviceIdentifier);
+        if (nonCachedMap === undefined) {
+            nonCachedMap = new Map();
+            this.#serviceIdToNonCachedServiceNodeMapMap.set(node.serviceIdentifier, nonCachedMap);
+        }
+        nonCachedMap.set(node, context);
+    }
     subscribe(subscriber) {
         this.#subscribers.push(subscriber);
     }
     #buildInitializedMapArray() {
-        const mapArray = new Array(GetPlanBooleanOptionsMask.length);
+        const mapArray = new Array(MAP_ARRAY_LENGTH);
         for (let i = 0; i < mapArray.length; ++i) {
             mapArray[i] = new Map();
         }
         return mapArray;
+    }
+    #buildUpdatePlanParams(invalidation, index, name, tag) {
+        const isMultiple = (index & IS_MULTIPLE_MASK) !== 0;
+        let planParamsConstraint;
+        if (isMultiple) {
+            const isChained = (index & IS_MULTIPLE_MASK & CHAINED_MASK) !== 0;
+            planParamsConstraint = {
+                chained: isChained,
+                isMultiple,
+                serviceIdentifier: invalidation.binding.serviceIdentifier,
+            };
+        }
+        else {
+            planParamsConstraint = {
+                isMultiple,
+                serviceIdentifier: invalidation.binding.serviceIdentifier,
+            };
+        }
+        const isOptional = (index & OPTIONAL_MASK) !== 0;
+        if (isOptional) {
+            planParamsConstraint.isOptional = true;
+        }
+        if (name !== undefined) {
+            planParamsConstraint.name = name;
+        }
+        if (tag !== undefined) {
+            planParamsConstraint.tag = tag;
+        }
+        return {
+            autobindOptions: undefined,
+            operations: invalidation.operations,
+            rootConstraints: planParamsConstraint,
+            servicesBranch: [],
+        };
     }
     #getOrBuildMapValueFromMapMap(map, key) {
         let valueMap = map.get(key);
@@ -38563,6 +39774,7 @@ class PlanResultCacheService {
     }
     #getMaps() {
         return [
+            this.#serviceIdToNonCachedServiceNodeMapMap,
             ...this.#serviceIdToValuePlanMap,
             ...this.#namedServiceIdToValuePlanMap,
             ...this.#namedTaggedServiceIdToValuePlanMap,
@@ -38571,19 +39783,185 @@ class PlanResultCacheService {
     }
     #getMapArrayIndex(options) {
         if (options.isMultiple) {
-            if (options.optional === true) {
-                return GetPlanBooleanOptionsMask.multipleOptional;
+            return ((options.chained ? CHAINED_MASK : 0) |
+                (options.optional ? OPTIONAL_MASK : 0) |
+                IS_MULTIPLE_MASK);
+        }
+        else {
+            return options.optional ? OPTIONAL_MASK : 0;
+        }
+    }
+    #invalidateNamedServiceMap(invalidation) {
+        for (const [index, map] of this.#namedServiceIdToValuePlanMap.entries()) {
+            const servicePlans = map.get(invalidation.binding.serviceIdentifier);
+            if (servicePlans !== undefined) {
+                for (const [name, servicePlan] of servicePlans.entries()) {
+                    this.#updatePlan(invalidation, servicePlan, index, name, undefined);
+                }
             }
-            else {
-                return GetPlanBooleanOptionsMask.multipleMandatory;
+        }
+    }
+    #invalidateNamedTaggedServiceMap(invalidation) {
+        for (const [index, map,] of this.#namedTaggedServiceIdToValuePlanMap.entries()) {
+            const servicePlanMapMapMap = map.get(invalidation.binding.serviceIdentifier);
+            if (servicePlanMapMapMap !== undefined) {
+                for (const [name, servicePlanMapMap,] of servicePlanMapMapMap.entries()) {
+                    for (const [tag, servicePlanMap] of servicePlanMapMap.entries()) {
+                        for (const [tagValue, servicePlan] of servicePlanMap.entries()) {
+                            this.#updatePlan(invalidation, servicePlan, index, name, {
+                                key: tag,
+                                value: tagValue,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    #invalidateNonCachePlanBindingNodeDescendents(planBindingNode) {
+        switch (planBindingNode.binding.type) {
+            case BindingType_1.bindingTypeValues.ServiceRedirection:
+                for (const redirection of planBindingNode.redirections) {
+                    this.#invalidateNonCachePlanBindingNodeDescendents(redirection);
+                }
+                break;
+            case BindingType_1.bindingTypeValues.Instance:
+                for (const constructorParam of planBindingNode
+                    .constructorParams) {
+                    if (constructorParam !== undefined) {
+                        this.#invalidateNonCachePlanServiceNode(constructorParam);
+                    }
+                }
+                for (const propertyParam of planBindingNode.propertyParams.values()) {
+                    this.#invalidateNonCachePlanServiceNode(propertyParam);
+                }
+                break;
+            case BindingType_1.bindingTypeValues.ResolvedValue:
+                for (const resolvedValue of planBindingNode.params) {
+                    this.#invalidateNonCachePlanServiceNode(resolvedValue);
+                }
+                break;
+            default:
+        }
+    }
+    #invalidateNonCachePlanServiceNode(planServiceNode) {
+        const serviceNonCachedMap = this.#serviceIdToNonCachedServiceNodeMapMap.get(planServiceNode.serviceIdentifier);
+        if (serviceNonCachedMap === undefined ||
+            !serviceNonCachedMap.has(planServiceNode)) {
+            return;
+        }
+        serviceNonCachedMap.delete(planServiceNode);
+        this.#invalidateNonCachePlanServiceNodeDescendents(planServiceNode);
+    }
+    #invalidateNonCachePlanServiceNodeDescendents(planServiceNode) {
+        if (LazyPlanServiceNode_1.LazyPlanServiceNode.is(planServiceNode) &&
+            !planServiceNode.isExpanded()) {
+            return;
+        }
+        if (planServiceNode.bindings === undefined) {
+            return;
+        }
+        if (Array.isArray(planServiceNode.bindings)) {
+            for (const binding of planServiceNode.bindings) {
+                this.#invalidateNonCachePlanBindingNodeDescendents(binding);
             }
         }
         else {
-            if (options.optional === true) {
-                return GetPlanBooleanOptionsMask.singleOptional;
+            this.#invalidateNonCachePlanBindingNodeDescendents(planServiceNode.bindings);
+        }
+    }
+    #invalidateNonCachedServiceNodeSetMap(invalidation) {
+        const serviceNonCachedServiceNodeMap = this.#serviceIdToNonCachedServiceNodeMapMap.get(invalidation.binding.serviceIdentifier);
+        if (serviceNonCachedServiceNodeMap !== undefined) {
+            switch (invalidation.kind) {
+                case CacheBindingInvalidationKind_1.CacheBindingInvalidationKind.bindingAdded:
+                    for (const [serviceNode, context] of serviceNonCachedServiceNodeMap) {
+                        const result = (0, addServiceNodeBindingIfContextFree_1.addServiceNodeBindingIfContextFree)({
+                            autobindOptions: undefined,
+                            operations: invalidation.operations,
+                            servicesBranch: [],
+                        }, serviceNode, invalidation.binding, context.bindingConstraintsList, context.chainedBindings);
+                        if (result.isContextFreeBinding) {
+                            if (result.shouldInvalidateServiceNode &&
+                                LazyPlanServiceNode_1.LazyPlanServiceNode.is(serviceNode)) {
+                                this.#invalidateNonCachePlanServiceNodeDescendents(serviceNode);
+                                serviceNode.invalidate();
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
+                case CacheBindingInvalidationKind_1.CacheBindingInvalidationKind.bindingRemoved:
+                    for (const [serviceNode, context] of serviceNonCachedServiceNodeMap) {
+                        const result = (0, removeServiceNodeBindingIfContextFree_1.removeServiceNodeBindingIfContextFree)(serviceNode, invalidation.binding, context.bindingConstraintsList, context.optionalBindings);
+                        if (result.isContextFreeBinding) {
+                            if (result.bindingNodeRemoved !== undefined) {
+                                this.#invalidateNonCachePlanBindingNodeDescendents(result.bindingNodeRemoved);
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
             }
-            else {
-                return GetPlanBooleanOptionsMask.singleMandatory;
+        }
+    }
+    #invalidateServiceMap(invalidation) {
+        for (const [index, map] of this.#serviceIdToValuePlanMap.entries()) {
+            const servicePlan = map.get(invalidation.binding.serviceIdentifier);
+            this.#updatePlan(invalidation, servicePlan, index, undefined, undefined);
+        }
+    }
+    #invalidateTaggedServiceMap(invalidation) {
+        for (const [index, map] of this.#taggedServiceIdToValuePlanMap.entries()) {
+            const servicePlanMapMap = map.get(invalidation.binding.serviceIdentifier);
+            if (servicePlanMapMap !== undefined) {
+                for (const [tag, servicePlanMap] of servicePlanMapMap.entries()) {
+                    for (const [tagValue, servicePlan] of servicePlanMap.entries()) {
+                        this.#updatePlan(invalidation, servicePlan, index, undefined, {
+                            key: tag,
+                            value: tagValue,
+                        });
+                    }
+                }
+            }
+        }
+    }
+    #updatePlan(invalidation, servicePlan, index, name, tag) {
+        if (servicePlan !== undefined &&
+            LazyPlanServiceNode_1.LazyPlanServiceNode.is(servicePlan.tree.root)) {
+            const planParams = this.#buildUpdatePlanParams(invalidation, index, name, tag);
+            switch (invalidation.kind) {
+                case CacheBindingInvalidationKind_1.CacheBindingInvalidationKind.bindingAdded:
+                    {
+                        const result = (0, addRootServiceNodeBindingIfContextFree_1.addRootServiceNodeBindingIfContextFree)(planParams, servicePlan.tree.root, invalidation.binding);
+                        if (result.isContextFreeBinding) {
+                            if (result.shouldInvalidateServiceNode) {
+                                this.#invalidateNonCachePlanServiceNodeDescendents(servicePlan.tree.root);
+                                servicePlan.tree.root.invalidate();
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
+                case CacheBindingInvalidationKind_1.CacheBindingInvalidationKind.bindingRemoved:
+                    {
+                        const result = (0, removeRootServiceNodeBindingIfContextFree_1.removeRootServiceNodeBindingIfContextFree)(planParams, servicePlan.tree.root, invalidation.binding);
+                        if (result.isContextFreeBinding) {
+                            if (result.bindingNodeRemoved !== undefined) {
+                                this.#invalidateNonCachePlanBindingNodeDescendents(result.bindingNodeRemoved);
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -38681,6 +40059,7 @@ const common_1 = __nccwpck_require__(9160);
 const BindingType_1 = __nccwpck_require__(8810);
 const InversifyCoreError_1 = __nccwpck_require__(120);
 const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
+const handleResolveError_1 = __nccwpck_require__(3509);
 const isPlanServiceRedirectionBindingNode_1 = __nccwpck_require__(4872);
 const resolveConstantValueBinding_1 = __nccwpck_require__(1251);
 const resolveDynamicValueBinding_1 = __nccwpck_require__(3726);
@@ -38707,8 +40086,13 @@ const resolveResolvedValueBindingNode = (0, resolveResolvedValueBindingNode_1.re
 const resolveScopedInstanceBindingNode = (0, resolveScopedInstanceBindingNode_1.resolveScopedInstanceBindingNode)(resolveInstanceBindingNode);
 const resolveScopedResolvedValueBindingNode = (0, resolveScopedResolvedValueBindingNode_1.resolveScopedResolvedValueBindingNode)(resolveResolvedValueBindingNode);
 function resolve(params) {
-    const serviceNode = params.planResult.tree.root;
-    return resolveServiceNode(params, serviceNode);
+    try {
+        const serviceNode = params.planResult.tree.root;
+        return resolveServiceNode(params, serviceNode);
+    }
+    catch (error) {
+        (0, handleResolveError_1.handleResolveError)(params, error);
+    }
 }
 function resolveBindingNode(params, planBindingNode) {
     switch (planBindingNode.binding.type) {
@@ -39603,7 +40987,17 @@ function getBaseType(type) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.updateReflectMetadata = exports.updateOwnReflectMetadata = exports.setReflectMetadata = exports.getReflectMetadata = exports.getOwnReflectMetadata = void 0;
+exports.updateReflectMetadata = exports.updateOwnReflectMetadata = exports.setReflectMetadata = exports.getReflectMetadata = exports.getOwnReflectMetadata = exports.buildEmptyMapMetadata = exports.buildEmptyArrayMetadata = exports.buildArrayMetadataWithIndex = exports.buildArrayMetadataWithElement = exports.buildArrayMetadataWithArray = void 0;
+const buildArrayMetadataWithArray_1 = __nccwpck_require__(3000);
+Object.defineProperty(exports, "buildArrayMetadataWithArray", ({ enumerable: true, get: function () { return buildArrayMetadataWithArray_1.buildArrayMetadataWithArray; } }));
+const buildArrayMetadataWithElement_1 = __nccwpck_require__(6597);
+Object.defineProperty(exports, "buildArrayMetadataWithElement", ({ enumerable: true, get: function () { return buildArrayMetadataWithElement_1.buildArrayMetadataWithElement; } }));
+const buildArrayMetadataWithIndex_1 = __nccwpck_require__(233);
+Object.defineProperty(exports, "buildArrayMetadataWithIndex", ({ enumerable: true, get: function () { return buildArrayMetadataWithIndex_1.buildArrayMetadataWithIndex; } }));
+const buildEmptyArrayMetadata_1 = __nccwpck_require__(314);
+Object.defineProperty(exports, "buildEmptyArrayMetadata", ({ enumerable: true, get: function () { return buildEmptyArrayMetadata_1.buildEmptyArrayMetadata; } }));
+const buildEmptyMapMetadata_1 = __nccwpck_require__(4549);
+Object.defineProperty(exports, "buildEmptyMapMetadata", ({ enumerable: true, get: function () { return buildEmptyMapMetadata_1.buildEmptyMapMetadata; } }));
 const getOwnReflectMetadata_1 = __nccwpck_require__(3649);
 Object.defineProperty(exports, "getOwnReflectMetadata", ({ enumerable: true, get: function () { return getOwnReflectMetadata_1.getOwnReflectMetadata; } }));
 const getReflectMetadata_1 = __nccwpck_require__(6905);
@@ -39615,6 +41009,85 @@ Object.defineProperty(exports, "updateOwnReflectMetadata", ({ enumerable: true, 
 const updateReflectMetadata_1 = __nccwpck_require__(5742);
 Object.defineProperty(exports, "updateReflectMetadata", ({ enumerable: true, get: function () { return updateReflectMetadata_1.updateReflectMetadata; } }));
 //# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 3000:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildArrayMetadataWithArray = buildArrayMetadataWithArray;
+function buildArrayMetadataWithArray(newArrayMetadata) {
+    return (arrayMetadata) => {
+        arrayMetadata.push(...newArrayMetadata);
+        return arrayMetadata;
+    };
+}
+//# sourceMappingURL=buildArrayMetadataWithArray.js.map
+
+/***/ }),
+
+/***/ 6597:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildArrayMetadataWithElement = buildArrayMetadataWithElement;
+function buildArrayMetadataWithElement(newMetadata) {
+    return (arrayMetadata) => {
+        arrayMetadata.push(newMetadata);
+        return arrayMetadata;
+    };
+}
+//# sourceMappingURL=buildArrayMetadataWithElement.js.map
+
+/***/ }),
+
+/***/ 233:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildArrayMetadataWithIndex = buildArrayMetadataWithIndex;
+function buildArrayMetadataWithIndex(newMetadata, index) {
+    return (arrayMetadata) => {
+        arrayMetadata[index] = newMetadata;
+        return arrayMetadata;
+    };
+}
+//# sourceMappingURL=buildArrayMetadataWithIndex.js.map
+
+/***/ }),
+
+/***/ 314:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildEmptyArrayMetadata = buildEmptyArrayMetadata;
+function buildEmptyArrayMetadata() {
+    return [];
+}
+//# sourceMappingURL=buildEmptyArrayMetadata.js.map
+
+/***/ }),
+
+/***/ 4549:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildEmptyMapMetadata = buildEmptyMapMetadata;
+function buildEmptyMapMetadata() {
+    return new Map();
+}
+//# sourceMappingURL=buildEmptyMapMetadata.js.map
 
 /***/ }),
 
@@ -39703,7 +41176,7 @@ function updateReflectMetadata(target, metadataKey, buildDefaultValue, callback,
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.preDestroy = exports.postConstruct = exports.tagged = exports.unmanaged = exports.optional = exports.named = exports.multiInject = exports.injectable = exports.injectFromBase = exports.inject = exports.decorate = exports.bindingTypeValues = exports.bindingScopeValues = exports.ContainerModule = exports.Container = exports.LazyServiceIdentifier = void 0;
+exports.preDestroy = exports.postConstruct = exports.tagged = exports.unmanaged = exports.optional = exports.named = exports.multiInject = exports.injectable = exports.injectFromHierarchy = exports.injectFromBase = exports.inject = exports.decorate = exports.bindingTypeValues = exports.bindingScopeValues = exports.ContainerModule = exports.Container = exports.LazyServiceIdentifier = void 0;
 __nccwpck_require__(477);
 var common_1 = __nccwpck_require__(9160);
 Object.defineProperty(exports, "LazyServiceIdentifier", ({ enumerable: true, get: function () { return common_1.LazyServiceIdentifier; } }));
@@ -39716,6 +41189,7 @@ Object.defineProperty(exports, "bindingTypeValues", ({ enumerable: true, get: fu
 Object.defineProperty(exports, "decorate", ({ enumerable: true, get: function () { return core_1.decorate; } }));
 Object.defineProperty(exports, "inject", ({ enumerable: true, get: function () { return core_1.inject; } }));
 Object.defineProperty(exports, "injectFromBase", ({ enumerable: true, get: function () { return core_1.injectFromBase; } }));
+Object.defineProperty(exports, "injectFromHierarchy", ({ enumerable: true, get: function () { return core_1.injectFromHierarchy; } }));
 Object.defineProperty(exports, "injectable", ({ enumerable: true, get: function () { return core_1.injectable; } }));
 Object.defineProperty(exports, "multiInject", ({ enumerable: true, get: function () { return core_1.multiInject; } }));
 Object.defineProperty(exports, "named", ({ enumerable: true, get: function () { return core_1.named; } }));

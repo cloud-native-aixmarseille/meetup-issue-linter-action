@@ -102,7 +102,7 @@ jobs:
           EXPECTED_LINT_ISSUES=$(cat <<EOF
           Title: Invalid, expected "[Meetup] - 2025-01-01 - Test Invalid Issue"
           Hoster: "Wrong Hoster" is not an existing hoster
-          Event Description: Required
+          Event Description: Invalid input: expected string, received undefined
           Agenda: Speaker "Wrong Speaker" is not in the list of speakers
           Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker(s)>: <talk_description>"
           Meetup Link: Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789
