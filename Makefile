@@ -29,13 +29,8 @@ define run_linter
 		-e DEFAULT_WORKSPACE="$$DEFAULT_WORKSPACE" \
 		-e FILTER_REGEX_INCLUDE="$(filter-out $@,$(MAKECMDGOALS))" \
 		-e IGNORE_GITIGNORED_FILES=true \
-		-e KUBERNETES_KUBECONFORM_OPTIONS="--schema-location default --schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'" \
 		-e FILTER_REGEX_EXCLUDE=dist/**/* \
-        -e VALIDATE_TYPESCRIPT_STANDARD=false \
         -e VALIDATE_TYPESCRIPT_ES=false \
-        -e VALIDATE_TYPESCRIPT_PRETTIER=false \
-        -e VALIDATE_JAVASCRIPT_ES=false \
-        -e VALIDATE_JAVASCRIPT_STANDARD=false \
 		$(1) \
 		-v $$VOLUME \
 		--rm \
