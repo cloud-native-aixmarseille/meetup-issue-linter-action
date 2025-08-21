@@ -36812,7 +36812,7 @@ exports.WeakList = WeakList;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.decorate = decorate;
-function decorate(decorators, target, parameterIndexOrProperty) {
+function decorate(decorators, target, parameterIndexOrProperty, parameterIndex) {
     const parsedDecorators = Array.isArray(decorators)
         ? decorators
         : [decorators];
@@ -36828,7 +36828,13 @@ function decorate(decorators, target, parameterIndexOrProperty) {
         }
         return;
     }
-    Reflect.decorate(parsedDecorators, target.prototype, parameterIndexOrProperty);
+    if (parameterIndex === undefined) {
+        Reflect.decorate(parsedDecorators, target.prototype, parameterIndexOrProperty);
+        return;
+    }
+    for (const decorator of parsedDecorators) {
+        decorator(target, parameterIndexOrProperty, parameterIndex);
+    }
 }
 //# sourceMappingURL=decorate.js.map
 
