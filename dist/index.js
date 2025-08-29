@@ -35163,9 +35163,9 @@ class Container {
     #serviceResolutionManager;
     #snapshotManager;
     constructor(options) {
-        this.#serviceReferenceManager = this.#buildServiceReferenceManager(options);
         const autobind = options?.autobind ?? false;
         const defaultScope = options?.defaultScope ?? DEFAULT_DEFAULT_SCOPE;
+        this.#serviceReferenceManager = this.#buildServiceReferenceManager(options, autobind, defaultScope);
         const planParamsOperationsManager = new PlanParamsOperationsManager_1.PlanParamsOperationsManager(this.#serviceReferenceManager);
         const planResultCacheManager = new PlanResultCacheManager_1.PlanResultCacheManager(planParamsOperationsManager, this.#serviceReferenceManager);
         const deactivationParamsManager = new DeactivationParamsManager_1.DeactivationParamsManager(this.#serviceReferenceManager);
@@ -35242,14 +35242,21 @@ class Container {
     unloadSync(...modules) {
         this.#containerModuleManager.unloadSync(...modules);
     }
-    #buildServiceReferenceManager(options) {
+    #buildAutobindOptions(autobind, defaultScope) {
+        if (autobind) {
+            return { scope: defaultScope };
+        }
+        return undefined;
+    }
+    #buildServiceReferenceManager(options, autobind, defaultScope) {
+        const autobindOptions = this.#buildAutobindOptions(autobind, defaultScope);
         if (options?.parent === undefined) {
-            return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(() => undefined), core_1.BindingService.build(() => undefined), core_1.DeactivationsService.build(() => undefined), new core_1.PlanResultCacheService());
+            return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(() => undefined), core_1.BindingService.build(() => undefined, autobindOptions), core_1.DeactivationsService.build(() => undefined), new core_1.PlanResultCacheService());
         }
         const planResultCacheService = new core_1.PlanResultCacheService();
         const parent = options.parent;
         parent.#serviceReferenceManager.planResultCacheService.subscribe(planResultCacheService);
-        return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(() => parent.#serviceReferenceManager.activationService), core_1.BindingService.build(() => parent.#serviceReferenceManager.bindingService), core_1.DeactivationsService.build(() => parent.#serviceReferenceManager.deactivationService), planResultCacheService);
+        return new ServiceReferenceManager_1.ServiceReferenceManager(core_1.ActivationsService.build(() => parent.#serviceReferenceManager.activationService), core_1.BindingService.build(() => parent.#serviceReferenceManager.bindingService, autobindOptions), core_1.DeactivationsService.build(() => parent.#serviceReferenceManager.deactivationService), planResultCacheService);
     }
 }
 exports.Container = Container;
@@ -35872,6 +35879,39 @@ function getBindingId() {
 
 /***/ }),
 
+/***/ 8583:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildInstanceBinding = buildInstanceBinding;
+const getClassMetadata_1 = __nccwpck_require__(2928);
+const getBindingId_1 = __nccwpck_require__(4470);
+const BindingType_1 = __nccwpck_require__(8810);
+function buildInstanceBinding(autobindOptions, serviceIdentifier) {
+    const classMetadata = (0, getClassMetadata_1.getClassMetadata)(serviceIdentifier);
+    const scope = classMetadata.scope ?? autobindOptions.scope;
+    return {
+        cache: {
+            isRight: false,
+            value: undefined,
+        },
+        id: (0, getBindingId_1.getBindingId)(),
+        implementationType: serviceIdentifier,
+        isSatisfiedBy: () => true,
+        moduleId: undefined,
+        onActivation: undefined,
+        onDeactivation: undefined,
+        scope,
+        serviceIdentifier,
+        type: BindingType_1.bindingTypeValues.Instance,
+    };
+}
+//# sourceMappingURL=buildInstanceBinding.js.map
+
+/***/ }),
+
 /***/ 3097:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -35883,7 +35923,7 @@ const BindingType_1 = __nccwpck_require__(8810);
 const cloneConstantValueBinding_1 = __nccwpck_require__(4584);
 const cloneDynamicValueBinding_1 = __nccwpck_require__(5859);
 const cloneFactoryBinding_1 = __nccwpck_require__(8209);
-const cloneInstanceBinding_1 = __nccwpck_require__(6832);
+const cloneInstanceBinding_1 = __nccwpck_require__(4451);
 const cloneProviderBinding_1 = __nccwpck_require__(3866);
 const cloneResolvedValueBinding_1 = __nccwpck_require__(7000);
 const cloneServiceRedirectionBinding_1 = __nccwpck_require__(8648);
@@ -36026,7 +36066,7 @@ function cloneFactoryBinding(binding) {
 
 /***/ }),
 
-/***/ 6832:
+/***/ 4451:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -36321,6 +36361,7 @@ exports.ActivationsService = ActivationsService;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BindingService = exports.OneToManyBindingMapStar = void 0;
 const OneToManyMapStar_1 = __nccwpck_require__(4101);
+const buildInstanceBinding_1 = __nccwpck_require__(8583);
 const cloneBinding_1 = __nccwpck_require__(3097);
 var BindingRelationKind;
 (function (BindingRelationKind) {
@@ -36338,9 +36379,10 @@ class OneToManyBindingMapStar extends OneToManyMapStar_1.OneToManyMapStar {
 }
 exports.OneToManyBindingMapStar = OneToManyBindingMapStar;
 class BindingService {
+    #autobindOptions;
     #bindingMaps;
     #getParent;
-    constructor(getParent, bindingMaps) {
+    constructor(getParent, autobindOptions, bindingMaps) {
         this.#bindingMaps =
             bindingMaps ??
                 new OneToManyBindingMapStar({
@@ -36355,17 +36397,25 @@ class BindingService {
                     },
                 });
         this.#getParent = getParent;
+        this.#autobindOptions = autobindOptions;
     }
-    static build(getParent) {
-        return new BindingService(getParent);
+    static build(getParent, autobindOptions) {
+        return new BindingService(getParent, autobindOptions);
     }
     clone() {
-        const clone = new BindingService(this.#getParent, this.#bindingMaps.clone());
+        const clone = new BindingService(this.#getParent, this.#autobindOptions, this.#bindingMaps.clone());
         return clone;
     }
     get(serviceIdentifier) {
-        return (this.getNonParentBindings(serviceIdentifier) ??
-            this.#getParent()?.get(serviceIdentifier));
+        const bindings = this.getNonParentBindings(serviceIdentifier) ??
+            this.#getParent()?.get(serviceIdentifier);
+        if (bindings !== undefined) {
+            return bindings;
+        }
+        const autoBoundBinding = this.#tryAutobind(serviceIdentifier);
+        return autoBoundBinding === undefined
+            ? autoBoundBinding
+            : [autoBoundBinding];
     }
     *getChained(serviceIdentifier) {
         const currentBindings = this.getNonParentBindings(serviceIdentifier);
@@ -36373,7 +36423,15 @@ class BindingService {
             yield* currentBindings;
         }
         const parent = this.#getParent();
-        if (parent !== undefined) {
+        if (parent === undefined) {
+            if (currentBindings === undefined) {
+                const autobindBindings = this.#tryAutobind(serviceIdentifier);
+                if (autobindBindings !== undefined) {
+                    yield autobindBindings;
+                }
+            }
+        }
+        else {
             yield* parent.getChained(serviceIdentifier);
         }
     }
@@ -36417,6 +36475,15 @@ class BindingService {
             relation[BindingRelationKind.moduleId] = binding.moduleId;
         }
         this.#bindingMaps.add(binding, relation);
+    }
+    #tryAutobind(serviceIdentifier) {
+        if (this.#autobindOptions === undefined ||
+            typeof serviceIdentifier !== 'function') {
+            return undefined;
+        }
+        const binding = (0, buildInstanceBinding_1.buildInstanceBinding)(this.#autobindOptions, serviceIdentifier);
+        this.set(binding);
+        return binding;
     }
 }
 exports.BindingService = BindingService;
@@ -37569,7 +37636,7 @@ const reflect_metadata_utils_1 = __nccwpck_require__(2732);
 const classMetadataReflectKey_1 = __nccwpck_require__(7147);
 const getDefaultClassMetadata_1 = __nccwpck_require__(8423);
 const isPendingClassMetadata_1 = __nccwpck_require__(6489);
-const throwAtInvalidClassMetadata_1 = __nccwpck_require__(4451);
+const throwAtInvalidClassMetadata_1 = __nccwpck_require__(6832);
 const validateConstructorMetadataArray_1 = __nccwpck_require__(2817);
 function getClassMetadata(type) {
     const classMetadata = (0, reflect_metadata_utils_1.getOwnReflectMetadata)(type, classMetadataReflectKey_1.classMetadataReflectKey) ??
@@ -37742,7 +37809,7 @@ function isUserlandEmittedType(type) {
 
 /***/ }),
 
-/***/ 4451:
+/***/ 6832:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -38995,9 +39062,7 @@ function removeServiceNodeBindingIfContextFree(serviceNode, binding, bindingCons
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildFilteredServiceBindings = buildFilteredServiceBindings;
-const getBindingId_1 = __nccwpck_require__(4470);
-const BindingType_1 = __nccwpck_require__(8810);
-const getClassMetadata_1 = __nccwpck_require__(2928);
+const buildInstanceBinding_1 = __nccwpck_require__(8583);
 function buildFilteredServiceBindings(params, bindingConstraints, options) {
     const serviceIdentifier = options?.customServiceIdentifier ?? bindingConstraints.serviceIdentifier;
     const serviceBindings = options?.chained === true
@@ -39007,30 +39072,13 @@ function buildFilteredServiceBindings(params, bindingConstraints, options) {
     if (filteredBindings.length === 0 &&
         params.autobindOptions !== undefined &&
         typeof serviceIdentifier === 'function') {
-        const binding = buildInstanceBinding(params.autobindOptions, serviceIdentifier);
+        const binding = (0, buildInstanceBinding_1.buildInstanceBinding)(params.autobindOptions, serviceIdentifier);
         params.operations.setBinding(binding);
-        filteredBindings.push(binding);
+        if (binding.isSatisfiedBy(bindingConstraints)) {
+            filteredBindings.push(binding);
+        }
     }
     return filteredBindings;
-}
-function buildInstanceBinding(autobindOptions, serviceIdentifier) {
-    const classMetadata = (0, getClassMetadata_1.getClassMetadata)(serviceIdentifier);
-    const scope = classMetadata.scope ?? autobindOptions.scope;
-    return {
-        cache: {
-            isRight: false,
-            value: undefined,
-        },
-        id: (0, getBindingId_1.getBindingId)(),
-        implementationType: serviceIdentifier,
-        isSatisfiedBy: () => true,
-        moduleId: undefined,
-        onActivation: undefined,
-        onDeactivation: undefined,
-        scope,
-        serviceIdentifier,
-        type: BindingType_1.bindingTypeValues.Instance,
-    };
 }
 //# sourceMappingURL=buildFilteredServiceBindings.js.map
 
