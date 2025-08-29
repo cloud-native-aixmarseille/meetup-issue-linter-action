@@ -16,7 +16,8 @@
     "newLine": "lf",
     "noEmit": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "isolatedModules": true
   },
   "exclude": [
     "./__fixtures__/**/*.ts",

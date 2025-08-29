@@ -75,7 +75,7 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
-    "inversify": "^7.9.0",
+    "inversify": "^7.9.1",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.0.17",
     "zod-validation-error": "^4.0.1"
@@ -101,8 +101,8 @@
     ]
   },
   "lint-staged": {
-    "*.{js,ts,tsx}": [
-      "eslint --fix"
+    "src/*.{js,ts,tsx}": [
+      "eslint --fix "
     ]
   },
   "importSort": {
