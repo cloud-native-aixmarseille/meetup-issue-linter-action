@@ -77,11 +77,11 @@
     "@actions/github": "^6.0.1",
     "inversify": "^7.9.1",
     "reflect-metadata": "^0.2.2",
-    "zod": "^4.1.5",
+    "zod": "^4.1.8",
     "zod-validation-error": "^4.0.1"
   },
   "devDependencies": {
-    "@ts-dev-tools/core": "^1.9.5",
+    "@ts-dev-tools/core": "^1.9.6",
     "@vercel/ncc": "^0.38.3",
     "eslint-plugin-github": "^6.0.0",
     "eslint-plugin-jsonc": "^2.20.1",

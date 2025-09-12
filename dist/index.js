@@ -46601,7 +46601,7 @@ exports.html5Email = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9
 exports.rfc5322Email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 /** A loose regex that allows Unicode characters, enforces length limits, and that's about it. */
 exports.unicodeEmail = /^[^\s@"]{1,64}@[^\s@]{1,255}$/u;
-exports.idnEmail = /^[^\s@"]{1,64}@[^\s@]{1,255}$/u;
+exports.idnEmail = exports.unicodeEmail;
 exports.browserEmail = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 // from https://thekevinscott.com/emojis-in-javascript/#writing-a-regular-expression
 const _emoji = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`;
@@ -46609,7 +46609,7 @@ function emoji() {
     return new RegExp(_emoji, "u");
 }
 exports.ipv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-exports.ipv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})$/;
+exports.ipv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/;
 exports.cidrv4 = /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/;
 exports.cidrv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
 // https://stackoverflow.com/questions/7860392/determine-if-string-is-in-base64-using-javascript
@@ -46655,13 +46655,13 @@ const string = (params) => {
     return new RegExp(`^${regex}$`);
 };
 exports.string = string;
-exports.bigint = /^\d+n?$/;
-exports.integer = /^\d+$/;
-exports.number = /^-?\d+(?:\.\d+)?/i;
-exports.boolean = /true|false/i;
-const _null = /null/i;
+exports.bigint = /^-?\d+n?$/;
+exports.integer = /^-?\d+$/;
+exports.number = /^-?\d+(?:\.\d+)?/;
+exports.boolean = /^(?:true|false)$/i;
+const _null = /^null$/i;
 exports["null"] = _null;
-const _undefined = /undefined/i;
+const _undefined = /^undefined$/i;
 exports.undefined = _undefined;
 // regex for string with no uppercase letters
 exports.lowercase = /^[^A-Z]*$/;
@@ -46676,7 +46676,7 @@ function fixedBase64(bodyLength, padding) {
 }
 // Helper function to create base64url regex with exact length (no padding)
 function fixedBase64url(length) {
-    return new RegExp(`^[A-Za-z0-9-_]{${length}}$`);
+    return new RegExp(`^[A-Za-z0-9_-]{${length}}$`);
 }
 // MD5 (16 bytes): base64 = 24 chars total (22 + "==")
 exports.md5_hex = /^[0-9a-fA-F]{32}$/;
@@ -46714,7 +46714,7 @@ exports.$output = Symbol("ZodOutput");
 exports.$input = Symbol("ZodInput");
 class $ZodRegistry {
     constructor() {
-        this._map = new Map();
+        this._map = new WeakMap();
         this._idmap = new Map();
     }
     add(schema, ..._meta) {
@@ -46729,7 +46729,7 @@ class $ZodRegistry {
         return this;
     }
     clear() {
-        this._map = new Map();
+        this._map = new WeakMap();
         this._idmap = new Map();
         return this;
     }
@@ -47137,8 +47137,11 @@ exports.$ZodCIDRv6 = core.$constructor("$ZodCIDRv6", (inst, def) => {
     def.pattern ?? (def.pattern = regexes.cidrv6); // not used for validation
     exports.$ZodStringFormat.init(inst, def);
     inst._zod.check = (payload) => {
-        const [address, prefix] = payload.value.split("/");
+        const parts = payload.value.split("/");
         try {
+            if (parts.length !== 2)
+                throw new Error();
+            const [address, prefix] = parts;
             if (!prefix)
                 throw new Error();
             const prefixNum = Number(prefix);
@@ -47519,7 +47522,7 @@ function handlePropertyResult(result, final, key, input) {
 function normalizeDef(def) {
     const keys = Object.keys(def.shape);
     for (const k of keys) {
-        if (!def.shape[k]._zod.traits.has("$ZodType")) {
+        if (!def.shape?.[k]?._zod?.traits?.has("$ZodType")) {
             throw new Error(`Invalid element at key "${k}": expected a Zod schema`);
         }
     }
@@ -47637,7 +47640,7 @@ exports.$ZodObjectJIT = core.$constructor("$ZodObjectJIT", (inst, def) => {
             ids[key] = `key_${counter++}`;
         }
         // A: preserve key order {
-        doc.write(`const newResult = {}`);
+        doc.write(`const newResult = {};`);
         for (const key of normalized.keys) {
             const id = ids[key];
             const k = util.esc(key);
@@ -47650,6 +47653,7 @@ exports.$ZodObjectJIT = core.$constructor("$ZodObjectJIT", (inst, def) => {
           })));
         }
         
+        
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -47657,6 +47661,7 @@ exports.$ZodObjectJIT = core.$constructor("$ZodObjectJIT", (inst, def) => {
         } else {
           newResult[${k}] = ${id}.value;
         }
+        
       `);
         }
         doc.write(`payload.value = newResult;`);
@@ -49904,6 +49909,8 @@ function isPlainObject(o) {
 function shallowClone(o) {
     if (isPlainObject(o))
         return { ...o };
+    if (Array.isArray(o))
+        return [...o];
     return o;
 }
 function numKeys(data) {
@@ -50344,7 +50351,7 @@ exports.version = void 0;
 exports.version = {
     major: 4,
     minor: 1,
-    patch: 5,
+    patch: 8,
 };
 
 
@@ -51833,25 +51840,55 @@ const error = () => {
         array: { unit: "elementos", verb: "tener" },
         set: { unit: "elementos", verb: "tener" },
     };
+    const TypeNames = {
+        string: "texto",
+        number: "número",
+        boolean: "booleano",
+        array: "arreglo",
+        object: "objeto",
+        set: "conjunto",
+        file: "archivo",
+        date: "fecha",
+        bigint: "número grande",
+        symbol: "símbolo",
+        undefined: "indefinido",
+        null: "nulo",
+        function: "función",
+        map: "mapa",
+        record: "registro",
+        tuple: "tupla",
+        enum: "enumeración",
+        union: "unión",
+        literal: "literal",
+        promise: "promesa",
+        void: "vacío",
+        never: "nunca",
+        unknown: "desconocido",
+        any: "cualquiera",
+    };
     function getSizing(origin) {
         return Sizable[origin] ?? null;
+    }
+    function getTypeName(type) {
+        return TypeNames[type] ?? type;
     }
     const parsedType = (data) => {
         const t = typeof data;
         switch (t) {
             case "number": {
-                return Number.isNaN(data) ? "NaN" : "número";
+                return Number.isNaN(data) ? "NaN" : "number";
             }
             case "object": {
                 if (Array.isArray(data)) {
-                    return "arreglo";
+                    return "array";
                 }
                 if (data === null) {
-                    return "nulo";
+                    return "null";
                 }
                 if (Object.getPrototypeOf(data) !== Object.prototype) {
                     return data.constructor.name;
                 }
+                return "object";
             }
         }
         return t;
@@ -51889,7 +51926,7 @@ const error = () => {
     return (issue) => {
         switch (issue.code) {
             case "invalid_type":
-                return `Entrada inválida: se esperaba ${issue.expected}, recibido ${parsedType(issue.input)}`;
+                return `Entrada inválida: se esperaba ${getTypeName(issue.expected)}, recibido ${getTypeName(parsedType(issue.input))}`;
             // return `Entrada inválida: se esperaba ${issue.expected}, recibido ${util.getParsedType(issue.input)}`;
             case "invalid_value":
                 if (issue.values.length === 1)
@@ -51898,17 +51935,19 @@ const error = () => {
             case "too_big": {
                 const adj = issue.inclusive ? "<=" : "<";
                 const sizing = getSizing(issue.origin);
+                const origin = getTypeName(issue.origin);
                 if (sizing)
-                    return `Demasiado grande: se esperaba que ${issue.origin ?? "valor"} tuviera ${adj}${issue.maximum.toString()} ${sizing.unit ?? "elementos"}`;
-                return `Demasiado grande: se esperaba que ${issue.origin ?? "valor"} fuera ${adj}${issue.maximum.toString()}`;
+                    return `Demasiado grande: se esperaba que ${origin ?? "valor"} tuviera ${adj}${issue.maximum.toString()} ${sizing.unit ?? "elementos"}`;
+                return `Demasiado grande: se esperaba que ${origin ?? "valor"} fuera ${adj}${issue.maximum.toString()}`;
             }
             case "too_small": {
                 const adj = issue.inclusive ? ">=" : ">";
                 const sizing = getSizing(issue.origin);
+                const origin = getTypeName(issue.origin);
                 if (sizing) {
-                    return `Demasiado pequeño: se esperaba que ${issue.origin} tuviera ${adj}${issue.minimum.toString()} ${sizing.unit}`;
+                    return `Demasiado pequeño: se esperaba que ${origin} tuviera ${adj}${issue.minimum.toString()} ${sizing.unit}`;
                 }
-                return `Demasiado pequeño: se esperaba que ${issue.origin} fuera ${adj}${issue.minimum.toString()}`;
+                return `Demasiado pequeño: se esperaba que ${origin} fuera ${adj}${issue.minimum.toString()}`;
             }
             case "invalid_format": {
                 const _issue = issue;
@@ -51927,11 +51966,11 @@ const error = () => {
             case "unrecognized_keys":
                 return `Llave${issue.keys.length > 1 ? "s" : ""} desconocida${issue.keys.length > 1 ? "s" : ""}: ${util.joinValues(issue.keys, ", ")}`;
             case "invalid_key":
-                return `Llave inválida en ${issue.origin}`;
+                return `Llave inválida en ${getTypeName(issue.origin)}`;
             case "invalid_union":
                 return "Entrada inválida";
             case "invalid_element":
-                return `Valor inválido en ${issue.origin}`;
+                return `Valor inválido en ${getTypeName(issue.origin)}`;
             default:
                 return `Entrada inválida`;
         }
@@ -53028,7 +53067,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.yo = exports.zhTW = exports.zhCN = exports.vi = exports.ur = exports.ua = exports.tr = exports.th = exports.ta = exports.sv = exports.sl = exports.ru = exports.pt = exports.pl = exports.ps = exports.ota = exports.no = exports.nl = exports.ms = exports.mk = exports.ko = exports.kh = exports.ja = exports.it = exports.is = exports.id = exports.hu = exports.he = exports.frCA = exports.fr = exports.fi = exports.fa = exports.es = exports.eo = exports.en = exports.de = exports.da = exports.cs = exports.ca = exports.be = exports.az = exports.ar = void 0;
+exports.yo = exports.zhTW = exports.zhCN = exports.vi = exports.ur = exports.uk = exports.ua = exports.tr = exports.th = exports.ta = exports.sv = exports.sl = exports.ru = exports.pt = exports.pl = exports.ps = exports.ota = exports.no = exports.nl = exports.ms = exports.mk = exports.lt = exports.ko = exports.km = exports.kh = exports.ka = exports.ja = exports.it = exports.is = exports.id = exports.hu = exports.he = exports.frCA = exports.fr = exports.fi = exports.fa = exports.es = exports.eo = exports.en = exports.de = exports.da = exports.cs = exports.ca = exports.be = exports.az = exports.ar = void 0;
 var ar_js_1 = __nccwpck_require__(2284);
 Object.defineProperty(exports, "ar", ({ enumerable: true, get: function () { return __importDefault(ar_js_1).default; } }));
 var az_js_1 = __nccwpck_require__(6964);
@@ -53069,10 +53108,16 @@ var it_js_1 = __nccwpck_require__(8570);
 Object.defineProperty(exports, "it", ({ enumerable: true, get: function () { return __importDefault(it_js_1).default; } }));
 var ja_js_1 = __nccwpck_require__(986);
 Object.defineProperty(exports, "ja", ({ enumerable: true, get: function () { return __importDefault(ja_js_1).default; } }));
+var ka_js_1 = __nccwpck_require__(1665);
+Object.defineProperty(exports, "ka", ({ enumerable: true, get: function () { return __importDefault(ka_js_1).default; } }));
 var kh_js_1 = __nccwpck_require__(5968);
 Object.defineProperty(exports, "kh", ({ enumerable: true, get: function () { return __importDefault(kh_js_1).default; } }));
+var km_js_1 = __nccwpck_require__(498);
+Object.defineProperty(exports, "km", ({ enumerable: true, get: function () { return __importDefault(km_js_1).default; } }));
 var ko_js_1 = __nccwpck_require__(7215);
 Object.defineProperty(exports, "ko", ({ enumerable: true, get: function () { return __importDefault(ko_js_1).default; } }));
+var lt_js_1 = __nccwpck_require__(6257);
+Object.defineProperty(exports, "lt", ({ enumerable: true, get: function () { return __importDefault(lt_js_1).default; } }));
 var mk_js_1 = __nccwpck_require__(4233);
 Object.defineProperty(exports, "mk", ({ enumerable: true, get: function () { return __importDefault(mk_js_1).default; } }));
 var ms_js_1 = __nccwpck_require__(4417);
@@ -53103,6 +53148,8 @@ var tr_js_1 = __nccwpck_require__(847);
 Object.defineProperty(exports, "tr", ({ enumerable: true, get: function () { return __importDefault(tr_js_1).default; } }));
 var ua_js_1 = __nccwpck_require__(2723);
 Object.defineProperty(exports, "ua", ({ enumerable: true, get: function () { return __importDefault(ua_js_1).default; } }));
+var uk_js_1 = __nccwpck_require__(1825);
+Object.defineProperty(exports, "uk", ({ enumerable: true, get: function () { return __importDefault(uk_js_1).default; } }));
 var ur_js_1 = __nccwpck_require__(2144);
 Object.defineProperty(exports, "ur", ({ enumerable: true, get: function () { return __importDefault(ur_js_1).default; } }));
 var vi_js_1 = __nccwpck_require__(5390);
@@ -53572,7 +53619,188 @@ module.exports = exports.default;
 
 /***/ }),
 
+/***/ 1665:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parsedType = void 0;
+exports["default"] = default_1;
+const util = __importStar(__nccwpck_require__(1327));
+const parsedType = (data) => {
+    const t = typeof data;
+    switch (t) {
+        case "number": {
+            return Number.isNaN(data) ? "NaN" : "რიცხვი";
+        }
+        case "object": {
+            if (Array.isArray(data)) {
+                return "მასივი";
+            }
+            if (data === null) {
+                return "null";
+            }
+            if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+                return data.constructor.name;
+            }
+        }
+    }
+    const typeMap = {
+        string: "სტრინგი",
+        boolean: "ბულეანი",
+        undefined: "undefined",
+        bigint: "bigint",
+        symbol: "symbol",
+        function: "ფუნქცია",
+    };
+    return typeMap[t] ?? t;
+};
+exports.parsedType = parsedType;
+const error = () => {
+    const Sizable = {
+        string: { unit: "სიმბოლო", verb: "უნდა შეიცავდეს" },
+        file: { unit: "ბაიტი", verb: "უნდა შეიცავდეს" },
+        array: { unit: "ელემენტი", verb: "უნდა შეიცავდეს" },
+        set: { unit: "ელემენტი", verb: "უნდა შეიცავდეს" },
+    };
+    function getSizing(origin) {
+        return Sizable[origin] ?? null;
+    }
+    const Nouns = {
+        regex: "შეყვანა",
+        email: "ელ-ფოსტის მისამართი",
+        url: "URL",
+        emoji: "ემოჯი",
+        uuid: "UUID",
+        uuidv4: "UUIDv4",
+        uuidv6: "UUIDv6",
+        nanoid: "nanoid",
+        guid: "GUID",
+        cuid: "cuid",
+        cuid2: "cuid2",
+        ulid: "ULID",
+        xid: "XID",
+        ksuid: "KSUID",
+        datetime: "თარიღი-დრო",
+        date: "თარიღი",
+        time: "დრო",
+        duration: "ხანგრძლივობა",
+        ipv4: "IPv4 მისამართი",
+        ipv6: "IPv6 მისამართი",
+        cidrv4: "IPv4 დიაპაზონი",
+        cidrv6: "IPv6 დიაპაზონი",
+        base64: "base64-კოდირებული სტრინგი",
+        base64url: "base64url-კოდირებული სტრინგი",
+        json_string: "JSON სტრინგი",
+        e164: "E.164 ნომერი",
+        jwt: "JWT",
+        template_literal: "შეყვანა",
+    };
+    return (issue) => {
+        switch (issue.code) {
+            case "invalid_type":
+                return `არასწორი შეყვანა: მოსალოდნელი ${issue.expected}, მიღებული ${(0, exports.parsedType)(issue.input)}`;
+            case "invalid_value":
+                if (issue.values.length === 1)
+                    return `არასწორი შეყვანა: მოსალოდნელი ${util.stringifyPrimitive(issue.values[0])}`;
+                return `არასწორი ვარიანტი: მოსალოდნელია ერთ-ერთი ${util.joinValues(issue.values, "|")}-დან`;
+            case "too_big": {
+                const adj = issue.inclusive ? "<=" : "<";
+                const sizing = getSizing(issue.origin);
+                if (sizing)
+                    return `ზედმეტად დიდი: მოსალოდნელი ${issue.origin ?? "მნიშვნელობა"} ${sizing.verb} ${adj}${issue.maximum.toString()} ${sizing.unit}`;
+                return `ზედმეტად დიდი: მოსალოდნელი ${issue.origin ?? "მნიშვნელობა"} იყოს ${adj}${issue.maximum.toString()}`;
+            }
+            case "too_small": {
+                const adj = issue.inclusive ? ">=" : ">";
+                const sizing = getSizing(issue.origin);
+                if (sizing) {
+                    return `ზედმეტად პატარა: მოსალოდნელი ${issue.origin} ${sizing.verb} ${adj}${issue.minimum.toString()} ${sizing.unit}`;
+                }
+                return `ზედმეტად პატარა: მოსალოდნელი ${issue.origin} იყოს ${adj}${issue.minimum.toString()}`;
+            }
+            case "invalid_format": {
+                const _issue = issue;
+                if (_issue.format === "starts_with") {
+                    return `არასწორი სტრინგი: უნდა იწყებოდეს "${_issue.prefix}"-ით`;
+                }
+                if (_issue.format === "ends_with")
+                    return `არასწორი სტრინგი: უნდა მთავრდებოდეს "${_issue.suffix}"-ით`;
+                if (_issue.format === "includes")
+                    return `არასწორი სტრინგი: უნდა შეიცავდეს "${_issue.includes}"-ს`;
+                if (_issue.format === "regex")
+                    return `არასწორი სტრინგი: უნდა შეესაბამებოდეს შაბლონს ${_issue.pattern}`;
+                return `არასწორი ${Nouns[_issue.format] ?? issue.format}`;
+            }
+            case "not_multiple_of":
+                return `არასწორი რიცხვი: უნდა იყოს ${issue.divisor}-ის ჯერადი`;
+            case "unrecognized_keys":
+                return `უცნობი გასაღებ${issue.keys.length > 1 ? "ები" : "ი"}: ${util.joinValues(issue.keys, ", ")}`;
+            case "invalid_key":
+                return `არასწორი გასაღები ${issue.origin}-ში`;
+            case "invalid_union":
+                return "არასწორი შეყვანა";
+            case "invalid_element":
+                return `არასწორი მნიშვნელობა ${issue.origin}-ში`;
+            default:
+                return `არასწორი შეყვანა`;
+        }
+    };
+};
+function default_1() {
+    return {
+        localeError: error(),
+    };
+}
+
+
+/***/ }),
+
 /***/ 5968:
+/***/ (function(module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = default_1;
+const km_js_1 = __importDefault(__nccwpck_require__(498));
+/** @deprecated Use `km` instead. */
+function default_1() {
+    return (0, km_js_1.default)();
+}
+module.exports = exports.default;
+
+
+/***/ }),
+
+/***/ 498:
 /***/ (function(module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -53876,6 +54104,272 @@ function default_1() {
     };
 }
 module.exports = exports.default;
+
+
+/***/ }),
+
+/***/ 6257:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parsedType = void 0;
+exports["default"] = default_1;
+const util = __importStar(__nccwpck_require__(1327));
+const parsedType = (data) => {
+    const t = typeof data;
+    return parsedTypeFromType(t, data);
+};
+exports.parsedType = parsedType;
+const parsedTypeFromType = (t, data = undefined) => {
+    switch (t) {
+        case "number": {
+            return Number.isNaN(data) ? "NaN" : "skaičius";
+        }
+        case "bigint": {
+            return "sveikasis skaičius";
+        }
+        case "string": {
+            return "eilutė";
+        }
+        case "boolean": {
+            return "loginė reikšmė";
+        }
+        case "undefined":
+        case "void": {
+            return "neapibrėžta reikšmė";
+        }
+        case "function": {
+            return "funkcija";
+        }
+        case "symbol": {
+            return "simbolis";
+        }
+        case "object": {
+            if (data === undefined)
+                return "nežinomas objektas";
+            if (data === null)
+                return "nulinė reikšmė";
+            if (Array.isArray(data))
+                return "masyvas";
+            if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+                return data.constructor.name;
+            }
+            return "objektas";
+        }
+        //Zod types below
+        case "null": {
+            return "nulinė reikšmė";
+        }
+    }
+    return t;
+};
+const capitalizeFirstCharacter = (text) => {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+};
+function getUnitTypeFromNumber(number) {
+    const abs = Math.abs(number);
+    const last = abs % 10;
+    const last2 = abs % 100;
+    if ((last2 >= 11 && last2 <= 19) || last === 0)
+        return "many";
+    if (last === 1)
+        return "one";
+    return "few";
+}
+const error = () => {
+    const Sizable = {
+        string: {
+            unit: {
+                one: "simbolis",
+                few: "simboliai",
+                many: "simbolių",
+            },
+            verb: {
+                smaller: {
+                    inclusive: "turi būti ne ilgesnė kaip",
+                    notInclusive: "turi būti trumpesnė kaip",
+                },
+                bigger: {
+                    inclusive: "turi būti ne trumpesnė kaip",
+                    notInclusive: "turi būti ilgesnė kaip",
+                },
+            },
+        },
+        file: {
+            unit: {
+                one: "baitas",
+                few: "baitai",
+                many: "baitų",
+            },
+            verb: {
+                smaller: {
+                    inclusive: "turi būti ne didesnis kaip",
+                    notInclusive: "turi būti mažesnis kaip",
+                },
+                bigger: {
+                    inclusive: "turi būti ne mažesnis kaip",
+                    notInclusive: "turi būti didesnis kaip",
+                },
+            },
+        },
+        array: {
+            unit: {
+                one: "elementą",
+                few: "elementus",
+                many: "elementų",
+            },
+            verb: {
+                smaller: {
+                    inclusive: "turi turėti ne daugiau kaip",
+                    notInclusive: "turi turėti mažiau kaip",
+                },
+                bigger: {
+                    inclusive: "turi turėti ne mažiau kaip",
+                    notInclusive: "turi turėti daugiau kaip",
+                },
+            },
+        },
+        set: {
+            unit: {
+                one: "elementą",
+                few: "elementus",
+                many: "elementų",
+            },
+            verb: {
+                smaller: {
+                    inclusive: "turi turėti ne daugiau kaip",
+                    notInclusive: "turi turėti mažiau kaip",
+                },
+                bigger: {
+                    inclusive: "turi turėti ne mažiau kaip",
+                    notInclusive: "turi turėti daugiau kaip",
+                },
+            },
+        },
+    };
+    function getSizing(origin, unitType, inclusive, targetShouldBe) {
+        const result = Sizable[origin] ?? null;
+        if (result === null)
+            return result;
+        return {
+            unit: result.unit[unitType],
+            verb: result.verb[targetShouldBe][inclusive ? "inclusive" : "notInclusive"],
+        };
+    }
+    const Nouns = {
+        regex: "įvestis",
+        email: "el. pašto adresas",
+        url: "URL",
+        emoji: "jaustukas",
+        uuid: "UUID",
+        uuidv4: "UUIDv4",
+        uuidv6: "UUIDv6",
+        nanoid: "nanoid",
+        guid: "GUID",
+        cuid: "cuid",
+        cuid2: "cuid2",
+        ulid: "ULID",
+        xid: "XID",
+        ksuid: "KSUID",
+        datetime: "ISO data ir laikas",
+        date: "ISO data",
+        time: "ISO laikas",
+        duration: "ISO trukmė",
+        ipv4: "IPv4 adresas",
+        ipv6: "IPv6 adresas",
+        cidrv4: "IPv4 tinklo prefiksas (CIDR)",
+        cidrv6: "IPv6 tinklo prefiksas (CIDR)",
+        base64: "base64 užkoduota eilutė",
+        base64url: "base64url užkoduota eilutė",
+        json_string: "JSON eilutė",
+        e164: "E.164 numeris",
+        jwt: "JWT",
+        template_literal: "įvestis",
+    };
+    return (issue) => {
+        switch (issue.code) {
+            case "invalid_type":
+                return `Gautas tipas ${(0, exports.parsedType)(issue.input)}, o tikėtasi - ${parsedTypeFromType(issue.expected)}`;
+            case "invalid_value":
+                if (issue.values.length === 1)
+                    return `Privalo būti ${util.stringifyPrimitive(issue.values[0])}`;
+                return `Privalo būti vienas iš ${util.joinValues(issue.values, "|")} pasirinkimų`;
+            case "too_big": {
+                const origin = parsedTypeFromType(issue.origin);
+                const sizing = getSizing(issue.origin, getUnitTypeFromNumber(Number(issue.maximum)), issue.inclusive ?? false, "smaller");
+                if (sizing?.verb)
+                    return `${capitalizeFirstCharacter(origin ?? issue.origin ?? "reikšmė")} ${sizing.verb} ${issue.maximum.toString()} ${sizing.unit ?? "elementų"}`;
+                const adj = issue.inclusive ? "ne didesnis kaip" : "mažesnis kaip";
+                return `${capitalizeFirstCharacter(origin ?? issue.origin ?? "reikšmė")} turi būti ${adj} ${issue.maximum.toString()} ${sizing?.unit}`;
+            }
+            case "too_small": {
+                const origin = parsedTypeFromType(issue.origin);
+                const sizing = getSizing(issue.origin, getUnitTypeFromNumber(Number(issue.minimum)), issue.inclusive ?? false, "bigger");
+                if (sizing?.verb)
+                    return `${capitalizeFirstCharacter(origin ?? issue.origin ?? "reikšmė")} ${sizing.verb} ${issue.minimum.toString()} ${sizing.unit ?? "elementų"}`;
+                const adj = issue.inclusive ? "ne mažesnis kaip" : "didesnis kaip";
+                return `${capitalizeFirstCharacter(origin ?? issue.origin ?? "reikšmė")} turi būti ${adj} ${issue.minimum.toString()} ${sizing?.unit}`;
+            }
+            case "invalid_format": {
+                const _issue = issue;
+                if (_issue.format === "starts_with") {
+                    return `Eilutė privalo prasidėti "${_issue.prefix}"`;
+                }
+                if (_issue.format === "ends_with")
+                    return `Eilutė privalo pasibaigti "${_issue.suffix}"`;
+                if (_issue.format === "includes")
+                    return `Eilutė privalo įtraukti "${_issue.includes}"`;
+                if (_issue.format === "regex")
+                    return `Eilutė privalo atitikti ${_issue.pattern}`;
+                return `Neteisingas ${Nouns[_issue.format] ?? issue.format}`;
+            }
+            case "not_multiple_of":
+                return `Skaičius privalo būti ${issue.divisor} kartotinis.`;
+            case "unrecognized_keys":
+                return `Neatpažint${issue.keys.length > 1 ? "i" : "as"} rakt${issue.keys.length > 1 ? "ai" : "as"}: ${util.joinValues(issue.keys, ", ")}`;
+            case "invalid_key":
+                return "Rastas klaidingas raktas";
+            case "invalid_union":
+                return "Klaidinga įvestis";
+            case "invalid_element": {
+                const origin = parsedTypeFromType(issue.origin);
+                return `${capitalizeFirstCharacter(origin ?? issue.origin ?? "reikšmė")} turi klaidingą įvestį`;
+            }
+            default:
+                return "Klaidinga įvestis";
+        }
+    };
+};
+function default_1() {
+    return {
+        localeError: error(),
+    };
+}
 
 
 /***/ }),
@@ -56059,6 +56553,26 @@ function default_1() {
 /***/ }),
 
 /***/ 2723:
+/***/ (function(module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = default_1;
+const uk_js_1 = __importDefault(__nccwpck_require__(1825));
+/** @deprecated Use `uk` instead. */
+function default_1() {
+    return (0, uk_js_1.default)();
+}
+module.exports = exports.default;
+
+
+/***/ }),
+
+/***/ 1825:
 /***/ (function(module, exports, __nccwpck_require__) {
 
 "use strict";
