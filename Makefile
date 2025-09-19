@@ -17,6 +17,7 @@ lint-fix: ## Execute linting and fix
 
 .PHONY: all
 all: ## Execute all tasks to prepare commit
+	npm install
 	npm run all
 	$(MAKE) lint-fix
 

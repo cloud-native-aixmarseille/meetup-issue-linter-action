@@ -34598,8 +34598,14 @@ class BindToFluentSyntaxImplementation {
         this.#callback(binding);
         return new BindWhenOnFluentSyntaxImplementation(binding);
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /**
+     * @deprecated Use `toFactory()` instead. Providers will be removed in v8.
+     * Providers exist for historical reasons from v5 when async dependencies weren't supported.
+     * Factories are more flexible and can handle both sync and async operations.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-deprecated
     toProvider(provider) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const binding = {
             cache: {
                 isRight: false,
@@ -36106,7 +36112,8 @@ const cloneBindingCache_1 = __nccwpck_require__(8659);
 /**
  * Clones a ProviderBinding
  */
-function cloneProviderBinding(binding) {
+function cloneProviderBinding(// eslint-disable-line @typescript-eslint/no-deprecated
+binding) {
     return {
         cache: (0, cloneBindingCache_1.cloneBindingCache)(binding.cache),
         id: binding.id,
@@ -37261,10 +37268,10 @@ const InversifyCoreError_1 = __nccwpck_require__(120);
 const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
 function updateMaybeClassMetadataPostConstructor(methodName) {
     return (metadata) => {
-        if (metadata.lifecycle.postConstructMethodName !== undefined) {
-            throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected duplicated postConstruct decorator');
+        if (metadata.lifecycle.postConstructMethodNames.has(methodName)) {
+            throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.injectionDecoratorConflict, `Unexpected duplicated postConstruct method ${methodName.toString()}`);
         }
-        metadata.lifecycle.postConstructMethodName = methodName;
+        metadata.lifecycle.postConstructMethodNames.add(methodName);
         return metadata;
     };
 }
@@ -37283,10 +37290,10 @@ const InversifyCoreError_1 = __nccwpck_require__(120);
 const InversifyCoreErrorKind_1 = __nccwpck_require__(2130);
 function updateMaybeClassMetadataPreDestroy(methodName) {
     return (metadata) => {
-        if (metadata.lifecycle.preDestroyMethodName !== undefined) {
-            throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected duplicated preDestroy decorator');
+        if (metadata.lifecycle.preDestroyMethodNames.has(methodName)) {
+            throw new InversifyCoreError_1.InversifyCoreError(InversifyCoreErrorKind_1.InversifyCoreErrorKind.injectionDecoratorConflict, `Unexpected duplicated preDestroy method ${methodName.toString()}`);
         }
-        metadata.lifecycle.preDestroyMethodName = methodName;
+        metadata.lifecycle.preDestroyMethodNames.add(methodName);
         return metadata;
     };
 }
@@ -37664,8 +37671,8 @@ function getDefaultClassMetadata() {
     return {
         constructorArguments: [],
         lifecycle: {
-            postConstructMethodName: undefined,
-            preDestroyMethodName: undefined,
+            postConstructMethodNames: new Set(),
+            preDestroyMethodNames: new Set(),
         },
         properties: new Map(),
         scope: undefined,
@@ -37713,6 +37720,33 @@ function getExtendedConstructorArguments(options, baseTypeClassMetadata, typeMet
     return extendedConstructorArguments;
 }
 //# sourceMappingURL=getExtendedConstructorArguments.js.map
+
+/***/ }),
+
+/***/ 8534:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getExtendedLifecycle = getExtendedLifecycle;
+function getLifecycleSetUnion(extend, baseSet, currentSet) {
+    if (extend) {
+        return new Set([...baseSet, ...currentSet]);
+    }
+    return currentSet;
+}
+function getExtendedLifecycle(options, baseTypeClassMetadata, typeMetadata) {
+    const extendPostConstructMethods = options.lifecycle?.extendPostConstructMethods ?? true;
+    const extendPreDestroyMethods = options.lifecycle?.extendPreDestroyMethods ?? true;
+    const preDestroyMethodNames = getLifecycleSetUnion(extendPreDestroyMethods, baseTypeClassMetadata.lifecycle.preDestroyMethodNames, typeMetadata.lifecycle.preDestroyMethodNames);
+    const postConstructMethodNames = getLifecycleSetUnion(extendPostConstructMethods, baseTypeClassMetadata.lifecycle.postConstructMethodNames, typeMetadata.lifecycle.postConstructMethodNames);
+    return {
+        postConstructMethodNames,
+        preDestroyMethodNames,
+    };
+}
+//# sourceMappingURL=getExtendedLifecycle.js.map
 
 /***/ }),
 
@@ -38002,6 +38036,7 @@ const classMetadataReflectKey_1 = __nccwpck_require__(7147);
 const getClassMetadata_1 = __nccwpck_require__(2928);
 const getDefaultClassMetadata_1 = __nccwpck_require__(8423);
 const getExtendedConstructorArguments_1 = __nccwpck_require__(8168);
+const getExtendedLifecycle_1 = __nccwpck_require__(8534);
 const getExtendedProperties_1 = __nccwpck_require__(7469);
 function injectFrom(options) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -38014,7 +38049,7 @@ function injectFrom(options) {
 function composeUpdateReflectMetadataCallback(options, baseTypeClassMetadata) {
     const callback = (typeMetadata) => ({
         constructorArguments: (0, getExtendedConstructorArguments_1.getExtendedConstructorArguments)(options, baseTypeClassMetadata, typeMetadata),
-        lifecycle: typeMetadata.lifecycle,
+        lifecycle: (0, getExtendedLifecycle_1.getExtendedLifecycle)(options, baseTypeClassMetadata, typeMetadata),
         properties: (0, getExtendedProperties_1.getExtendedProperties)(options, baseTypeClassMetadata, typeMetadata),
         scope: typeMetadata.scope,
     });
@@ -40290,18 +40325,34 @@ function resolveBindingPreDestroy(params, binding) {
         const instance = binding.cache
             .value;
         if ((0, common_1.isPromise)(instance)) {
-            return instance.then((instance) => resolveInstancePreDestroy(classMetadata, instance));
+            return instance.then((instance) => resolveInstancePreDestroyMethods(classMetadata, instance));
         }
         else {
-            return resolveInstancePreDestroy(classMetadata, instance);
+            return resolveInstancePreDestroyMethods(classMetadata, instance);
         }
     }
 }
-function resolveInstancePreDestroy(classMetadata, instance) {
-    if (classMetadata.lifecycle.preDestroyMethodName !== undefined &&
-        typeof instance[classMetadata.lifecycle.preDestroyMethodName] === 'function') {
-        return instance[classMetadata.lifecycle.preDestroyMethodName]();
+function resolveInstancePreDestroyMethod(instance, methodName) {
+    if (typeof instance[methodName] === 'function') {
+        const result = instance[methodName]();
+        return result;
     }
+}
+function resolveInstancePreDestroyMethods(classMetadata, instance) {
+    const preDestroyMethodNames = classMetadata.lifecycle.preDestroyMethodNames;
+    if (preDestroyMethodNames.size === 0) {
+        return;
+    }
+    let result = undefined;
+    for (const methodName of preDestroyMethodNames) {
+        if (result === undefined) {
+            result = resolveInstancePreDestroyMethod(instance, methodName);
+        }
+        else {
+            result = result.then(() => resolveInstancePreDestroyMethod(instance, methodName));
+        }
+    }
+    return result;
 }
 //# sourceMappingURL=resolveBindingPreDestroy.js.map
 
@@ -40552,14 +40603,29 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.resolveInstanceBindingNodeFromConstructorParams = resolveInstanceBindingNodeFromConstructorParams;
 const common_1 = __nccwpck_require__(9160);
 const resolvePostConstruct_1 = __nccwpck_require__(1378);
+function resolveAllPostConstructMethods(instance, binding, postConstructMethodNames) {
+    if (postConstructMethodNames.size === 0) {
+        return instance;
+    }
+    let result = instance;
+    for (const methodName of postConstructMethodNames) {
+        if ((0, common_1.isPromise)(result)) {
+            result = result.then((resolvedInstance) => (0, resolvePostConstruct_1.resolvePostConstruct)(resolvedInstance, binding, methodName));
+        }
+        else {
+            result = (0, resolvePostConstruct_1.resolvePostConstruct)(result, binding, methodName);
+        }
+    }
+    return result;
+}
 function resolveInstanceBindingNodeFromConstructorParams(setInstanceProperties) {
     return (constructorValues, params, node) => {
         const instance = new node.binding.implementationType(...constructorValues);
         const propertiesAssignmentResult = setInstanceProperties(params, instance, node);
         if ((0, common_1.isPromise)(propertiesAssignmentResult)) {
-            return propertiesAssignmentResult.then(() => (0, resolvePostConstruct_1.resolvePostConstruct)(instance, node.binding, node.classMetadata.lifecycle.postConstructMethodName));
+            return propertiesAssignmentResult.then(() => resolveAllPostConstructMethods(instance, node.binding, node.classMetadata.lifecycle.postConstructMethodNames));
         }
-        return (0, resolvePostConstruct_1.resolvePostConstruct)(instance, node.binding, node.classMetadata.lifecycle.postConstructMethodName);
+        return resolveAllPostConstructMethods(instance, node.binding, node.classMetadata.lifecycle.postConstructMethodNames);
     };
 }
 //# sourceMappingURL=resolveInstanceBindingNodeFromConstructorParams.js.map
@@ -40600,9 +40666,6 @@ function resolvePostConstruct(instance, binding, postConstructMethodName) {
     return instance;
 }
 function invokePostConstruct(instance, binding, postConstructMethodName) {
-    if (postConstructMethodName === undefined) {
-        return;
-    }
     if (postConstructMethodName in instance) {
         if (typeof instance[postConstructMethodName] === 'function') {
             let postConstructResult;
@@ -41041,7 +41104,7 @@ function getBaseType(type) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.updateReflectMetadata = exports.updateOwnReflectMetadata = exports.setReflectMetadata = exports.getReflectMetadata = exports.getOwnReflectMetadata = exports.buildEmptyMapMetadata = exports.buildEmptyArrayMetadata = exports.buildArrayMetadataWithIndex = exports.buildArrayMetadataWithElement = exports.buildArrayMetadataWithArray = void 0;
+exports.updateSetMetadataWithList = exports.updateReflectMetadata = exports.updateOwnReflectMetadata = exports.setReflectMetadata = exports.getReflectMetadata = exports.getOwnReflectMetadata = exports.buildEmptySetMetadata = exports.buildEmptyMapMetadata = exports.buildEmptyArrayMetadata = exports.buildArrayMetadataWithIndex = exports.buildArrayMetadataWithElement = exports.buildArrayMetadataWithArray = void 0;
 const buildArrayMetadataWithArray_1 = __nccwpck_require__(3000);
 Object.defineProperty(exports, "buildArrayMetadataWithArray", ({ enumerable: true, get: function () { return buildArrayMetadataWithArray_1.buildArrayMetadataWithArray; } }));
 const buildArrayMetadataWithElement_1 = __nccwpck_require__(6597);
@@ -41052,6 +41115,8 @@ const buildEmptyArrayMetadata_1 = __nccwpck_require__(314);
 Object.defineProperty(exports, "buildEmptyArrayMetadata", ({ enumerable: true, get: function () { return buildEmptyArrayMetadata_1.buildEmptyArrayMetadata; } }));
 const buildEmptyMapMetadata_1 = __nccwpck_require__(4549);
 Object.defineProperty(exports, "buildEmptyMapMetadata", ({ enumerable: true, get: function () { return buildEmptyMapMetadata_1.buildEmptyMapMetadata; } }));
+const buildEmptySetMetadata_1 = __nccwpck_require__(6231);
+Object.defineProperty(exports, "buildEmptySetMetadata", ({ enumerable: true, get: function () { return buildEmptySetMetadata_1.buildEmptySetMetadata; } }));
 const getOwnReflectMetadata_1 = __nccwpck_require__(3649);
 Object.defineProperty(exports, "getOwnReflectMetadata", ({ enumerable: true, get: function () { return getOwnReflectMetadata_1.getOwnReflectMetadata; } }));
 const getReflectMetadata_1 = __nccwpck_require__(6905);
@@ -41062,6 +41127,8 @@ const updateOwnReflectMetadata_1 = __nccwpck_require__(9332);
 Object.defineProperty(exports, "updateOwnReflectMetadata", ({ enumerable: true, get: function () { return updateOwnReflectMetadata_1.updateOwnReflectMetadata; } }));
 const updateReflectMetadata_1 = __nccwpck_require__(5742);
 Object.defineProperty(exports, "updateReflectMetadata", ({ enumerable: true, get: function () { return updateReflectMetadata_1.updateReflectMetadata; } }));
+const updateSetMetadataWithList_1 = __nccwpck_require__(9403);
+Object.defineProperty(exports, "updateSetMetadataWithList", ({ enumerable: true, get: function () { return updateSetMetadataWithList_1.updateSetMetadataWithList; } }));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -41145,6 +41212,20 @@ function buildEmptyMapMetadata() {
 
 /***/ }),
 
+/***/ 6231:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildEmptySetMetadata = buildEmptySetMetadata;
+function buildEmptySetMetadata() {
+    return new Set();
+}
+//# sourceMappingURL=buildEmptySetMetadata.js.map
+
+/***/ }),
+
 /***/ 3649:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -41221,6 +41302,25 @@ function updateReflectMetadata(target, metadataKey, buildDefaultValue, callback,
     Reflect.defineMetadata(metadataKey, updatedMetadata, target, propertyKey);
 }
 //# sourceMappingURL=updateReflectMetadata.js.map
+
+/***/ }),
+
+/***/ 9403:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.updateSetMetadataWithList = updateSetMetadataWithList;
+function updateSetMetadataWithList(metadataList) {
+    return (setMetadata) => {
+        for (const item of metadataList) {
+            setMetadata.add(item);
+        }
+        return setMetadata;
+    };
+}
+//# sourceMappingURL=updateSetMetadataWithList.js.map
 
 /***/ }),
 
