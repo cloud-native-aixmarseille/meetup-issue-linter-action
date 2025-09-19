@@ -30527,7 +30527,7 @@ function createMessageBuilder(partialOptions = {}) {
   };
 }
 function mapIssue(issue, options) {
-  if (issue.code === "invalid_union") {
+  if (issue.code === "invalid_union" && isNonEmptyArray(issue.errors)) {
     const individualMessages = issue.errors.map(
       (issues) => issues.map(
         (subIssue) => mapIssue(
