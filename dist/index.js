@@ -43393,15 +43393,12 @@ exports.ZodType = core.$constructor("ZodType", (inst, def) => {
     Object.defineProperty(inst, "_def", { value: def });
     // base methods
     inst.check = (...checks) => {
-        return inst.clone({
-            ...def,
+        return inst.clone(index_js_1.util.mergeDefs(def, {
             checks: [
                 ...(def.checks ?? []),
                 ...checks.map((ch) => typeof ch === "function" ? { _zod: { check: ch, def: { check: "custom" }, onattach: [] } } : ch),
             ],
-        }
-        // { parent: true }
-        );
+        }));
     };
     inst.clone = (def, params) => core.clone(inst, def, params);
     inst.brand = () => inst;
@@ -43897,7 +43894,9 @@ function keyof(schema) {
 exports.ZodObject = core.$constructor("ZodObject", (inst, def) => {
     core.$ZodObjectJIT.init(inst, def);
     exports.ZodType.init(inst, def);
-    index_js_1.util.defineLazy(inst, "shape", () => def.shape);
+    index_js_1.util.defineLazy(inst, "shape", () => {
+        return def.shape;
+    });
     inst.keyof = () => _enum(Object.keys(inst._zod.def.shape));
     inst.catchall = (catchall) => inst.clone({ ...inst._zod.def, catchall: catchall });
     inst.passthrough = () => inst.clone({ ...inst._zod.def, catchall: unknown() });
@@ -43919,10 +43918,7 @@ exports.ZodObject = core.$constructor("ZodObject", (inst, def) => {
 function object(shape, params) {
     const def = {
         type: "object",
-        get shape() {
-            index_js_1.util.assignProp(this, "shape", shape ? index_js_1.util.objectClone(shape) : {});
-            return this.shape;
-        },
+        shape: shape ?? {},
         ...index_js_1.util.normalizeParams(params),
     };
     return new exports.ZodObject(def);
@@ -43931,10 +43927,7 @@ function object(shape, params) {
 function strictObject(shape, params) {
     return new exports.ZodObject({
         type: "object",
-        get shape() {
-            index_js_1.util.assignProp(this, "shape", index_js_1.util.objectClone(shape));
-            return this.shape;
-        },
+        shape,
         catchall: never(),
         ...index_js_1.util.normalizeParams(params),
     });
@@ -43943,10 +43936,7 @@ function strictObject(shape, params) {
 function looseObject(shape, params) {
     return new exports.ZodObject({
         type: "object",
-        get shape() {
-            index_js_1.util.assignProp(this, "shape", index_js_1.util.objectClone(shape));
-            return this.shape;
-        },
+        shape,
         catchall: unknown(),
         ...index_js_1.util.normalizeParams(params),
     });
@@ -47673,6 +47663,20 @@ function handleCatchall(proms, input, payload, ctx, def, inst) {
 exports.$ZodObject = core.$constructor("$ZodObject", (inst, def) => {
     // requires cast because technically $ZodObject doesn't extend
     exports.$ZodType.init(inst, def);
+    // const sh = def.shape;
+    const desc = Object.getOwnPropertyDescriptor(def, "shape");
+    if (!desc?.get) {
+        const sh = def.shape;
+        Object.defineProperty(def, "shape", {
+            get: () => {
+                const newSh = { ...sh };
+                Object.defineProperty(def, "shape", {
+                    value: newSh,
+                });
+                return newSh;
+            },
+        });
+    }
     const _normalized = util.cached(() => normalizeDef(def));
     util.defineLazy(inst._zod, "propValues", () => {
         const shape = def.shape;
@@ -50451,7 +50455,7 @@ exports.version = void 0;
 exports.version = {
     major: 4,
     minor: 1,
-    patch: 9,
+    patch: 11,
 };
 
 
