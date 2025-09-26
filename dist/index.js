@@ -35295,6 +35295,7 @@ class ContainerModuleManager {
         this.#serviceReferenceManager = serviceReferenceManager;
     }
     async load(...modules) {
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         await Promise.all(this.#load(...modules));
     }
     loadSync(...modules) {
@@ -35306,6 +35307,7 @@ class ContainerModuleManager {
         }
     }
     async unload(...modules) {
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         await Promise.all(this.#unload(...modules));
         /*
          * Removing module related objects here so unload is deterministic.
