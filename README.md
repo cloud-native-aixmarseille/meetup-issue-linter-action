@@ -1,88 +1,138 @@
-<!-- markdownlint-disable-next-line first-line-heading -->
-<div align="center" width="100%">
-<!-- start branding -->
+<!-- header:start -->
 
-<img src=".github/ghadocs/branding.svg" width="15%" align="center" alt="branding<icon:check-circle color:blue>" />
+# ![Icon](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItY2hlY2stY2lyY2xlIiBjb2xvcj0iYmx1ZSI+PHBhdGggZD0iTTIyIDExLjA4VjEyYTEwIDEwIDAgMSAxLTUuOTMtOS4xNCI+PC9wYXRoPjxwb2x5bGluZSBwb2ludHM9IjIyIDQgMTIgMTQuMDEgOSAxMS4wMSI+PC9wb2x5bGluZT48L3N2Zz4=) GitHub Action: Meetup issue linter action
 
-<!-- end branding -->
-<!-- start title -->
-
-# <img src=".github/ghadocs/branding.svg" width="60px" align="center" alt="branding<icon:check-circle color:blue>" /> GitHub Action: Meetup issue linter action
-
-<!-- end title -->
-<!-- markdownlint-disable MD013 -->
-<!-- start badges -->
-
-<a href="https%3A%2F%2Fgithub.com%2Fcloud-native-aixmarseille%2Fmeetup-issue-linter-action%2Freleases%2Flatest"><img src="https://img.shields.io/github/v/release/cloud-native-aixmarseille/meetup-issue-linter-action?display_name=tag&sort=semver&logo=github&style=flat-square" alt="Release%20by%20tag" /></a><a href="https%3A%2F%2Fgithub.com%2Fcloud-native-aixmarseille%2Fmeetup-issue-linter-action%2Freleases%2Flatest"><img src="https://img.shields.io/github/release-date/cloud-native-aixmarseille/meetup-issue-linter-action?display_name=tag&sort=semver&logo=github&style=flat-square" alt="Release%20by%20date" /></a><img src="https://img.shields.io/github/last-commit/cloud-native-aixmarseille/meetup-issue-linter-action?logo=github&style=flat-square" alt="Commit" /><a href="https%3A%2F%2Fgithub.com%2Fcloud-native-aixmarseille%2Fmeetup-issue-linter-action%2Fissues"><img src="https://img.shields.io/github/issues/cloud-native-aixmarseille/meetup-issue-linter-action?logo=github&style=flat-square" alt="Open%20Issues" /></a><img src="https://img.shields.io/github/downloads/cloud-native-aixmarseille/meetup-issue-linter-action/total?logo=github&style=flat-square" alt="Downloads" />
-
-<!-- end badges -->
-<!-- markdownlint-enable MD013 -->
+<div align="center">
+  <img src=".github/logo.svg" width="60px" align="center" alt="Meetup issue linter action" />
 </div>
-<!-- start description -->
+
+---
+
+<!-- header:end -->
+
+<!-- badges:start -->
+
+[![Marketplace](https://img.shields.io/badge/Marketplace-meetup--issue--linter--action-blue?logo=github-actions)](https://github.com/marketplace/actions/meetup-issue-linter-action)
+[![Release](https://img.shields.io/github/v/release/cloud-native-aixmarseille/meetup-issue-linter-action)](https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/releases)
+[![License](https://img.shields.io/github/license/cloud-native-aixmarseille/meetup-issue-linter-action)](http://choosealicense.com/licenses/mit/)
+[![Stars](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-issue-linter-action?style=social)](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-issue-linter-action?style=social)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/blob/main/CONTRIBUTING.md)
+
+<!-- badges:end -->
+
+<!-- overview:start -->
+
+## Overview
 
 This action lint the meetup issue for required fields and format
 
-<!-- end description -->
-<!-- start contents -->
-<!-- end contents -->
-<!-- start usage -->
+<!-- overview:end -->
+
+<!-- usage:start -->
+
+## Usage
 
 ```yaml
-- uses: cloud-native-aixmarseille/meetup-issue-linter-action@0.0.0
+- uses: cloud-native-aixmarseille/meetup-issue-linter-action@d333cfd739d0e33f9fd1b04ef7fb2220030042ff # 0.9.3
   with:
-    # Description: The issue number to lint.
-    #
+    # The issue number to lint.
+    # This input is required.
     issue-number: ""
 
-    # Description: The parsed issue body. See <https://github.com/issue-ops/parser>.
-    #
+    # The parsed issue body. See <https://github.com/issue-ops/parser>.
+    # This input is required.
     issue-parsed-body: ""
 
-    # Description: JSON List of hosters to update. Example:
-    # `["Hoster 1", "Hoster 2"]`.
+    # JSON List of hosters to update.
+    # Example: `["Hoster 1", "Hoster 2"]`.
     #
+    # This input is required.
     hosters: ""
 
-    # Description: JSON List of speakers with name and URL. Example:
-    # `[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]`.
+    # JSON List of speakers with name and URL.
+    # Example: `[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]`.
     #
+    # This input is required.
     speakers: ""
 
-    # Description: Whether to fix the issue or not.
-    #
-    # Default: true
-    should-fix: ""
+    # Whether to fix the issue or not.
+    # Default: `true`
+    should-fix: "true"
 
-    # Description: Whether to fail on error or not.
-    #
-    # Default: true
-    fail-on-error: ""
+    # Whether to fail on error or not.
+    # Default: `true`
+    fail-on-error: "true"
 
-    # Description: The GitHub token with permissions to update the issue.
-    #
+    # The GitHub token with permissions to update the issue.
+    # This input is required.
     github-token: ""
 ```
 
-<!-- end usage -->
-<!-- start inputs -->
+<!-- usage:end -->
 
-| **Input**                      | **Description**                                                                                                                                                                                       | **Default**       | **Required** |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------ |
-| <code>issue-number</code>      | The issue number to lint.                                                                                                                                                                             |                   | **true**     |
-| <code>issue-parsed-body</code> | The parsed issue body. See <https://github.com/issue-ops/parser>.                                                                                                                                     |                   | **true**     |
-| <code>hosters</code>           | JSON List of hosters to update.<br />Example: <code>["Hoster 1", "Hoster 2"]</code>.                                                                                                                  |                   | **true**     |
-| <code>speakers</code>          | JSON List of speakers with name and URL.<br />Example: <code>[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]</code>. |                   | **true**     |
-| <code>should-fix</code>        | Whether to fix the issue or not.                                                                                                                                                                      | <code>true</code> | **false**    |
-| <code>fail-on-error</code>     | Whether to fail on error or not.                                                                                                                                                                      | <code>true</code> | **false**    |
-| <code>github-token</code>      | The GitHub token with permissions to update the issue.                                                                                                                                                |                   | **true**     |
+<!-- inputs:start -->
 
-<!-- end inputs -->
-<!-- start outputs -->
+## Inputs
 
-| **Output**               | **Description**                           |
-| ------------------------ | ----------------------------------------- |
-| <code>lint-issues</code> | List of issues found in the meetup issue. |
+| **Input**               | **Description**                                                                                                                              | **Required** | **Default** |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
+| **`issue-number`**      | The issue number to lint.                                                                                                                    | **true**     | -           |
+| **`issue-parsed-body`** | The parsed issue body. See <https://github.com/issue-ops/parser>.                                                                            | **true**     | -           |
+| **`hosters`**           | JSON List of hosters to update.                                                                                                              | **true**     | -           |
+|                         | Example: `["Hoster 1", "Hoster 2"]`.                                                                                                         |              |             |
+| **`speakers`**          | JSON List of speakers with name and URL.                                                                                                     | **true**     | -           |
+|                         | Example: `[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]`. |              |             |
+| **`should-fix`**        | Whether to fix the issue or not.                                                                                                             | **false**    | `true`      |
+| **`fail-on-error`**     | Whether to fail on error or not.                                                                                                             | **false**    | `true`      |
+| **`github-token`**      | The GitHub token with permissions to update the issue.                                                                                       | **true**     | -           |
 
-<!-- end outputs -->
-<!-- start [.github/ghadocs/examples/] -->
-<!-- end [.github/ghadocs/examples/] -->
+<!-- inputs:end -->
+
+<!-- secrets:start -->
+<!-- secrets:end -->
+
+<!-- outputs:start -->
+
+## Outputs
+
+| **Output**        | **Description**                           |
+| ----------------- | ----------------------------------------- |
+| **`lint-issues`** | List of issues found in the meetup issue. |
+
+<!-- outputs:end -->
+
+<!-- examples:start -->
+<!-- examples:end -->
+
+<!-- contributing:start -->
+
+## Contributing
+
+Contributions are welcome! Please see the [contributing guidelines](https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/blob/main/CONTRIBUTING.md) for more details.
+
+<!-- contributing:end -->
+
+<!-- security:start -->
+<!-- security:end -->
+
+<!-- license:start -->
+
+## License
+
+This project is licensed under the MIT License.
+
+SPDX-License-Identifier: MIT
+
+Copyright © 2025 Cloud Native Aix-Marseille
+
+For more details, see the [license](http://choosealicense.com/licenses/mit/).
+
+<!-- license:end -->
+
+<!-- generated:start -->
+
+---
+
+This documentation was automatically generated by [CI Dokumentor](https://github.com/hoverkraft-tech/ci-dokumentor).
+
+<!-- generated:end -->
