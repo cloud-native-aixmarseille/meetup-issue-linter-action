@@ -33,7 +33,7 @@ This action lint the meetup issue for required fields and format
 ## Usage
 
 ```yaml
-- uses: cloud-native-aixmarseille/meetup-issue-linter-action@0f86169ab69471b8fc8d49c874234d9a3d5e057c # 0.9.4
+- uses: cloud-native-aixmarseille/meetup-issue-linter-action@9fe20b8ef0ce358b9a42736c65eaa13ebfdce5de # 0.9.5
   with:
     # The issue number to lint.
     # This input is required.
