@@ -41157,10 +41157,33 @@ exports.Plugin = Plugin;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBaseType = void 0;
+exports.getBaseType = exports.findInPrototypeChain = void 0;
+const findInPrototypeChain_1 = __nccwpck_require__(1742);
+Object.defineProperty(exports, "findInPrototypeChain", ({ enumerable: true, get: function () { return findInPrototypeChain_1.findInPrototypeChain; } }));
 const getBaseType_1 = __nccwpck_require__(3872);
 Object.defineProperty(exports, "getBaseType", ({ enumerable: true, get: function () { return getBaseType_1.getBaseType; } }));
 //# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 1742:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.findInPrototypeChain = findInPrototypeChain;
+const getBaseType_1 = __nccwpck_require__(3872);
+function findInPrototypeChain(type, reader) {
+    for (let currentType = type; currentType !== undefined; currentType = (0, getBaseType_1.getBaseType)(currentType)) {
+        const value = reader(currentType);
+        if (value !== undefined) {
+            return value;
+        }
+    }
+    return undefined;
+}
+//# sourceMappingURL=findInPrototypeChain.js.map
 
 /***/ }),
 
