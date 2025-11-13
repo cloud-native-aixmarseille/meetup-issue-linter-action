@@ -3,17 +3,16 @@ name: Common Continuous Integration tasks
 on:
   workflow_call:
 
-permissions:
-  actions: read
-  contents: read
-  issues: write
-  statuses: write
-  security-events: write
-  id-token: write
+permissions: {}
 
 jobs:
   linter:
     uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@753288393de1f3d92f687a6761d236ca800f5306 # 0.28.1
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+      statuses: write
     with:
       # FIXME: remove VALIDATE_*_PRETTIER and *_SUMMARY when supported (https://github.com/super-linter/super-linter/issues/6089)
       linter-env: |
@@ -30,14 +29,24 @@ jobs:
     name: Test nodejs
     needs: linter
     uses: ./.github/workflows/__check-nodejs.yml
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+      security-events: write
     secrets: inherit
 
   check-dist:
     name: Test nodejs
     needs: linter
     uses: ./.github/workflows/__check-dist.yml
+    permissions:
+      contents: read
 
   check-action:
     name: Test action
     needs: [check-nodejs, check-dist]
     uses: ./.github/workflows/__check-action.yml
+    permissions:
+      contents: read
+      issues: write
