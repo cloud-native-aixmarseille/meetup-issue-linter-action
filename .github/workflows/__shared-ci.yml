@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   linter:
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@b7dd413209df265bef8d7eb0efb117eaabc684c4 # 0.27.0
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@753288393de1f3d92f687a6761d236ca800f5306 # 0.28.1
     with:
       # FIXME: remove VALIDATE_*_PRETTIER and *_SUMMARY when supported (https://github.com/super-linter/super-linter/issues/6089)
       linter-env: |
