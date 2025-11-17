@@ -4,20 +4,16 @@ import { HosterLinterAdapter } from "./hoster-linter.adapter.js";
 import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
 import { getHostersFixture } from "../../__fixtures__/hosters.fixture.js";
 import { LintError } from "../lint.error.js";
-import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 
 describe("HosterLinterAdapter", () => {
   let inputServiceMock: MockProxy<InputService>;
-  let meetupIssueService: MockProxy<MeetupIssueService>;
   let hosterLinterAdapter: HosterLinterAdapter;
 
   beforeEach(() => {
     inputServiceMock = mock<InputService>();
     inputServiceMock.getHosters.mockReturnValue(getHostersFixture());
 
-    meetupIssueService = mock<MeetupIssueService>();
-
-    hosterLinterAdapter = new HosterLinterAdapter(meetupIssueService, inputServiceMock);
+    hosterLinterAdapter = new HosterLinterAdapter(inputServiceMock);
   });
 
   describe("lint", () => {
@@ -29,8 +25,7 @@ describe("HosterLinterAdapter", () => {
       const result = await hosterLinterAdapter.lint(meetupIssue, false);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
-      expect(result).toEqual(meetupIssue);
+      expect(result.hoster).toEqual(getHostersFixture()[0]);
     });
 
     it.each([
@@ -65,8 +60,6 @@ describe("HosterLinterAdapter", () => {
       await expect(hosterLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
         expectedError
       );
-
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
     });
 
     it("should add links to hoster when shouldFix is true", async () => {
@@ -84,11 +77,8 @@ describe("HosterLinterAdapter", () => {
       const result = await hosterLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).toHaveBeenCalledWith(
-        meetupIssue,
-        "hoster"
-      );
       expect(result.parsedBody.hoster).toEqual([`[${hosters[0].name}](${hosters[0].url})`]);
+      expect(result.hoster).toEqual(hosters[0]);
     });
 
     it("should be idempotent for hoster having link", async () => {
@@ -108,8 +98,8 @@ describe("HosterLinterAdapter", () => {
       const resultWithLink = await hosterLinterAdapter.lint(meetupIssueWithLink, shouldFix);
 
       // Assert - should add link even when shouldFix is false if it doesn't have one
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
       expect(resultWithLink.parsedBody.hoster).toEqual([hoster]);
+      expect(resultWithLink.hoster).toEqual(hosters[0]);
     });
   });
 

@@ -33,10 +33,33 @@ inputs:
   github-token:
     description: "The GitHub token with permissions to update the issue."
     required: true
+  google-credentials:
+    description: "Google Drive service account credentials JSON for auto-creating drive folders."
+    required: true
+  google-parent-folder-id:
+    description: "Google Drive parent folder ID where meetup folders will be created."
+    required: true
+  google-template-folder-id:
+    description: "Google Drive template folder ID containing files to copy to new meetup folders."
+    required: true
 
 outputs:
   lint-issues:
     description: "List of issues found in the meetup issue."
+  valid-meetup-issue:
+    description: |
+      Valid meetup issue data in JSON Object.
+      Only valid data is outputted.
+
+      - `number`: Issue number.
+      - `title`: Issue title.
+      - `parsed-body`: Parsed issue body.
+      - `labels`: Issue labels.
+      - `hoster`: Hoster data.
+      - `speakers`: Speakers data.
+      - `drive-files`:
+        - `announcement-link`: Link to the announcement file in Google Drive.
+        - `presentation-link`: Link to the presentation file in Google Drive.
 
 runs:
   using: node20

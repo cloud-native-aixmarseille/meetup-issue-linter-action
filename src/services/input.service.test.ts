@@ -187,4 +187,47 @@ describe("InputService", () => {
       });
     });
   });
+
+  describe("getGoogleCredentials", () => {
+    it("should return the google credentials", () => {
+      coreServiceMock.getInput.calledWith(InputNames.GoogleCredentials).mockReturnValue("creds");
+
+      const result = service.getGoogleCredentials();
+
+      expect(result).toBe("creds");
+      expect(coreServiceMock.getInput).toHaveBeenCalledWith(InputNames.GoogleCredentials, {
+        required: true,
+      });
+    });
+  });
+
+  describe("getGoogleParentFolderId", () => {
+    it("should return the google parent folder id", () => {
+      coreServiceMock.getInput
+        .calledWith(InputNames.GoogleParentFolderId)
+        .mockReturnValue("parent-id");
+
+      const result = service.getGoogleParentFolderId();
+
+      expect(result).toBe("parent-id");
+      expect(coreServiceMock.getInput).toHaveBeenCalledWith(InputNames.GoogleParentFolderId, {
+        required: true,
+      });
+    });
+  });
+
+  describe("getGoogleTemplateFolderId", () => {
+    it("should return the google template folder id", () => {
+      coreServiceMock.getInput
+        .calledWith(InputNames.GoogleTemplateFolderId)
+        .mockReturnValue("template-id");
+
+      const result = service.getGoogleTemplateFolderId();
+
+      expect(result).toBe("template-id");
+      expect(coreServiceMock.getInput).toHaveBeenCalledWith(InputNames.GoogleTemplateFolderId, {
+        required: true,
+      });
+    });
+  });
 });

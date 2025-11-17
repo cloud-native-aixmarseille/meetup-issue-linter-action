@@ -15,6 +15,9 @@ lint-fix: ## Execute linting and fix
 		-e FIX_MARKDOWN_PRETTIER=true \
 		-e FIX_NATURAL_LANGUAGE=true)
 
+test: ## Execute tests
+	npm run test:ci
+
 ci: ## Execute all tasks to prepare commit
 	npm install
 	npm run all

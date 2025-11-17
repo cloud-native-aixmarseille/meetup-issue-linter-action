@@ -1,8 +1,8 @@
 import { inject, injectable, injectFromBase } from "inversify";
 import { string } from "zod";
 import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter.js";
-import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service.js";
-import { LintError } from "../lint.error.js";
+import { MeetupIssue } from "../../services/meetup-issue.service.js";
+import { LintError, type LintIssue } from "../lint.error.js";
 import { InputService, SpeakerWithUrl } from "../../services/input.service.js";
 
 type AgendaEntry = {
@@ -17,17 +17,15 @@ type AgendaEntry = {
 export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<SpeakerWithUrl> {
   private static AGENDA_LINE_REGEX = /^- (.+?): (.+)$/;
 
-  constructor(
-    @inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
-    @inject(InputService) inputService: InputService
-  ) {
+  constructor(@inject(InputService) inputService: InputService) {
     const speakers = inputService.getSpeakers();
-    super(meetupIssueService, speakers);
+    super(speakers);
   }
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const result = await super.lint(meetupIssue, shouldFix);
     const fieldName = this.getFieldName();
+    const fieldPath = `parsedBody.${fieldName}` as const;
 
     const agenda = result.parsedBody[fieldName]!;
 
@@ -36,7 +34,7 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<Speaker
 
     const agendaEntries: AgendaEntry[] = [];
 
-    const lintErrors: string[] = [];
+    const lintIssues: LintIssue[] = [];
     for (const agendaLine of agendaLines) {
       try {
         const agendaEntry = this.lintAgendaLine(agendaLine);
@@ -45,32 +43,62 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<Speaker
         }
       } catch (error) {
         if (error instanceof LintError) {
-          lintErrors.push(...error.getMessages());
+          lintIssues.push(...error.getIssues());
         } else {
           throw error;
         }
       }
     }
 
-    if (lintErrors.length) {
-      throw new LintError(lintErrors);
+    if (lintIssues.length) {
+      throw new LintError(lintIssues);
     }
 
     if (!agendaEntries.length) {
-      throw new LintError([this.getLintErrorMessage("Must contain at least one entry")]);
+      throw new LintError([
+        {
+          field: fieldPath,
+          value: agenda,
+          message: this.getLintErrorMessage("Must contain at least one entry"),
+        },
+      ]);
     }
 
     const expectedAgenda = this.formatAgenda(agendaEntries);
 
-    if (shouldFix && result.parsedBody[fieldName] !== expectedAgenda) {
+    result.speakers = this.buildSpeakersList(agendaEntries);
+
+    if (shouldFix) {
       result.parsedBody[fieldName] = expectedAgenda;
-      this.meetupIssueService.updateMeetupIssueBodyField(result, fieldName);
     }
 
     return result;
   }
 
+  private buildSpeakersList(agendaEntries: AgendaEntry[]): SpeakerWithUrl[] {
+    const seen = new Set<string>();
+    const resolved: SpeakerWithUrl[] = [];
+
+    for (const entry of agendaEntries) {
+      for (const speakerName of entry.speakers) {
+        if (seen.has(speakerName)) {
+          continue;
+        }
+        const url = this.nameToUrl.get(speakerName);
+        if (!url) {
+          continue;
+        }
+        resolved.push({ name: speakerName, url });
+        seen.add(speakerName);
+      }
+    }
+
+    return resolved;
+  }
+
   private lintAgendaLine(agendaLine: string): AgendaEntry | undefined {
+    const fieldPath = "parsedBody.agenda" as const;
+
     if (agendaLine.trim() === "") {
       return;
     }
@@ -78,9 +106,13 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<Speaker
     const matches = agendaLine.match(AgendaLinterAdapter.AGENDA_LINE_REGEX);
     if (matches === null) {
       throw new LintError([
-        this.getLintErrorMessage(
-          `Entry "${agendaLine}" must follow the format: "- <speaker(s)>: <talk_description>"`
-        ),
+        {
+          field: fieldPath,
+          value: agendaLine,
+          message: this.getLintErrorMessage(
+            `Entry "${agendaLine}" must follow the format: "- <speaker(s)>: <talk_description>"`
+          ),
+        },
       ]);
     }
 
@@ -91,12 +123,24 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<Speaker
 
     for (const speaker of speakerList) {
       if (!speaker.length) {
-        throw new LintError([this.getLintErrorMessage("Speaker must not be empty")]);
+        throw new LintError([
+          {
+            field: fieldPath,
+            value: agendaLine,
+            message: this.getLintErrorMessage("Speaker must not be empty"),
+          },
+        ]);
       }
 
       if (!this.isValidEntity(speaker)) {
         throw new LintError([
-          this.getLintErrorMessage(`Speaker "${speaker}" is not in the list of speakers`),
+          {
+            field: fieldPath,
+            value: speaker,
+            message: this.getLintErrorMessage(
+              `Speaker "${speaker}" is not in the list of speakers`
+            ),
+          },
         ]);
       }
     }
@@ -117,11 +161,6 @@ export class AgendaLinterAdapter extends AbstractEntityLinkLinterAdapter<Speaker
         return `- ${formattedSpeakers.join(", ")}: ${entry.talkDescription}`;
       })
       .join("\n");
-  }
-
-  protected updateMeetupIssueIfNeeded(): void {
-    // No need to update the meetup issue here, it is done in the lint method
-    return;
   }
 
   protected getValidator() {

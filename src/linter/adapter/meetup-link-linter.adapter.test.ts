@@ -1,17 +1,12 @@
 import { MeetupLinkLinterAdapter } from "./meetup-link-linter.adapter.js";
 import { LintError } from "../lint.error.js";
 import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
-import { MockProxy, mock } from "jest-mock-extended";
-import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 
 describe("MeetupLinkLinterAdapter", () => {
-  let meetupIssueService: MockProxy<MeetupIssueService>;
   let meetupLinkLinterAdapter: MeetupLinkLinterAdapter;
 
   beforeEach(() => {
-    meetupIssueService = mock<MeetupIssueService>();
-
-    meetupLinkLinterAdapter = new MeetupLinkLinterAdapter(meetupIssueService);
+    meetupLinkLinterAdapter = new MeetupLinkLinterAdapter();
   });
 
   describe("lint", () => {
@@ -24,7 +19,6 @@ describe("MeetupLinkLinterAdapter", () => {
       const result = await meetupLinkLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
       expect(result).toEqual(meetupIssue);
     });
 
@@ -56,8 +50,6 @@ describe("MeetupLinkLinterAdapter", () => {
       await expect(
         meetupLinkLinterAdapter.lint(invalidMeetupIssue, shouldFix)
       ).rejects.toStrictEqual(expectedError);
-
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
     });
 
     it("should accept Meetup Link with trailing slash", async () => {
@@ -73,7 +65,6 @@ describe("MeetupLinkLinterAdapter", () => {
       const result = await meetupLinkLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
       expect(result).toEqual(meetupIssue);
     });
 
@@ -90,10 +81,6 @@ describe("MeetupLinkLinterAdapter", () => {
       const result = await meetupLinkLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).toHaveBeenCalledWith(
-        meetupIssue,
-        "meetup_link"
-      );
       expect(result.parsedBody.meetup_link).toBe(
         "https://www.meetup.com/cloud-native-aix-marseille/events/123456789"
       );

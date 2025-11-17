@@ -1,6 +1,6 @@
 import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
 import { LabelsLinterAdapter } from "./labels-linter.adapter.js";
-import { LintError } from "../lint.error.js";
+import { LintError, type LintIssue } from "../lint.error.js";
 
 describe("LabelsLinterAdapter - lint", () => {
   let labelsLinterAdapter: LabelsLinterAdapter;
@@ -38,7 +38,13 @@ describe("LabelsLinterAdapter - lint", () => {
       const result = labelsLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      const expectedError = new LintError([`Labels: Missing label(s) "hoster:needed"`]);
+      const expectedError = new LintError([
+        {
+          field: "labels",
+          value: ["hoster:needed"],
+          message: `Labels: Missing label(s) "hoster:needed"`,
+        },
+      ]);
       await expect(result).rejects.toStrictEqual(expectedError);
     });
 
@@ -53,7 +59,13 @@ describe("LabelsLinterAdapter - lint", () => {
       const result = labelsLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      const expectedError = new LintError([`Labels: Missing label(s) "hoster:confirmed"`]);
+      const expectedError = new LintError([
+        {
+          field: "labels",
+          value: ["hoster:confirmed"],
+          message: `Labels: Missing label(s) "hoster:confirmed"`,
+        },
+      ]);
       await expect(result).rejects.toStrictEqual(expectedError);
     });
 
@@ -71,7 +83,13 @@ describe("LabelsLinterAdapter - lint", () => {
       const result = labelsLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      const expectedError = new LintError(['Labels: Missing label(s) "speakers:needed"']);
+      const expectedError = new LintError([
+        {
+          field: "labels",
+          value: ["speakers:needed"],
+          message: 'Labels: Missing label(s) "speakers:needed"',
+        },
+      ]);
       await expect(result).rejects.toStrictEqual(expectedError);
     });
 
@@ -79,14 +97,31 @@ describe("LabelsLinterAdapter - lint", () => {
       {
         description: "some label is missing and shouldFix is false",
         labels: ["Wrong Label"],
-        errors: ['Missing label(s) "meetup, hoster:confirmed"', 'Extra label(s) "Wrong Label"'],
+        issues: [
+          {
+            field: "labels",
+            value: ["meetup", "hoster:confirmed"],
+            message: 'Labels: Missing label(s) "meetup, hoster:confirmed"',
+          },
+          {
+            field: "labels",
+            value: ["Wrong Label"],
+            message: 'Labels: Extra label(s) "Wrong Label"',
+          },
+        ],
       },
       {
         description: "some label is extra and shouldFix is false",
         labels: ["meetup", "hoster:confirmed", "Extra Label"],
-        errors: ['Extra label(s) "Extra Label"'],
+        issues: [
+          {
+            field: "labels",
+            value: ["Extra Label"],
+            message: 'Labels: Extra label(s) "Extra Label"',
+          },
+        ],
       },
-    ])("should throw a LintError if $description", async ({ labels, errors }) => {
+    ])("should throw a LintError if $description", async ({ labels, issues }) => {
       // Arrange
       const invalidMeetupIssue = getMeetupIssueFixture({
         labels,
@@ -94,7 +129,7 @@ describe("LabelsLinterAdapter - lint", () => {
       const shouldFix = false;
 
       // Act & Assert
-      const expectedError = new LintError(errors.map((error) => `Labels: ${error}`));
+      const expectedError = new LintError(issues as LintIssue[]);
 
       await expect(labelsLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
         expectedError

@@ -1,6 +1,5 @@
-import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 import { AbstractZodLinterAdapter } from "./abstract-zod-linter.adapter.js";
-import { inject, injectable, injectFromBase, unmanaged } from "inversify";
+import { injectable, injectFromBase, unmanaged } from "inversify";
 
 export type EntityWithUrl = {
   name: string;
@@ -23,11 +22,8 @@ export abstract class AbstractEntityLinkLinterAdapter<
 
   protected readonly nameToUrl: Map<string, string>;
 
-  constructor(
-    @inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
-    @unmanaged() entities: TEntity[]
-  ) {
-    super(meetupIssueService);
+  constructor(@unmanaged() entities: TEntity[]) {
+    super();
     this.nameToUrl = new Map(entities.map((entity) => [entity.name, entity.url]));
   }
 
@@ -40,15 +36,6 @@ export abstract class AbstractEntityLinkLinterAdapter<
     // Replace linked entities with their display text
     const cleanedText = text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
     return cleanedText.split(",").map((name) => name.trim());
-  }
-
-  /**
-   * Checks if the given text contains a markdown link.
-   * @param text Text to check
-   * @returns True if text contains a markdown link
-   */
-  protected hasLink(text: string): boolean {
-    return AbstractEntityLinkLinterAdapter.LINK_REGEX.test(text);
   }
 
   /**

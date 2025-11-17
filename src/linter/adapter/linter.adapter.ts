@@ -6,6 +6,8 @@ export const LINTER_ADAPTER_IDENTIFIER = Symbol("LinterAdapter");
 export type LinterDependency = { new (...args: any[]): LinterAdapter };
 
 export interface LinterAdapter {
+  getName(): string;
+
   lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue>;
 
   getDependencies(): LinterDependency[];

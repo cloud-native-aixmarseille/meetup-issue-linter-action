@@ -1,7 +1,7 @@
 import { inject, injectable, injectFromBase } from "inversify";
 import { string } from "zod";
 import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter.js";
-import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service.js";
+import { MeetupIssue } from "../../services/meetup-issue.service.js";
 import { LintError } from "../lint.error.js";
 import { InputService, HosterWithUrl } from "../../services/input.service.js";
 
@@ -10,12 +10,9 @@ import { InputService, HosterWithUrl } from "../../services/input.service.js";
   extendConstructorArguments: true,
 })
 export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter<HosterWithUrl> {
-  constructor(
-    @inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
-    @inject(InputService) inputService: InputService
-  ) {
+  constructor(@inject(InputService) inputService: InputService) {
     const hosters = inputService.getHosters();
-    super(meetupIssueService, hosters);
+    super(hosters);
   }
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
@@ -33,6 +30,11 @@ export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter<HosterW
 
     const expectedHoster = this.formatEntityWithLink(hosterName);
 
+    const hosterUrl = this.nameToUrl.get(hosterName);
+    if (hosterUrl) {
+      result.hoster = { name: hosterName, url: hosterUrl };
+    }
+
     // Format hoster with link if shouldFix is true or if it already doesn't have a link
     if (
       shouldFix &&
@@ -40,15 +42,9 @@ export class HosterLinterAdapter extends AbstractEntityLinkLinterAdapter<HosterW
         result.parsedBody[fieldName][0] !== expectedHoster)
     ) {
       result.parsedBody[fieldName] = [expectedHoster];
-      this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
     }
 
     return result;
-  }
-
-  protected updateMeetupIssueIfNeeded(): void {
-    // No need to update the meetup issue here, it is done in the lint method
-    return;
   }
 
   protected getValidator() {

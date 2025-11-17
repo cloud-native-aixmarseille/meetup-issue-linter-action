@@ -48,6 +48,7 @@ jobs:
     name: Test action
     needs: [check-nodejs, check-dist]
     uses: ./.github/workflows/__check-action.yml
+    secrets: inherit
     permissions:
       contents: read
       issues: write

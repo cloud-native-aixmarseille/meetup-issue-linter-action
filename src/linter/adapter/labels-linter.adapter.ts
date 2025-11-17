@@ -1,16 +1,15 @@
 import { injectable } from "inversify";
-import { LinterAdapter } from "./linter.adapter.js";
 import { MeetupIssue } from "../../services/meetup-issue.service.js";
-import { LintError } from "../lint.error.js";
+import { LintError, type LintIssue } from "../lint.error.js";
+import { AbstractLinterAdapter } from "./abstract-linter.adapter.js";
 
 @injectable()
-export class LabelsLinterAdapter implements LinterAdapter {
+export class LabelsLinterAdapter extends AbstractLinterAdapter {
   private static LABEL_MEETUP = "meetup";
   private static LABEL_HOSTER_NEEDED = "hoster:needed";
   private static LABEL_HOSTER_CONFIRMED = "hoster:confirmed";
   private static LABEL_SPEAKERS_NEEDED = "speakers:needed";
   private static LABEL_SPEAKERS_CONFIRMED = "speakers:confirmed";
-
   private static ALLOWED_LABELS = [
     LabelsLinterAdapter.LABEL_MEETUP,
     LabelsLinterAdapter.LABEL_HOSTER_NEEDED,
@@ -52,19 +51,23 @@ export class LabelsLinterAdapter implements LinterAdapter {
       return meetupIssue;
     }
 
-    const lintErrors: string[] = [];
+    const lintErrors: LintIssue[] = [];
     if (missingLabels.length > 0) {
-      lintErrors.push(`Labels: Missing label(s) "${missingLabels.join(", ")}"`);
+      lintErrors.push({
+        field: "labels",
+        value: missingLabels,
+        message: `Labels: Missing label(s) "${missingLabels.join(", ")}"`,
+      });
     }
 
     if (extraLabels.length > 0) {
-      lintErrors.push(`Labels: Extra label(s) "${extraLabels.join(", ")}"`);
+      lintErrors.push({
+        field: "labels",
+        value: extraLabels,
+        message: `Labels: Extra label(s) "${extraLabels.join(", ")}"`,
+      });
     }
 
     throw new LintError(lintErrors);
-  }
-
-  getDependencies() {
-    return [];
   }
 }
