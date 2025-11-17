@@ -38,7 +38,9 @@ describe("TitleLinterAdapter", () => {
       const shouldFix = false;
 
       // Act & Assert
-      const expectedError = new LintError([`Title: ${error}`]);
+      const expectedError = new LintError([
+        { field: "title", value: title, message: `Title: ${error}` },
+      ]);
 
       await expect(titleLinterAdapter.lint(invalidMeetupIssue, shouldFix)).rejects.toStrictEqual(
         expectedError
