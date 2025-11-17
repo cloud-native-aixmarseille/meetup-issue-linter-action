@@ -8,7 +8,7 @@ import {
   MeetupIssueService,
 } from "../../services/meetup-issue.service";
 import { LintError } from "../lint.error";
-import { LinterAdapter } from "./linter.adapter";
+import { LinterAdapter, LinterDependency } from "./linter.adapter";
 import { inject, injectable } from "inversify";
 
 @injectable()
@@ -19,6 +19,10 @@ export abstract class AbstractZodLinterAdapter<
   constructor(
     @inject(MeetupIssueService) protected readonly meetupIssueService: MeetupIssueService
   ) {}
+
+  getDependencies(): LinterDependency[] {
+    return [];
+  }
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const fieldName = this.getFieldName();
@@ -69,8 +73,4 @@ export abstract class AbstractZodLinterAdapter<
   protected abstract getFieldName(): MeetupIssueBodyField;
 
   protected abstract getValidator(): ZodType<MeetupIssueBody[MeetupIssueBodyField]>;
-
-  getDependencies() {
-    return [];
-  }
 }
