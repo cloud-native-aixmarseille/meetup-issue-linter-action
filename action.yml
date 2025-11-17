@@ -33,6 +33,15 @@ inputs:
   github-token:
     description: "The GitHub token with permissions to update the issue."
     required: true
+  google-credentials:
+    description: "Google Drive service account credentials JSON for auto-creating drive folders."
+    required: true
+  google-parent-folder-id:
+    description: "Google Drive parent folder ID where meetup folders will be created."
+    required: true
+  google-template-folder-id:
+    description: "Google Drive template folder ID containing files to copy to new meetup folders."
+    required: true
 
 outputs:
   lint-issues:

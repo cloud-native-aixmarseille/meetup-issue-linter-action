@@ -4,6 +4,10 @@ import { CORE_SERVICE_IDENTIFIER, coreService, CoreService } from "./services/co
 import { InputService } from "./services/input.service";
 import { LinterService } from "./linter/linter.service";
 import { GitHubService } from "./services/github.service";
+import { GoogleDriveService } from "./services/google-drive/google-drive.service";
+import { GoogleDriveClientService } from "./services/google-drive/google-drive-client.service";
+import { GoogleDriveFolderService } from "./services/google-drive/google-drive-folder.service";
+import { GoogleDriveTemplateService } from "./services/google-drive/google-drive-template.service";
 import { EventDateLinterAdapter } from "./linter/adapter/event-date-linter.adapter";
 import { LINTER_ADAPTER_IDENTIFIER, LinterAdapter } from "./linter/adapter/linter.adapter";
 import { MeetupIssueService } from "./services/meetup-issue.service";
@@ -26,6 +30,12 @@ container.bind(InputService).toSelf();
 container.bind(LinterService).toSelf();
 container.bind(LoggerService).toSelf();
 container.bind(MeetupIssueService).toSelf();
+
+// Drive services
+container.bind(GoogleDriveClientService).toSelf().inSingletonScope();
+container.bind(GoogleDriveFolderService).toSelf();
+container.bind(GoogleDriveTemplateService).toSelf();
+container.bind(GoogleDriveService).toSelf();
 
 // Linters
 container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(EventDateLinterAdapter);
