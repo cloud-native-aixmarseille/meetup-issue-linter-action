@@ -1,6 +1,8 @@
 export type {
 	AssetContainer,
+	AssetFile,
 	AssetRepository,
+	AssetTemplate,
 	AttendanceGateway,
 	AttendanceRecord,
 	CommunityEventPublisher,
@@ -10,6 +12,10 @@ export type {
 	PublishEventRequest,
 	PublishedEventReference,
 } from "./application/ports.js";
+export {
+	ReconcileEventAssets,
+	type ReconcileEventAssetsResult,
+} from "./application/reconcile-event-assets.js";
 export {
 	type ManualPublicationTask,
 	type ManualPublicationTaskKind,

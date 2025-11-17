@@ -14,6 +14,9 @@ on:
         required: false
         type: string
     secrets:
+      google-credentials:
+        description: Optional Google service-account JSON for Drive asset reconciliation. Omission keeps asset management manual.
+        required: false
       github-app-private-key:
         description: PEM-encoded private key for the GitHub App identified by the github-app-id input. Used to mint a narrowly scoped installation token.
         required: true
@@ -87,6 +90,20 @@ jobs:
           mailings-token: ${{ secrets.mailings-token }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly to avoid secrets: inherit
           slack-token: ${{ secrets.slack-token }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly to avoid secrets: inherit
           dispatch-authorized: "true"
+
+      - name: Reconcile event assets
+        id: assets
+        uses: ./../self-workflow/actions/publication/reconcile-assets
+        env:
+          GOOGLE_DRIVE_MEETUP_FOLDER_ID: ${{ vars.CI_GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
+          GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID: ${{ vars.CI_GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          mode: fix
+          github-token: ${{ steps.app-token.outputs.token }}
+          managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
+          google-credentials: ${{ secrets.google-credentials }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly
+          mutation-authorized: "true"
 
       - name: Reconcile event
         id: reconcile

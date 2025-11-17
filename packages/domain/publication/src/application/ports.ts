@@ -21,18 +21,51 @@ export interface CommunityEventPublisher {
 export type AssetContainer = Readonly<{
 	id: string;
 	url: string;
+	name: string;
+	eventId?: string;
 }>;
 
 export type EnsureAssetContainerRequest = Readonly<{
 	eventId: string;
+	legacyEventId: string;
 	title: string;
 	idempotencyKey: string;
+	existingUrl?: string;
+}>;
+
+export type AssetTemplate = Readonly<{
+	id: string;
+	name: string;
+	kind: string;
+}>;
+
+export type AssetFile = Readonly<{
+	id: string;
+	name: string;
+	url?: string;
+	templateId?: string;
+	kind?: string;
 }>;
 
 export interface AssetRepository {
+	findContainer(
+		request: EnsureAssetContainerRequest,
+	): Promise<AssetContainer | undefined>;
 	ensureContainer(
 		request: EnsureAssetContainerRequest,
 	): Promise<AssetContainer>;
+	listTemplates(): Promise<readonly AssetTemplate[]>;
+	listFiles(containerId: string): Promise<readonly AssetFile[]>;
+	copyTemplate(
+		containerId: string,
+		template: AssetTemplate,
+		name: string,
+	): Promise<AssetFile>;
+	updateFile(
+		file: AssetFile,
+		template: AssetTemplate,
+		name: string,
+	): Promise<AssetFile>;
 }
 
 export type AttendanceRecord = Readonly<{

@@ -4,6 +4,10 @@ import { build } from "esbuild";
 
 const entries = [
 	[
+		"packages/runtime/github-actions/src/entrypoints/publication-reconcile-assets.ts",
+		"actions/publication/reconcile-assets/dist/index.js",
+	],
+	[
 		"packages/runtime/github-actions/src/entrypoints/event-reconcile.ts",
 		"actions/event/reconcile/dist/index.js",
 	],

@@ -1,0 +1,11 @@
+{
+	"name": "@meetup-automation/google-drive-asset-repository",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": "./src/index.ts",
+	"dependencies": {
+		"@googleapis/drive": "^22.0.0",
+		"@meetup-automation/publication": "workspace:*"
+	}
+}

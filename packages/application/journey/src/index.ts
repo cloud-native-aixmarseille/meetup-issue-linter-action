@@ -18,6 +18,7 @@ export type {
 	ResultStatus,
 } from "./result/result-envelope.js";
 export { resultEnvelope } from "./result/result-envelope.js";
+export { ManageMeetupAssets } from "./use-cases/manage-meetup-assets.js";
 export type {
 	ManageMeetupEventDependencies,
 	ManageMeetupEventResult,

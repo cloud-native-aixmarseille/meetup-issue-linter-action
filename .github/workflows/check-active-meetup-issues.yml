@@ -18,6 +18,9 @@ on:
         description: JSON array of meetup issue numbers selected for audit during the listing phase.
         value: ${{ jobs.list.outputs.issue-numbers }}
     secrets:
+      google-credentials:
+        description: Optional Google service-account JSON for Drive asset reconciliation. Omission keeps asset management manual.
+        required: false
       github-app-private-key:
         description: PEM-encoded private key for the GitHub App identified by the github-app-id input. Used to mint a narrowly scoped installation token.
         required: true
@@ -89,6 +92,20 @@ jobs:
         uses: hoverkraft-tech/ci-github-common/actions/local-workflow-actions@3a27d31e9ccefbe9609cc9165017ed100ff34a22 # 0.38.0
         with:
           actions-path: actions
+
+      - name: Reconcile event assets
+        id: assets
+        uses: ./../self-workflow/actions/publication/reconcile-assets
+        env:
+          GOOGLE_DRIVE_MEETUP_FOLDER_ID: ${{ vars.CI_GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
+          GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID: ${{ vars.CI_GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
+        with:
+          issue-number: ${{ matrix.issue-number }}
+          mode: fix
+          github-token: ${{ steps.app-token.outputs.token }}
+          managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
+          google-credentials: ${{ secrets.google-credentials }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly
+          mutation-authorized: "true"
 
       - name: Evaluate current event state
         id: event

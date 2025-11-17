@@ -382,6 +382,37 @@ jobs:
           [[ "$DIAGNOSTICS" == *'communication.approval-missing'* ]]
           jq -e '.data.mode == "check" and .data.counts.planned == 2 and .data.counts.dispatched == 0 and (.data.intentIds | length == 2) and (.diagnostics | map(.code) | index("communication.approval-missing") != null)' <<< "$RESULT" >/dev/null
 
+  test-publication-reconcile-assets:
+    name: Test publication asset action without optional credentials
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check optional asset integration
+        id: assets
+        uses: ./actions/publication/reconcile-assets
+        with:
+          issue-number: "1"
+          mode: check
+          github-token: ${{ github.token }}
+          managed-comment-author: integration-tests[bot]
+
+      - name: Assert asset integration is skipped without credentials
+        shell: bash
+        env:
+          RESULT: ${{ steps.assets.outputs.result }}
+          DRIVE_FILES: ${{ steps.assets.outputs.drive-files }}
+          ASSET_URL: ${{ steps.assets.outputs.asset-url }}
+        run: |
+          [[ "$DRIVE_FILES" == "{}" ]]
+          [[ -z "$ASSET_URL" ]]
+          jq -e '.schemaVersion == 1 and .data.skipped == true and .data.persisted == false and (.diagnostics | map(.code) | index("publication.assets.unavailable") != null)' <<< "$RESULT" >/dev/null
+
   cleanup-synthetic-issue:
     name: Cleanup synthetic meetup issue
     if: always()

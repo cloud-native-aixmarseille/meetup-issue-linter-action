@@ -22,6 +22,7 @@ export type PublicationDiagnostic = Readonly<{
 	field: keyof PublicationReferences;
 	message: string;
 	fixAvailable?: boolean;
+	fixApplied?: boolean;
 }>;
 
 export type PublicationPatchOperation = {

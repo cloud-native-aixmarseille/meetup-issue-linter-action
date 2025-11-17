@@ -1,0 +1,24 @@
+{
+	"name": "google-drive-asset-repository",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/google-drive-asset-repository/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/google-drive-asset-repository/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/google-drive-asset-repository"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:google-drive",
+		"responsibility:asset-repository"
+	]
+}

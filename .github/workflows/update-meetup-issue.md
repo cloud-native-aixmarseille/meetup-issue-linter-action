@@ -34,17 +34,13 @@ on:
 permissions: {}
 jobs:
   update-meetup-issue:
-    uses: cloud-native-aixmarseille/meetup-issue-linter-action/.github/workflows/update-meetup-issue.yml@88fd8c3495bfbf7061bbd67d1324b0b4e4bc14d3 # main
+    uses: cloud-native-aixmarseille/meetup-issue-linter-action/.github/workflows/update-meetup-issue.yml@0123456789abcdef0123456789abcdef01234567 # replace with a release SHA containing asset reconciliation
     permissions:
       contents: read
-    with:
-      # GitHub App ID used to mint the narrowly scoped installation token for meetup automation.
-      # This input is required.
-      github-app-id: ""
-
-      # Optional Slack channel ID used for approved notifications. When omitted, Slack delivery is skipped safely.
-      slack-channel-id: ""
     secrets:
+      # Optional Google service-account JSON for Drive asset reconciliation. Omission keeps asset management manual.
+      google-credentials: ""
+
       # PEM-encoded private key for the GitHub App identified by the github-app-id input. Used to mint a narrowly scoped installation token.
       # This input is required.
       github-app-private-key: ""
@@ -54,6 +50,13 @@ jobs:
 
       # Optional Slack bot token used for approved notifications. When omitted, Slack delivery is skipped safely.
       slack-token: ""
+    with:
+      # GitHub App ID used to mint the narrowly scoped installation token for meetup automation.
+      # This input is required.
+      github-app-id: ""
+
+      # Optional Slack channel ID used for approved notifications. When omitted, Slack delivery is skipped safely.
+      slack-channel-id: ""
 ```
 
 <!-- usage:end -->
@@ -61,19 +64,24 @@ jobs:
 
 ## Inputs
 
-| **Input**              | **Description**                                       | **Required** | **Type** |
-| ---------------------- | ----------------------------------------------------- | ------------ | -------- |
-| **`github-app-id`**    | GitHub App ID for meetup automation token creation.   | **true**     | `string` |
-| **`slack-channel-id`** | Optional Slack channel ID for approved notifications. | **false**    | `string` |
+### Workflow Call Inputs
+
+| **Input**              | **Description**                                                                                            | **Required** | **Type**   | **Default** |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- | ------------ | ---------- | ----------- |
+| **`github-app-id`**    | GitHub App ID used to mint the narrowly scoped installation token for meetup automation.                   | **true**     | **string** | -           |
+| **`slack-channel-id`** | Optional Slack channel ID used for approved notifications. When omitted, Slack delivery is skipped safely. | **false**    | **string** | -           |
 
 <!-- inputs:end -->
 <!-- secrets:start -->
 
 ## Secrets
 
-- **`github-app-private-key`**: PEM-encoded private key for the GitHub App identified by `github-app-id`. Required: **true**.
-- **`mailings-token`**: Optional token used to dispatch approved email communications to the configured mailings repository. Required: **false**.
-- **`slack-token`**: Optional Slack bot token used for approved notifications. Required: **false**.
+| **Secret**                   | **Description**                                                                                                                                                  | **Required** |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| **`google-credentials`**     | Optional Google service-account JSON for Drive asset reconciliation. Omission keeps asset management manual.                                                     | **false**    |
+| **`github-app-private-key`** | PEM-encoded private key for the GitHub App identified by the github-app-id input. Used to mint a narrowly scoped installation token.                             | **true**     |
+| **`mailings-token`**         | Optional token used to dispatch approved email communications to the configured mailings repository. When omitted, mail intents remain planned but are not sent. | **false**    |
+| **`slack-token`**            | Optional Slack bot token used for approved notifications. When omitted, Slack delivery is skipped safely.                                                        | **false**    |
 
 <!-- secrets:end -->
 <!-- outputs:start -->
