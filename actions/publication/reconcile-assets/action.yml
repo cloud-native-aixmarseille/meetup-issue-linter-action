@@ -1,0 +1,36 @@
+name: Reconcile meetup assets
+description: Check or reconcile the event Drive folder, template copies, and issue asset link.
+author: Cloud Native Aix-Marseille
+inputs:
+  issue-number:
+    description: GitHub issue number containing the meetup event document.
+    required: true
+  mode:
+    description: Use check to report drift without writes, or fix under the shared event workflow lock.
+    required: false
+    default: check
+  github-token:
+    description: Token for the caller repository. Requires issues:read; fix also requires issues:write.
+    required: true
+  managed-comment-author:
+    description: Trusted GitHub App bot login used by the event composition.
+    required: true
+  google-credentials:
+    description: Optional service-account JSON with access to the configured Drive parent and template folders. Omission leaves asset management manual.
+    required: false
+  mutation-authorized:
+    description: Internal workflow assertion that the shared non-cancelling event concurrency lock is held.
+    required: false
+    default: "false"
+outputs:
+  result:
+    description: Versioned JSON envelope containing folder and template links, persistence status, and diagnostics.
+  asset-url:
+    description: URL of the managed event folder, or an empty string when unavailable.
+  drive-files:
+    description: JSON map from template kind followed by -link to the corresponding copied file URL.
+  diagnostics:
+    description: Redacted JSON diagnostics for asset reconciliation.
+runs:
+  using: node24
+  main: dist/index.js

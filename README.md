@@ -53,11 +53,10 @@ system clock.
 
 Cross-domain journey orchestration and the versioned consumer configuration
 contract live in [`@meetup-automation/journey`](packages/application/journey).
-The contract is intentionally opinionated: all reusable workflows have zero
-ordinary inputs. Paths, labels, Europe/Paris time, routing, and policy defaults
-are brain-owned conventions. Consumers do not provide a meetup-specific runtime
-config file; only credentials and the fixed `CI_BOT_APP_ID` /
-`SLACK_CHANNEL_ID` variables remain repository-owned.
+The contract is intentionally opinionated: paths, labels, Europe/Paris time,
+routing, and policy defaults are brain-owned conventions. Consumers do not
+provide a meetup-specific runtime config file; they supply credentials, caller
+identity and Slack routing inputs, and the fixed Drive folder variables.
 Occurrence status is operational too: scheduled is the default, closing an
 issue implies occurrence, and explicit labels drive postponed or cancelled
 transitions.
@@ -80,6 +79,7 @@ remain at these boundaries and do not leak into domain APIs.
 | [`yaml-automation-config-repository`](packages/adapter/yaml-automation-config-repository)               | Load and validate the checked-out journey configuration            |
 | [`slack-notification-gateway`](packages/adapter/slack-notification-gateway)                             | Deliver redacted Slack notifications                               |
 | [`system-clock`](packages/adapter/system-clock)                                                         | Supply explicit instants to time-dependent use cases               |
+| [`google-drive-asset-repository`](packages/adapter/google-drive-asset-repository) | Reconcile event folders and template copies through the publication asset port |
 
 ### Actions
 
@@ -94,6 +94,11 @@ committed bundle.
 | [`actions/referential/validate`](actions/referential/validate/README.md)               | Validate private referentials with redacted results              |
 | [`actions/referential/sync-issue-form`](actions/referential/sync-issue-form/README.md) | Synchronize public issue-form choices from referentials          |
 | [`actions/communication/reconcile`](actions/communication/reconcile/README.md)         | Plan or dispatch due communications under workflow authorization |
+| [`actions/publication/reconcile-assets`](actions/publication/reconcile-assets/README.md) | Check or reconcile Drive folders, template copies, and issue asset links |
+
+Drive integration is optional in both event workflows. See
+[Google Drive event assets](docs/publication-assets.md) for the credential,
+folder-variable, migration, and retry contracts.
 
 ### Reusable workflows
 

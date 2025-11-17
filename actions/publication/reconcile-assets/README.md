@@ -1,0 +1,96 @@
+<!-- header:start -->
+
+# GitHub Action: Reconcile meetup assets
+
+<!-- header:end -->
+<!-- badges:start -->
+
+[![Marketplace](https://img.shields.io/badge/Marketplace-reconcile--meetup--assets-blue?logo=github-actions)](https://github.com/marketplace/actions/reconcile-meetup-assets)
+[![Release](https://img.shields.io/github/v/release/cloud-native-aixmarseille/meetup-issue-linter-action)](https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/releases)
+[![Stars](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-issue-linter-action?style=social)](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-issue-linter-action?style=social)
+
+<!-- badges:end -->
+<!-- overview:start -->
+
+## Overview
+
+Check or reconcile the event Drive folder, template copies, and issue asset link.
+
+<!-- overview:end -->
+<!-- usage:start -->
+
+## Usage
+
+```yaml
+- uses: cloud-native-aixmarseille/meetup-issue-linter-action/actions/publication/reconcile-assets@0123456789abcdef0123456789abcdef01234567 # replace with a release SHA containing asset reconciliation
+  with:
+    # GitHub issue number containing the meetup event document.
+    # This input is required.
+    issue-number: ""
+
+    # Use check to report drift without writes, or fix under the shared event workflow lock.
+    # Default: `check`
+    mode: check
+
+    # Token for the caller repository. Requires issues:read; fix also requires issues:write.
+    # This input is required.
+    github-token: ""
+
+    # Trusted GitHub App bot login used by the event composition.
+    # This input is required.
+    managed-comment-author: ""
+
+    # Optional service-account JSON with access to the configured Drive parent and template folders. Omission leaves asset management manual.
+    google-credentials: ""
+
+    # Internal workflow assertion that the shared non-cancelling event concurrency lock is held.
+    # Default: `false`
+    mutation-authorized: "false"
+```
+
+<!-- usage:end -->
+<!-- inputs:start -->
+
+## Inputs
+
+| **Input**                    | **Description**                                                                                                                         | **Required** | **Default** |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
+| **`issue-number`**           | GitHub issue number containing the meetup event document.                                                                               | **true**     | -           |
+| **`mode`**                   | Use check to report drift without writes, or fix under the shared event workflow lock.                                                  | **false**    | `check`     |
+| **`github-token`**           | Token for the caller repository. Requires issues:read; fix also requires issues:write.                                                  | **true**     | -           |
+| **`managed-comment-author`** | Trusted GitHub App bot login used by the event composition.                                                                             | **true**     | -           |
+| **`google-credentials`**     | Optional service-account JSON with access to the configured Drive parent and template folders. Omission leaves asset management manual. | **false**    | -           |
+| **`mutation-authorized`**    | Internal workflow assertion that the shared non-cancelling event concurrency lock is held.                                              | **false**    | `false`     |
+
+<!-- inputs:end -->
+<!-- secrets:start -->
+<!-- secrets:end -->
+<!-- outputs:start -->
+
+## Outputs
+
+| **Output**        | **Description**                                                                                    |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| **`result`**      | Versioned JSON envelope containing folder and template links, persistence status, and diagnostics. |
+| **`asset-url`**   | URL of the managed event folder, or an empty string when unavailable.                              |
+| **`drive-files`** | JSON map from template kind followed by -link to the corresponding copied file URL.                |
+| **`diagnostics`** | Redacted JSON diagnostics for asset reconciliation.                                                |
+
+<!-- outputs:end -->
+<!-- examples:start -->
+
+See [Google Drive event assets](../../../docs/publication-assets.md) for the required folder environment variables, service-account access, and migration and retry behavior.
+<!-- examples:end -->
+<!-- contributing:start -->
+<!-- contributing:end -->
+<!-- security:start -->
+<!-- security:end -->
+<!-- license:start -->
+<!-- license:end -->
+<!-- generated:start -->
+
+---
+
+This documentation was automatically generated by [CI Dokumentor](https://github.com/hoverkraft-tech/ci-dokumentor).
+
+<!-- generated:end -->

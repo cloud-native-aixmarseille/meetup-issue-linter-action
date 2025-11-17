@@ -21,6 +21,7 @@
 		"@meetup-automation/slack-notification-gateway": "workspace:*",
 		"@meetup-automation/system-clock": "workspace:*",
 		"@meetup-automation/yaml-automation-config-repository": "workspace:*",
-		"@meetup-automation/yaml-issue-form-projection": "workspace:*"
+		"@meetup-automation/yaml-issue-form-projection": "workspace:*",
+		"@meetup-automation/google-drive-asset-repository": "workspace:*"
 	}
 }

@@ -6,6 +6,11 @@
 - Scope: `meetup-event-automation` and `meetups`
 - Supersedes: None
 
+Implementation follow-up: [Google Drive event assets](../publication-assets.md)
+adds the publication-owned asset use case, `google-drive-asset-repository`, and
+`actions/publication/reconcile-assets` anticipated by this decision. The initial
+manual asset task remains the fallback when the optional credentials are absent.
+
 ## Context
 
 The meetup journey is currently split across two repositories.

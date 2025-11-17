@@ -48098,6 +48098,7 @@ function createReferentialRepository(config2, workspaceRoot = process.cwd()) {
 
 // packages/runtime/github-actions/src/runtime-input.ts
 var SAFE_ERROR_NAMES = /* @__PURE__ */ new Set([
+  "GoogleDriveAssetRepositoryError",
   "EventNotFoundError",
   "EventConcurrentModificationError",
   "GitHubEventRepositoryConfigurationError",

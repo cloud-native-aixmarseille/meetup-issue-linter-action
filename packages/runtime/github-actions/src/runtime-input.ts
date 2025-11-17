@@ -1,4 +1,5 @@
 const SAFE_ERROR_NAMES = new Set([
+	"GoogleDriveAssetRepositoryError",
 	"EventNotFoundError",
 	"EventConcurrentModificationError",
 	"GitHubEventRepositoryConfigurationError",

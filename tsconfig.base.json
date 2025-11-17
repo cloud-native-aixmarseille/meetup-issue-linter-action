@@ -66,6 +66,9 @@
 			],
 			"@meetup-automation/github-actions-runtime": [
 				"packages/runtime/github-actions/src/index.ts"
+			],
+			"@meetup-automation/google-drive-asset-repository": [
+				"packages/adapter/google-drive-asset-repository/src/index.ts"
 			]
 		}
 	}
