@@ -46,6 +46,9 @@ jobs:
           hosters: '[{"name": "Hoster Test One", "url": "https://example.com/hoster1"}, {"name": "Hoster Test Two", "url": "https://example.com/hoster2"}]'
           speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
+          google-credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}
+          google-parent-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
+          google-template-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Assert
@@ -90,6 +93,9 @@ jobs:
           speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
           fail-on-error: false
+          google-credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}
+          google-parent-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
+          google-template-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Assert
