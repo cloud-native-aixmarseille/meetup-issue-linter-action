@@ -12,8 +12,11 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: hoverkraft-tech/ci-github-nodejs/actions/setup-node@32a69b7b8fd5f7ab7bf656e7e88aa90ad235cf8d # 0.18.0
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+        with:
+          persist-credentials: false
+
+      - uses: hoverkraft-tech/ci-github-nodejs/actions/setup-node@80acfc9bc4dd87030d73006dee4c788ed9af1fb0 # 0.20.1
 
       - name: Build dist/ Directory
         id: package
@@ -28,13 +31,3 @@ jobs:
             git diff --ignore-space-at-eol --text dist/
             exit 1
           fi
-
-      # If `dist/` was different than expected, and this was not a Dependabot
-      # PR, upload the expected version as a workflow artifact.
-      - if: ${{ failure() && steps.diff.outcome == 'failure' }}
-        name: Upload Artifact
-        id: upload
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
-        with:
-          name: dist
-          path: dist/

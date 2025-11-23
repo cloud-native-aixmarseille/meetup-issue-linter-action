@@ -29,6 +29,8 @@
     "package:index": "ncc build src/index.ts -o dist --license licenses.txt",
     "package:watch": "npm run package -- --watch",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "npm run lint -- --fix",
+    "lint:ci": "npm run lint -- --output-file=eslint-report.json --format=json",
     "all": "npm run format && npm run lint && npm run test && npm run package",
     "build": "tsc --noEmit",
     "format": "prettier --cache --write '**/*.ts'",

@@ -19,6 +19,7 @@ jobs:
       contents: read
       id-token: write
       issues: write
+      packages: read
       pull-requests: write
       security-events: write
       statuses: write
