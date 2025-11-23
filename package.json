@@ -83,7 +83,7 @@
     "zod-validation-error": "^5.0.0"
   },
   "devDependencies": {
-    "@ts-dev-tools/core": "^1.9.7",
+    "@ts-dev-tools/core": "^1.9.8",
     "@vercel/ncc": "^0.38.4",
     "eslint-plugin-github": "^6.0.0",
     "eslint-plugin-jsonc": "^2.21.0",
