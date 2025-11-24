@@ -9,6 +9,9 @@ export enum InputNames {
   FailOnError = "fail-on-error",
   ShouldFix = "should-fix",
   GithubToken = "github-token",
+  GoogleCredentials = "google-credentials",
+  GoogleParentFolderId = "google-parent-folder-id",
+  GoogleTemplateFolderId = "google-template-folder-id",
 }
 
 export type SpeakerWithUrl = {
@@ -67,6 +70,24 @@ export class InputService {
 
   getGithubToken(): string {
     return this.coreService.getInput(InputNames.GithubToken, {
+      required: true,
+    });
+  }
+
+  getGoogleCredentials(): string {
+    return this.coreService.getInput(InputNames.GoogleCredentials, {
+      required: true,
+    });
+  }
+
+  getGoogleParentFolderId(): string {
+    return this.coreService.getInput(InputNames.GoogleParentFolderId, {
+      required: true,
+    });
+  }
+
+  getGoogleTemplateFolderId(): string {
+    return this.coreService.getInput(InputNames.GoogleTemplateFolderId, {
       required: true,
     });
   }
