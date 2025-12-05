@@ -83,7 +83,7 @@
     "zod-validation-error": "^5.0.0"
   },
   "devDependencies": {
-    "@ts-dev-tools/core": "^1.9.8",
+    "@ts-dev-tools/core": "^1.9.11",
     "@vercel/ncc": "^0.38.4",
     "eslint-plugin-github": "^6.0.0",
     "eslint-plugin-jsonc": "^2.21.0",
@@ -93,9 +93,7 @@
     "semi": true,
     "printWidth": 100,
     "trailingComma": "es5",
-    "plugins": [
-      "@prettier/plugin-oxc"
-    ]
+    "plugins": []
   },
   "commitlint": {
     "extends": [
@@ -114,6 +112,6 @@
     }
   },
   "tsDevTools": {
-    "version": "20250623095500-add-prettier-oxc"
+    "version": "20250623095600-remove-prettier-oxc"
   }
 }
