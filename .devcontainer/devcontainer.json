@@ -19,7 +19,10 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "me-dutour-mathieu.vscode-github-actions"
-      ]
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
     }
   }
 }
