@@ -38080,21 +38080,40 @@ var DecoratorInfoKind;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isStackOverflowError = isStackOverflowError;
+/*
+ * V8 (Chrome, Node.js, Edge, Deno): "Maximum call stack size exceeded"
+ * SpiderMonkey (Firefox): "too much recursion"
+ * JavaScriptCore (Safari): "call stack size exceeded"
+ * Chakra (IE/legacy Edge): "Out of stack space"
+ */
+const STACK_OVERFLOW_PATTERNS = /stack space|call stack|too much recursion/i;
+// SpiderMonkey throws InternalError with "too much recursion"
+const SPIDER_MONKEY_REGEXP = /too much recursion/;
 function isStackOverflowError(error) {
-    if (!(error instanceof Error)) {
-        return false;
+    try {
+        if (!(error instanceof Error)) {
+            return false;
+        }
+        return (
+        // V8 and JavaScriptCore typically throw RangeError
+        (error instanceof RangeError &&
+            STACK_OVERFLOW_PATTERNS.test(error.message)) ||
+            (error.name === 'InternalError' &&
+                SPIDER_MONKEY_REGEXP.test(error.message)));
     }
-    // V8 (Chrome, Node.js, Edge, Deno): "Maximum call stack size exceeded"
-    // SpiderMonkey (Firefox): "too much recursion"
-    // JavaScriptCore (Safari): "call stack size exceeded"
-    // Chakra (IE/legacy Edge): "Out of stack space"
-    const stackOverflowPatterns = /stack space|call stack|too much recursion/i;
-    return (
-    // V8 and JavaScriptCore typically throw RangeError
-    (error instanceof RangeError &&
-        stackOverflowPatterns.test(error.message)) ||
-        // SpiderMonkey throws InternalError with "too much recursion"
-        (error.name === 'InternalError' && /too much recursion/.test(error.message)));
+    catch (innerError) {
+        /*
+         * The following code flow can lead to a secondary stack overflow:
+         * 1. Code flow triggers infinite recursion
+         * 3. On V8, `RangeError: Maximum call stack size exceeded` is thrown
+         * 4. `isStackOverflowError(error)` is called in a catch block
+         * 5. regex.test()` is called when the call stack is nearly exhausted
+         * 6. Regex execution requires stack space, causing a secondary stack overflow
+         * 7. V8 reports this as: `SyntaxError: Invalid regular expression: ... Stack overflow`
+         */
+        return (innerError instanceof SyntaxError &&
+            innerError.message.includes('Stack overflow'));
+    }
 }
 //# sourceMappingURL=isStackOverflowError.js.map
 
@@ -38155,7 +38174,7 @@ var InversifyCoreErrorKind;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolveBindingsDeactivations = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.InversifyCoreErrorKind = exports.InversifyCoreError = exports.injectFromHierarchy = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.getBindingId = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.CacheBindingInvalidationKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
+exports.unmanaged = exports.tagged = exports.resolveServiceDeactivations = exports.resolveModuleDeactivations = exports.ResolvedValueElementMetadataKind = exports.resolveBindingsDeactivations = exports.resolve = exports.preDestroy = exports.postConstruct = exports.PlanResultCacheService = exports.plan = exports.optional = exports.named = exports.multiInject = exports.LazyPlanServiceNode = exports.InversifyCoreErrorKind = exports.InversifyCoreError = exports.injectFromHierarchy = exports.injectFromBase = exports.injectable = exports.inject = exports.getClassMetadata = exports.getBindingId = exports.decorate = exports.DeactivationsService = exports.ClassElementMetadataKind = exports.CacheBindingInvalidationKind = exports.bindingTypeValues = exports.BindingService = exports.bindingScopeValues = exports.ActivationsService = void 0;
 const getBindingId_1 = __nccwpck_require__(4470);
 Object.defineProperty(exports, "getBindingId", ({ enumerable: true, get: function () { return getBindingId_1.getBindingId; } }));
 const BindingScope_1 = __nccwpck_require__(2412);
@@ -38206,6 +38225,8 @@ const plan_1 = __nccwpck_require__(7743);
 Object.defineProperty(exports, "plan", ({ enumerable: true, get: function () { return plan_1.plan; } }));
 const CacheBindingInvalidationKind_1 = __nccwpck_require__(7344);
 Object.defineProperty(exports, "CacheBindingInvalidationKind", ({ enumerable: true, get: function () { return CacheBindingInvalidationKind_1.CacheBindingInvalidationKind; } }));
+const LazyPlanServiceNode_1 = __nccwpck_require__(1185);
+Object.defineProperty(exports, "LazyPlanServiceNode", ({ enumerable: true, get: function () { return LazyPlanServiceNode_1.LazyPlanServiceNode; } }));
 const PlanResultCacheService_1 = __nccwpck_require__(2852);
 Object.defineProperty(exports, "PlanResultCacheService", ({ enumerable: true, get: function () { return PlanResultCacheService_1.PlanResultCacheService; } }));
 const resolve_1 = __nccwpck_require__(3765);
