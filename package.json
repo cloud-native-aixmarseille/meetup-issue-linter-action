@@ -77,7 +77,7 @@
   "dependencies": {
     "@actions/core": "^2.0.1",
     "@actions/github": "^6.0.1",
-    "inversify": "^7.10.6",
+    "inversify": "^7.10.8",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.1.13",
     "zod-validation-error": "^5.0.0"
