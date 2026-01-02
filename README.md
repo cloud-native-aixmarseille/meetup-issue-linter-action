@@ -95,9 +95,10 @@ This action lint the meetup issue for required fields and format
 
 ## Outputs
 
-| **Output**        | **Description**                           |
-| ----------------- | ----------------------------------------- |
-| **`lint-issues`** | List of issues found in the meetup issue. |
+| **Output**               | **Description**                                                                                                                                                                               |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`lint-issues`**        | List of issues found in the meetup issue.                                                                                                                                                     |
+| **`valid-meetup-issue`** | JSON string containing the validated meetup issue with `number`, `title`, `parsed-body`, `labels`, resolved `hoster`, `speakers`, and Drive links (`announcement_link`, `presentation_link`). |
 
 <!-- outputs:end -->
 
