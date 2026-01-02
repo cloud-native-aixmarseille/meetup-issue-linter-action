@@ -123,7 +123,7 @@ This project is licensed under the MIT License.
 
 SPDX-License-Identifier: MIT
 
-Copyright © 2025 Cloud Native Aix-Marseille
+Copyright © 2026 Cloud Native Aix-Marseille
 
 For more details, see the [license](http://choosealicense.com/licenses/mit/).
 
