@@ -52730,7 +52730,7 @@ exports.version = void 0;
 exports.version = {
     major: 4,
     minor: 3,
-    patch: 4,
+    patch: 5,
 };
 
 
