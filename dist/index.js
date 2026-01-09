@@ -36089,24 +36089,13 @@ class BindingManager {
         await this.#unbind(identifier);
     }
     async unbindAll() {
-        const nonParentBoundServiceIds = [
-            ...this.#serviceReferenceManager.bindingService.getNonParentBoundServices(),
-        ];
-        await Promise.all(nonParentBoundServiceIds.map(async (serviceId) => (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, serviceId)));
-        /*
-         * Removing service related objects here so unbindAll is deterministic.
-         *
-         * Removing service related objects as soon as resolveModuleDeactivations takes
-         * effect leads to module deactivations not triggering previously deleted
-         * deactivations, introducing non determinism depending in the order in which
-         * services are deactivated.
-         */
-        for (const serviceId of nonParentBoundServiceIds) {
-            this.#serviceReferenceManager.activationService.removeAllByServiceId(serviceId);
-            this.#serviceReferenceManager.bindingService.removeAllByServiceId(serviceId);
-            this.#serviceReferenceManager.deactivationService.removeAllByServiceId(serviceId);
+        await this.#unbindAll();
+    }
+    unbindAllSync() {
+        const result = this.#unbindAll();
+        if (result !== undefined) {
+            throw new InversifyContainerError_1.InversifyContainerError(InversifyContainerErrorKind_1.InversifyContainerErrorKind.invalidOperation, 'Unexpected asynchronous deactivation when unbinding all services. Consider using Container.unbindAll() instead.');
         }
-        this.#serviceReferenceManager.planResultCacheService.clearCache();
     }
     unbindSync(identifier) {
         const result = this.#unbind(identifier);
@@ -36168,6 +36157,36 @@ class BindingManager {
                 });
             }
         }
+    }
+    #unbindAll() {
+        const nonParentBoundServiceIds = [
+            ...this.#serviceReferenceManager.bindingService.getNonParentBoundServices(),
+        ];
+        const deactivationResults = nonParentBoundServiceIds.map((serviceId) => (0, core_1.resolveServiceDeactivations)(this.#deactivationParams, serviceId));
+        const hasAsyncDeactivations = deactivationResults.some((result) => (0, common_1.isPromise)(result));
+        if (hasAsyncDeactivations) {
+            // eslint-disable-next-line @typescript-eslint/await-thenable
+            return Promise.all(deactivationResults).then(() => {
+                this.#clearAfterUnbindAll(nonParentBoundServiceIds);
+            });
+        }
+        this.#clearAfterUnbindAll(nonParentBoundServiceIds);
+    }
+    #clearAfterUnbindAll(serviceIds) {
+        /*
+         * Removing service related objects here so unbindAll is deterministic.
+         *
+         * Removing service related objects as soon as resolveModuleDeactivations takes
+         * effect leads to module deactivations not triggering previously deleted
+         * deactivations, introducing non determinism depending in the order in which
+         * services are deactivated.
+         */
+        for (const serviceId of serviceIds) {
+            this.#serviceReferenceManager.activationService.removeAllByServiceId(serviceId);
+            this.#serviceReferenceManager.bindingService.removeAllByServiceId(serviceId);
+            this.#serviceReferenceManager.deactivationService.removeAllByServiceId(serviceId);
+        }
+        this.#serviceReferenceManager.planResultCacheService.clearCache();
     }
     #unbindServiceIdentifier(identifier) {
         const bindingsIterable = this.#serviceReferenceManager.bindingService.get(identifier);
@@ -36315,7 +36334,10 @@ class Container {
         await this.#bindingManager.unbind(identifier);
     }
     async unbindAll() {
-        return this.#bindingManager.unbindAll();
+        await this.#bindingManager.unbindAll();
+    }
+    unbindAllSync() {
+        this.#bindingManager.unbindAllSync();
     }
     unbindSync(identifier) {
         this.#bindingManager.unbindSync(identifier);
