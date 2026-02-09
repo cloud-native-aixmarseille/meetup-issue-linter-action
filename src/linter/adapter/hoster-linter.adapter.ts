@@ -1,9 +1,9 @@
 import { inject, injectable, injectFromBase } from "inversify";
 import { string } from "zod";
-import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter";
-import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service";
-import { LintError } from "../lint.error";
-import { InputService, HosterWithUrl } from "../../services/input.service";
+import { AbstractEntityLinkLinterAdapter } from "./abstract-entity-link-linter.adapter.js";
+import { MeetupIssue, MeetupIssueService } from "../../services/meetup-issue.service.js";
+import { LintError } from "../lint.error.js";
+import { InputService, HosterWithUrl } from "../../services/input.service.js";
 
 @injectable()
 @injectFromBase({

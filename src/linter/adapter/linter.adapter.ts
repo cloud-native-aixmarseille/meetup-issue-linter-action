@@ -1,4 +1,4 @@
-import { MeetupIssue } from "../../services/meetup-issue.service";
+import { MeetupIssue } from "../../services/meetup-issue.service.js";
 
 export const LINTER_ADAPTER_IDENTIFIER = Symbol("LinterAdapter");
 

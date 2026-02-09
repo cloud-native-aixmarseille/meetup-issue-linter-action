@@ -1,7 +1,7 @@
 import { mock, MockProxy } from "jest-mock-extended";
-import { GitHubService } from "./github.service";
-import { MeetupIssueBodyFields, MeetupIssueService } from "./meetup-issue.service";
-import { getMeetupIssueFixture } from "../__fixtures__/meetup-issue.fixture";
+import { GitHubService } from "./github.service.js";
+import { MeetupIssueBodyFields, MeetupIssueService } from "./meetup-issue.service.js";
+import { getMeetupIssueFixture } from "../__fixtures__/meetup-issue.fixture.js";
 
 describe("MeetupIssueService", () => {
   let githubServiceMock: MockProxy<GitHubService>;

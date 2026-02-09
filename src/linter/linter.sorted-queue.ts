@@ -1,4 +1,4 @@
-import { LinterAdapter, LinterDependency } from "./adapter/linter.adapter";
+import { LinterAdapter, LinterDependency } from "./adapter/linter.adapter.js";
 
 type CompletedLinters = Map<LinterDependency, boolean>;
 

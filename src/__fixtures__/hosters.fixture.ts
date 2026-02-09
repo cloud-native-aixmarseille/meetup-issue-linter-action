@@ -1,4 +1,4 @@
-import { HosterWithUrl } from "../services/input.service";
+import { HosterWithUrl } from "../services/input.service.js";
 
 export function getHostersFixture(): [HosterWithUrl, ...HosterWithUrl[]] {
   return [

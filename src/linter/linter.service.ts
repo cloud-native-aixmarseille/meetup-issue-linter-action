@@ -1,8 +1,8 @@
 import { inject, injectable, multiInject } from "inversify";
-import { LINTER_ADAPTER_IDENTIFIER, LinterAdapter } from "./adapter/linter.adapter";
-import { MeetupIssue, MeetupIssueService } from "../services/meetup-issue.service";
-import { LintError } from "./lint.error";
-import { LinterSortedQueue } from "./linter.sorted-queue";
+import { LINTER_ADAPTER_IDENTIFIER, LinterAdapter } from "./adapter/linter.adapter.js";
+import { MeetupIssue, MeetupIssueService } from "../services/meetup-issue.service.js";
+import { LintError } from "./lint.error.js";
+import { LinterSortedQueue } from "./linter.sorted-queue.js";
 
 type LintResult = {
   meetupIssue: MeetupIssue;

@@ -1,5 +1,9 @@
 import { inject, injectable } from "inversify";
-import { GitHubService, UpdatableGithubIssue, UpdatableGithubIssueFields } from "./github.service";
+import {
+  GitHubService,
+  UpdatableGithubIssue,
+  UpdatableGithubIssueFields,
+} from "./github.service.js";
 
 export type MeetupIssueBodyFields = keyof MeetupIssueBody;
 

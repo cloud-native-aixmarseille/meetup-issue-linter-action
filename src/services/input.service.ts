@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { type CoreService, CORE_SERVICE_IDENTIFIER } from "./core.service";
+import { type CoreService, CORE_SERVICE_IDENTIFIER } from "./core.service.js";
 
 export enum InputNames {
   IssueNumber = "issue-number",

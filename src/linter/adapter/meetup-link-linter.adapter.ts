@@ -1,5 +1,5 @@
 import { injectable, injectFromBase } from "inversify";
-import { AbstractLinkLinterAdapter } from "./abstract-link-linter.adapter";
+import { AbstractLinkLinterAdapter } from "./abstract-link-linter.adapter.js";
 
 @injectable()
 @injectFromBase({

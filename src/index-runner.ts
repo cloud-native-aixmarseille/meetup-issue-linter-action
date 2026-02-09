@@ -1,11 +1,11 @@
 import { setFailed } from "@actions/core";
-import { InputService } from "./services/input.service";
-import { LoggerService } from "./services/logger.service";
-import { container } from "./container";
-import { LinterService } from "./linter/linter.service";
-import { MeetupIssueService } from "./services/meetup-issue.service";
-import { LintError } from "./linter/lint.error";
-import { CORE_SERVICE_IDENTIFIER, CoreService } from "./services/core.service";
+import { InputService } from "./services/input.service.js";
+import { LoggerService } from "./services/logger.service.js";
+import { container } from "./container.js";
+import { LinterService } from "./linter/linter.service.js";
+import { MeetupIssueService } from "./services/meetup-issue.service.js";
+import { LintError } from "./linter/lint.error.js";
+import { CORE_SERVICE_IDENTIFIER, CoreService } from "./services/core.service.js";
 
 /**
  * The run function for the action.

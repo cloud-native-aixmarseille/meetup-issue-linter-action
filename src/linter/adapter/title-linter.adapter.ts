@@ -1,9 +1,9 @@
 import { injectable } from "inversify";
-import { LinterAdapter } from "./linter.adapter";
-import { MeetupIssue } from "../../services/meetup-issue.service";
-import { LintError } from "../lint.error";
-import { EventTitleLinterAdapter } from "./event-title-linter.adapter";
-import { EventDateLinterAdapter } from "./event-date-linter.adapter";
+import { LinterAdapter } from "./linter.adapter.js";
+import { MeetupIssue } from "../../services/meetup-issue.service.js";
+import { LintError } from "../lint.error.js";
+import { EventTitleLinterAdapter } from "./event-title-linter.adapter.js";
+import { EventDateLinterAdapter } from "./event-date-linter.adapter.js";
 
 @injectable()
 export class TitleLinterAdapter implements LinterAdapter {

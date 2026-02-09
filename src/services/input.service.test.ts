@@ -1,6 +1,6 @@
 import { mock, MockProxy } from "jest-mock-extended";
-import { InputService, InputNames } from "./input.service";
-import { CoreService } from "./core.service";
+import { InputService, InputNames } from "./input.service.js";
+import { CoreService } from "./core.service.js";
 
 describe("InputService", () => {
   let coreServiceMock: MockProxy<CoreService>;
