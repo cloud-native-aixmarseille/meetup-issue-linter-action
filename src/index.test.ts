@@ -1,12 +1,29 @@
-import * as core from "@actions/core";
+import { jest } from "@jest/globals";
 import { mock, MockProxy } from "jest-mock-extended";
-import { container } from "./container";
-import { InputService } from "./services/input.service";
-import { CORE_SERVICE_IDENTIFIER, CoreService } from "./services/core.service";
-import { GitHubService } from "./services/github.service";
-import { getMeetupIssueFixture } from "./__fixtures__/meetup-issue.fixture";
-import { getHostersFixture } from "./__fixtures__/hosters.fixture";
-import { getSpeakersFixture } from "./__fixtures__/speakers.fixture";
+import type { InputService } from "./services/input.service.js";
+import type { CoreService } from "./services/core.service.js";
+import type { GitHubService } from "./services/github.service.js";
+
+const coreMock = {
+  setFailed: jest.fn(),
+  debug: jest.fn(),
+  info: jest.fn(),
+  warning: jest.fn(),
+  getInput: jest.fn(),
+  getBooleanInput: jest.fn(),
+  setOutput: jest.fn(),
+};
+
+await jest.unstable_mockModule("@actions/core", () => coreMock);
+
+const core = await import("@actions/core");
+const { container } = await import("./container.js");
+const { InputService } = await import("./services/input.service.js");
+const { CORE_SERVICE_IDENTIFIER } = await import("./services/core.service.js");
+const { GitHubService } = await import("./services/github.service.js");
+const { getMeetupIssueFixture } = await import("./__fixtures__/meetup-issue.fixture.js");
+const { getHostersFixture } = await import("./__fixtures__/hosters.fixture.js");
+const { getSpeakersFixture } = await import("./__fixtures__/speakers.fixture.js");
 
 describe("index", () => {
   let setFailedMock: jest.SpiedFunction<typeof core.setFailed>;
@@ -59,8 +76,7 @@ describe("index", () => {
     });
 
     // Act
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    await require("../src/index");
+    await import("../src/index.js");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Assert

@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
-import { LinterAdapter } from "./linter.adapter";
-import { MeetupIssue } from "../../services/meetup-issue.service";
-import { LintError } from "../lint.error";
+import { LinterAdapter } from "./linter.adapter.js";
+import { MeetupIssue } from "../../services/meetup-issue.service.js";
+import { LintError } from "../lint.error.js";
 
 @injectable()
 export class LabelsLinterAdapter implements LinterAdapter {

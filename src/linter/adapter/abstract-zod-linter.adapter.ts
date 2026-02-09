@@ -6,9 +6,9 @@ import {
   MeetupIssueBody,
   MeetupIssueBodyFields,
   MeetupIssueService,
-} from "../../services/meetup-issue.service";
-import { LintError } from "../lint.error";
-import { LinterAdapter } from "./linter.adapter";
+} from "../../services/meetup-issue.service.js";
+import { LintError } from "../lint.error.js";
+import { LinterAdapter } from "./linter.adapter.js";
 import { inject, injectable } from "inversify";
 
 @injectable()

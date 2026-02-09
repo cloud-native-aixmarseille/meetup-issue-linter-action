@@ -2,7 +2,7 @@ import { context, getOctokit } from "@actions/github";
 import { GitHub } from "@actions/github/lib/utils";
 import { inject, injectable } from "inversify";
 
-import { InputService } from "./input.service";
+import { InputService } from "./input.service.js";
 
 type Octokit = InstanceType<typeof GitHub>;
 

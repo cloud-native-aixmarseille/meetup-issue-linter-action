@@ -3,6 +3,7 @@
   "description": "Docker Compose Action",
   "version": "0.0.0",
   "author": "Cloud Native Aix-Marseille",
+  "type": "module",
   "private": true,
   "homepage": "https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action",
   "repository": {
@@ -34,7 +35,7 @@
     "all": "npm run format && npm run lint && npm run test && npm run package",
     "build": "tsc --noEmit",
     "format": "prettier --cache --write '**/*.ts'",
-    "jest": "jest --detectOpenHandles --forceExit",
+    "jest": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --detectOpenHandles --forceExit",
     "test": "npm run jest --maxWorkers=50%",
     "test:watch": "npm run jest --watch --maxWorkers=25%",
     "test:cov": "npm run test --coverage",
@@ -43,10 +44,13 @@
   },
   "license": "MIT",
   "jest": {
-    "preset": "ts-jest",
+    "preset": "ts-jest/presets/default-esm",
     "verbose": true,
     "clearMocks": true,
     "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
     "moduleFileExtensions": [
       "js",
       "ts"
@@ -61,7 +65,16 @@
       "/dist/"
     ],
     "transform": {
-      "^.+\\.ts$": "ts-jest"
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "useESM": true,
+          "tsconfig": "tsconfig.json"
+        }
+      ]
+    },
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "coverageReporters": [
       "json-summary",
@@ -75,8 +88,8 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^2.0.1",
-    "@actions/github": "^6.0.1",
+    "@actions/core": "^3.0.0",
+    "@actions/github": "^9.0.0",
     "inversify": "^7.11.0",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.3.6",

@@ -1,10 +1,10 @@
-import { AgendaLinterAdapter } from "./agenda-linter.adapter";
-import { LintError } from "../lint.error";
-import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture";
+import { AgendaLinterAdapter } from "./agenda-linter.adapter.js";
+import { LintError } from "../lint.error.js";
+import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
 import { MockProxy, mock } from "jest-mock-extended";
-import { InputService } from "../../services/input.service";
-import { getSpeakersFixture } from "../../__fixtures__/speakers.fixture";
-import { MeetupIssueService } from "../../services/meetup-issue.service";
+import { InputService } from "../../services/input.service.js";
+import { getSpeakersFixture } from "../../__fixtures__/speakers.fixture.js";
+import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 
 describe("AgendaLinterAdapter", () => {
   let inputServiceMock: MockProxy<InputService>;

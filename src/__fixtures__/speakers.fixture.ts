@@ -1,4 +1,4 @@
-import { SpeakerWithUrl } from "../services/input.service";
+import { SpeakerWithUrl } from "../services/input.service.js";
 
 export function getSpeakersFixture(): [SpeakerWithUrl, ...SpeakerWithUrl[]] {
   return [

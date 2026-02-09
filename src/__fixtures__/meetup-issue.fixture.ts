@@ -1,6 +1,6 @@
-import { MeetupIssue, MeetupIssueBody } from "../services/meetup-issue.service";
-import { getHostersFixture } from "./hosters.fixture";
-import { getSpeakersFixture } from "./speakers.fixture";
+import { MeetupIssue, MeetupIssueBody } from "../services/meetup-issue.service.js";
+import { getHostersFixture } from "./hosters.fixture.js";
+import { getSpeakersFixture } from "./speakers.fixture.js";
 
 export function getMeetupIssueFixture(override?: Partial<MeetupIssue>): MeetupIssue {
   const speakers = getSpeakersFixture();

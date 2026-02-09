@@ -1,6 +1,6 @@
-import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture";
-import { LabelsLinterAdapter } from "./labels-linter.adapter";
-import { LintError } from "../lint.error";
+import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
+import { LabelsLinterAdapter } from "./labels-linter.adapter.js";
+import { LintError } from "../lint.error.js";
 
 describe("LabelsLinterAdapter - lint", () => {
   let labelsLinterAdapter: LabelsLinterAdapter;

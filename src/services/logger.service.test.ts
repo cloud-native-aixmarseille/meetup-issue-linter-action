@@ -1,6 +1,6 @@
 import { mock, MockProxy } from "jest-mock-extended";
-import { CoreService } from "./core.service";
-import { LoggerService } from "./logger.service";
+import { CoreService } from "./core.service.js";
+import { LoggerService } from "./logger.service.js";
 
 describe("LoggerService", () => {
   let coreServiceMock: MockProxy<CoreService>;

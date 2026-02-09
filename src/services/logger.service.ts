@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { CORE_SERVICE_IDENTIFIER, type CoreService } from "./core.service";
+import { CORE_SERVICE_IDENTIFIER, type CoreService } from "./core.service.js";
 
 @injectable()
 export class LoggerService {

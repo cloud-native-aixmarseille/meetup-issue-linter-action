@@ -1,8 +1,8 @@
-import { CNCFLinkLinterAdapter } from "./cncf-link-linter.adapter";
-import { LintError } from "../lint.error";
-import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture";
+import { CNCFLinkLinterAdapter } from "./cncf-link-linter.adapter.js";
+import { LintError } from "../lint.error.js";
+import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
 import { MockProxy, mock } from "jest-mock-extended";
-import { MeetupIssueService } from "../../services/meetup-issue.service";
+import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 
 describe("CNCFLinkLinterAdapter", () => {
   let meetupIssueService: MockProxy<MeetupIssueService>;
