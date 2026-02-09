@@ -1,5 +1,5 @@
 import { injectable, injectFromBase } from "inversify";
-import { string } from "zod";
+import { url } from "zod";
 import { AbstractZodLinterAdapter } from "./abstract-zod-linter.adapter.js";
 
 @injectable()
@@ -11,8 +11,7 @@ export abstract class AbstractLinkLinterAdapter extends AbstractZodLinterAdapter
     const linkRegex = this.getLinkRegex();
     const errorMessage = this.getErrorMessage();
 
-    return string()
-      .url()
+    return url()
       .regex(linkRegex, {
         message: errorMessage,
       })

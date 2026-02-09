@@ -1,6 +1,6 @@
 import { LinterAdapter, LinterDependency } from "./adapter/linter.adapter.js";
 
-type CompletedLinters = Map<LinterDependency, boolean>;
+type CompletedLinters = Map<string, boolean>;
 
 export class LinterSortedQueue {
   private linters: LinterAdapter[] = [];
@@ -11,10 +11,18 @@ export class LinterSortedQueue {
     for (const linter of linters) {
       this.enqueue(linter);
     }
+
+    if (this.size() !== this.linters.length) {
+      throw new Error("Cyclic or missing dependencies detected among linters.");
+    }
   }
 
   setCompletedLinter(linter: LinterAdapter, success: boolean) {
-    this.completedLinters.set(linter.constructor as LinterDependency, success);
+    this.completedLinters.set(linter.getName(), success);
+  }
+
+  getCompletedLinters(): CompletedLinters {
+    return this.completedLinters;
   }
 
   size(): number {
@@ -46,37 +54,37 @@ export class LinterSortedQueue {
   }
 
   private sortQueue(): void {
-    const linters: Map<LinterDependency, LinterAdapter> = new Map();
-    const dependencies: Map<LinterDependency, LinterDependency[]> = new Map();
+    const linters: Map<string, LinterAdapter> = new Map();
+    const dependencies: Map<string, LinterDependency[]> = new Map();
 
     for (const linter of this.linters) {
       if (!linter) {
         continue;
       }
-      const linterKey = linter.constructor as LinterDependency;
+      const linterName = linter.getName();
       const linterDependencies = linter.getDependencies();
 
-      if (linters.has(linterKey)) {
-        throw new Error(`Linter "${linterKey.name}" already exists.`);
+      if (linters.has(linterName)) {
+        throw new Error(`Linter "${linterName}" already exists.`);
       }
 
-      linters.set(linterKey, linter);
-      dependencies.set(linterKey, linterDependencies);
+      linters.set(linterName, linter);
+      dependencies.set(linterName, linterDependencies);
     }
 
-    const visited = new Set<LinterDependency>();
+    const visited = new Set<string>();
     const result: LinterAdapter[] = [];
-    const tempMark = new Set<LinterDependency>();
+    const tempMark = new Set<string>();
 
-    const visit = (linterDependency: LinterDependency) => {
+    const visit = (linterDependency: string) => {
       if (tempMark.has(linterDependency)) {
-        throw new Error(`Circular dependency detected involving "${linterDependency.name}"`);
+        throw new Error(`Circular dependency detected involving "${linterDependency}"`);
       }
       if (!visited.has(linterDependency)) {
         tempMark.add(linterDependency);
         const deps = dependencies.get(linterDependency) || [];
         for (const dep of deps) {
-          visit(dep);
+          visit(dep.name);
         }
         tempMark.delete(linterDependency);
         visited.add(linterDependency);
@@ -95,12 +103,12 @@ export class LinterSortedQueue {
   private linterHasUnresolvedDependencies(linter: LinterAdapter): boolean {
     const dependencies = linter.getDependencies();
 
-    return dependencies.some((dependency) => !this.completedLinters.has(dependency));
+    return dependencies.some((dependency) => !this.completedLinters.has(dependency.name));
   }
 
   private linterHasFailedDependencies(linter: LinterAdapter) {
     const dependencies = linter.getDependencies();
 
-    return dependencies.some((dependency) => this.completedLinters.get(dependency) === false);
+    return dependencies.some((dependency) => this.completedLinters.get(dependency.name) === false);
   }
 }

@@ -1,35 +1,32 @@
 import { ZodType } from "zod";
 import { fromError } from "zod-validation-error";
+import { injectable } from "inversify";
+
 import {
   MEETUP_ISSUE_BODY_FIELD_LABELS,
   MeetupIssue,
   MeetupIssueBody,
   MeetupIssueBodyFields,
-  MeetupIssueService,
 } from "../../services/meetup-issue.service.js";
 import { LintError } from "../lint.error.js";
-import { LinterAdapter } from "./linter.adapter.js";
-import { inject, injectable } from "inversify";
+import { AbstractLinterAdapter } from "./abstract-linter.adapter.js";
 
 @injectable()
 export abstract class AbstractZodLinterAdapter<
   MeetupIssueBodyField extends MeetupIssueBodyFields = MeetupIssueBodyFields,
-> implements LinterAdapter
-{
-  constructor(
-    @inject(MeetupIssueService) protected readonly meetupIssueService: MeetupIssueService
-  ) {}
-
+> extends AbstractLinterAdapter {
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
     const fieldName = this.getFieldName();
     const validator = this.getValidator();
 
-    const fieldToValidate = meetupIssue.parsedBody[fieldName];
+    const fieldPath = `parsedBody.${fieldName}` as const;
 
-    const result = await validator.safeParseAsync(fieldToValidate);
+    const fieldValue = meetupIssue.parsedBody[fieldName];
+
+    const result = await validator.safeParseAsync(fieldValue);
     if (result.success) {
       if (shouldFix) {
-        this.updateMeetupIssueIfNeeded(meetupIssue, result.data);
+        meetupIssue.parsedBody[fieldName] = result.data;
       }
 
       return meetupIssue;
@@ -41,22 +38,14 @@ export abstract class AbstractZodLinterAdapter<
       .toString()
       .replace(`Validation error: `, ``)
       .split("\n")
-      .map((error) => this.getLintErrorMessage(error))
-      .filter(Boolean);
+      .map((error) => ({
+        field: fieldPath,
+        value: fieldValue,
+        message: this.getLintErrorMessage(error),
+      }))
+      .filter((issue) => Boolean(issue.message));
 
     throw new LintError(errors);
-  }
-
-  protected updateMeetupIssueIfNeeded(
-    meetupIssue: MeetupIssue,
-    data: MeetupIssueBody[MeetupIssueBodyField]
-  ): void {
-    const fieldName = this.getFieldName();
-
-    if (meetupIssue.parsedBody[fieldName] !== data) {
-      meetupIssue.parsedBody[fieldName] = data;
-      this.meetupIssueService.updateMeetupIssueBodyField(meetupIssue, fieldName);
-    }
   }
 
   protected getLintErrorMessage(message: string): string {
@@ -69,8 +58,4 @@ export abstract class AbstractZodLinterAdapter<
   protected abstract getFieldName(): MeetupIssueBodyField;
 
   protected abstract getValidator(): ZodType<MeetupIssueBody[MeetupIssueBodyField]>;
-
-  getDependencies() {
-    return [];
-  }
 }

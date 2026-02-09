@@ -49,7 +49,58 @@ jobs:
           hosters: '[{"name": "Hoster Test One", "url": "https://example.com/hoster1"}, {"name": "Hoster Test Two", "url": "https://example.com/hoster2"}]'
           speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
+          google-credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}
+          google-parent-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
+          google-template-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assert valid meetup issue output
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          VALID_MEETUP_ISSUE: ${{ steps.act.outputs.valid-meetup-issue }}
+        with:
+          script: |
+            const assert = require("node:assert/strict");
+            const raw = process.env.VALID_MEETUP_ISSUE;
+
+            assert.ok(raw, "valid-meetup-issue output is empty");
+
+            let parsed;
+            try {
+              parsed = JSON.parse(raw);
+            } catch (error) {
+              throw new Error(`valid-meetup-issue is not valid JSON: ${error}`);
+            }
+            const expectedValidMeetupIssue = {
+              number: Number(process.env.TEST_VALID_ISSUE_NUMBER),
+              title: "",
+              labels: [],
+              hoster: {
+                name: "Hoster Test One",
+                url: "https://example.com/hoster1",
+              },
+              speakers: [
+                {
+                  name: "Speaker One",
+                  url: "https://example.com/speaker1",
+                },
+                {
+                  name: "Speaker Two",
+                  url: "https://example.com/speaker2",
+                },
+              ],
+              "parsed-body": {
+              
+              },
+              "drive-files": {
+                },
+            };
+
+            assert.deepEqual(
+              parsed,
+              expectedValidMeetupIssue,
+              "valid-meetup-issue payload mismatch"
+            );
 
       - name: Assert
         run: |
@@ -98,29 +149,54 @@ jobs:
           speakers: '[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]'
           should-fix: false
           fail-on-error: false
+          google-credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}
+          google-parent-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
+          google-template-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Assert
-        run: |
-          LINT_ISSUES=$(cat <<EOF
-          ${{ steps.act.outputs.lint-issues }}
-          EOF
-          )
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          LINT_ISSUES: ${{ steps.act.outputs.lint-issues }}
+        with:
+          script: |
+            const assert = require("node:assert/strict");
+            const lintIssues = process.env.LINT_ISSUES ?? "";
 
-          EXPECTED_LINT_ISSUES=$(cat <<EOF
-          Title: Invalid, expected "[Meetup] - 2025-01-01 - Test Invalid Issue"
-          Hoster: "Wrong Hoster" is not an existing hoster
-          Event Description: Invalid input: expected string, received undefined
-          Agenda: Speaker "Wrong Speaker" is not in the list of speakers
-          Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker(s)>: <talk_description>"
-          Meetup Link: Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789
-          CNCF Link: Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event
-          Drive Link: Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j
-          Labels: Missing label(s) "hoster:confirmed"
-          EOF
-          )
+            const expected = [
+              'Title: Invalid, expected "[Meetup] - 2025-01-01 - Test Invalid Issue"',
+              'Hoster: "Wrong Hoster" is not an existing hoster',
+              'Event Description: Invalid input: expected string, received undefined',
+              'Agenda: Speaker "Wrong Speaker" is not in the list of speakers',
+              'Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker(s)>: <talk_description>"',
+              'Meetup Link: Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789',
+              'CNCF Link: Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event',
+              'Drive Link: Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j',
+              'Labels: Missing label(s) "hoster:confirmed"',
+            ].join("\n");
 
-          if ! diff --color <(echo "${LINT_ISSUES}") <(echo "${EXPECTED_LINT_ISSUES}"); then
-            echo -e "The action did not return the expected list of issues"
-            exit 1
-          fi
+            assert.ok(lintIssues, "lint-issues output is empty");
+            assert.equal(
+              lintIssues.trim(),
+              expected,
+              [
+                "The action did not return the expected list of issues",
+                "--- expected ---",
+                expected,
+                "--- received ---",
+                lintIssues,
+              ].join("\n")
+            );
+
+      - name: Assert valid meetup issue output is empty
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        env:
+          VALID_MEETUP_ISSUE: ${{ steps.act.outputs.valid-meetup-issue }}
+        with:
+          script: |
+            const assert = require("node:assert/strict");
+            assert.equal(
+              process.env.VALID_MEETUP_ISSUE ?? "",
+              "",
+              "valid-meetup-issue output should be empty when lint issues are returned"
+            );

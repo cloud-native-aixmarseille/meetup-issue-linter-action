@@ -1,12 +1,12 @@
 import { injectable } from "inversify";
-import { LinterAdapter } from "./linter.adapter.js";
+import { AbstractLinterAdapter } from "./abstract-linter.adapter.js";
 import { MeetupIssue } from "../../services/meetup-issue.service.js";
 import { LintError } from "../lint.error.js";
 import { EventTitleLinterAdapter } from "./event-title-linter.adapter.js";
 import { EventDateLinterAdapter } from "./event-date-linter.adapter.js";
 
 @injectable()
-export class TitleLinterAdapter implements LinterAdapter {
+export class TitleLinterAdapter extends AbstractLinterAdapter {
   private static TITLE_PATTERN = "[Meetup] - <date> - <title>";
 
   async lint(meetupIssue: MeetupIssue, shouldFix: boolean): Promise<MeetupIssue> {
@@ -21,7 +21,13 @@ export class TitleLinterAdapter implements LinterAdapter {
       return meetupIssue;
     }
 
-    throw new LintError([`Title: Invalid, expected "${expectedTitle}"`]);
+    throw new LintError([
+      {
+        field: "title",
+        value: meetupIssue.title,
+        message: `Title: Invalid, expected "${expectedTitle}"`,
+      },
+    ]);
   }
 
   getDependencies() {

@@ -1,17 +1,12 @@
 import { CNCFLinkLinterAdapter } from "./cncf-link-linter.adapter.js";
 import { LintError } from "../lint.error.js";
 import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
-import { MockProxy, mock } from "jest-mock-extended";
-import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 
 describe("CNCFLinkLinterAdapter", () => {
-  let meetupIssueService: MockProxy<MeetupIssueService>;
   let cncfLinkLinterAdapter: CNCFLinkLinterAdapter;
 
   beforeEach(() => {
-    meetupIssueService = mock<MeetupIssueService>();
-
-    cncfLinkLinterAdapter = new CNCFLinkLinterAdapter(meetupIssueService);
+    cncfLinkLinterAdapter = new CNCFLinkLinterAdapter();
   });
 
   describe("lint", () => {
@@ -24,7 +19,6 @@ describe("CNCFLinkLinterAdapter", () => {
       const result = await cncfLinkLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
       expect(result).toEqual(meetupIssue);
     });
 
@@ -56,8 +50,6 @@ describe("CNCFLinkLinterAdapter", () => {
       await expect(cncfLinkLinterAdapter.lint(invalidmeetupIssue, shouldFix)).rejects.toStrictEqual(
         expectedError
       );
-
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
     });
 
     it("should accept CNCF Link with trailing slash", async () => {
@@ -74,7 +66,6 @@ describe("CNCFLinkLinterAdapter", () => {
       const result = await cncfLinkLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
       expect(result).toEqual(meetupIssue);
     });
 
@@ -92,10 +83,6 @@ describe("CNCFLinkLinterAdapter", () => {
       const result = await cncfLinkLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).toHaveBeenCalledWith(
-        meetupIssue,
-        "cncf_link"
-      );
       expect(result.parsedBody.cncf_link).toBe(
         "https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event"
       );

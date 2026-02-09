@@ -4,8 +4,15 @@ import {
   UpdatableGithubIssue,
   UpdatableGithubIssueFields,
 } from "./github.service.js";
+import { HosterWithUrl, SpeakerWithUrl } from "./input.service.js";
 
 export type MeetupIssueBodyFields = keyof MeetupIssueBody;
+
+export type DriveFileKey = string;
+
+export type DriveFiles = {
+  [key: DriveFileKey]: string;
+};
 
 export type MeetupIssueBody = {
   event_date?: string;
@@ -20,10 +27,13 @@ export type MeetupIssueBody = {
 
 export type MeetupIssue = {
   number: number;
-  title: string;
+  title?: string;
   body: string;
   parsedBody: MeetupIssueBody;
   labels: string[];
+  hoster?: HosterWithUrl;
+  speakers?: SpeakerWithUrl[];
+  driveFiles?: DriveFiles;
 };
 
 export const MEETUP_ISSUE_BODY_FIELD_LABELS: Record<MeetupIssueBodyFields, string> = {
@@ -71,7 +81,7 @@ export class MeetupIssueService {
       originalValue: unknown,
       updatedValue: unknown
     ): void => {
-      if (originalValue !== updatedValue) {
+      if (!this.areValuesEqual(originalValue, updatedValue)) {
         issueFieldsToUpdate[field] = updatedValue as UpdatableGithubIssue[K];
       }
     };
@@ -118,5 +128,13 @@ export class MeetupIssueService {
     );
 
     meetupIssue.body = body;
+  }
+
+  private areValuesEqual(valueA: unknown, valueB: unknown): boolean {
+    if (Array.isArray(valueA) || Array.isArray(valueB)) {
+      return JSON.stringify(valueA) === JSON.stringify(valueB);
+    }
+
+    return valueA === valueB;
   }
 }

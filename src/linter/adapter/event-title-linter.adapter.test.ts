@@ -1,17 +1,12 @@
 import { EventTitleLinterAdapter } from "./event-title-linter.adapter.js";
 import { LintError } from "../lint.error.js";
 import { getMeetupIssueFixture } from "../../__fixtures__/meetup-issue.fixture.js";
-import { MockProxy, mock } from "jest-mock-extended";
-import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 
 describe("EventTitleLinterAdapter", () => {
-  let meetupIssueService: MockProxy<MeetupIssueService>;
   let eventTitleLinterAdapter: EventTitleLinterAdapter;
 
   beforeEach(() => {
-    meetupIssueService = mock<MeetupIssueService>();
-
-    eventTitleLinterAdapter = new EventTitleLinterAdapter(meetupIssueService);
+    eventTitleLinterAdapter = new EventTitleLinterAdapter();
   });
 
   describe("lint", () => {
@@ -24,7 +19,6 @@ describe("EventTitleLinterAdapter", () => {
       const result = await eventTitleLinterAdapter.lint(meetupIssue, shouldFix);
 
       // Assert
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
       expect(result).toEqual(meetupIssue);
     });
 
@@ -49,8 +43,6 @@ describe("EventTitleLinterAdapter", () => {
       await expect(
         eventTitleLinterAdapter.lint(invalidMeetupIssue, shouldFix)
       ).rejects.toStrictEqual(expectedError);
-
-      expect(meetupIssueService.updateMeetupIssueBodyField).not.toHaveBeenCalled();
     });
   });
 
