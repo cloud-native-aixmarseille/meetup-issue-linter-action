@@ -50838,11 +50838,9 @@ exports.$ZodRecord = core.$constructor("$ZodRecord", (inst, def) => {
                 if (keyResult instanceof Promise) {
                     throw new Error("Async schemas not supported in object keys currently");
                 }
-                // Numeric string fallback: if key failed with "expected number", retry with Number(key)
-                const checkNumericKey = typeof key === "string" &&
-                    regexes.number.test(key) &&
-                    keyResult.issues.length &&
-                    keyResult.issues.some((iss) => iss.code === "invalid_type" && iss.expected === "number");
+                // Numeric string fallback: if key is a numeric string and failed, retry with Number(key)
+                // This handles z.number(), z.literal([1, 2, 3]), and unions containing numeric literals
+                const checkNumericKey = typeof key === "string" && regexes.number.test(key) && keyResult.issues.length;
                 if (checkNumericKey) {
                     const retryResult = def.keyType._zod.run({ value: Number(key), issues: [] }, ctx);
                     if (retryResult instanceof Promise) {
@@ -51836,7 +51834,7 @@ function finalize(ctx, schema) {
                 }
             }
             // When ref was extracted to $defs, remove properties that match the definition
-            if (refSchema.$ref) {
+            if (refSchema.$ref && refSeen.def) {
                 for (const key in schema) {
                     if (key === "$ref" || key === "allOf")
                         continue;
@@ -52752,7 +52750,7 @@ exports.version = void 0;
 exports.version = {
     major: 4,
     minor: 3,
-    patch: 5,
+    patch: 6,
 };
 
 
