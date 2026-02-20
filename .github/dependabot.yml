@@ -40,8 +40,14 @@ updates:
         patterns:
           - "zod"
           - "zod-*"
-      npm-dev-dependencies:
+      npm-development-dependencies:
         dependency-type: development
+        patterns:
+          - "*"
+      npm-production-dependencies:
+        dependency-type: production
+        patterns:
+          - "*"
 
   - package-ecosystem: "devcontainers"
     open-pull-requests-limit: 20
