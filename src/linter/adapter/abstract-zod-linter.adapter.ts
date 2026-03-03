@@ -14,8 +14,7 @@ import { inject, injectable } from "inversify";
 @injectable()
 export abstract class AbstractZodLinterAdapter<
   MeetupIssueBodyField extends MeetupIssueBodyFields = MeetupIssueBodyFields,
-> implements LinterAdapter
-{
+> implements LinterAdapter {
   constructor(
     @inject(MeetupIssueService) protected readonly meetupIssueService: MeetupIssueService
   ) {}

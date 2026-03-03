@@ -31,6 +31,7 @@ define run_linter
 		-e IGNORE_GITIGNORED_FILES=true \
 		-e FILTER_REGEX_EXCLUDE=dist/**/* \
         -e VALIDATE_TYPESCRIPT_ES=false \
+        -e VALIDATE_TYPESCRIPT_PRETTIER=false \
 		$(1) \
 		-v $$VOLUME \
 		--rm \
