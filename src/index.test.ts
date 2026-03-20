@@ -31,7 +31,7 @@ describe("index", () => {
   let coreServiceMock: MockProxy<CoreService>;
   let githubServiceMock: MockProxy<GitHubService>;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
 
     setFailedMock = jest.spyOn(core, "setFailed").mockImplementation();
@@ -41,12 +41,9 @@ describe("index", () => {
 
     container.snapshot();
 
-    await container.unbind(InputService);
-    container.bind(InputService).toConstantValue(inputServiceMock);
-    await container.unbind(CORE_SERVICE_IDENTIFIER);
-    container.bind(CORE_SERVICE_IDENTIFIER).toConstantValue(coreServiceMock);
-    await container.unbind(GitHubService);
-    container.bind(GitHubService).toConstantValue(githubServiceMock);
+    container.rebind(InputService).toConstantValue(inputServiceMock);
+    container.rebind(CORE_SERVICE_IDENTIFIER).toConstantValue(coreServiceMock);
+    container.rebind(GitHubService).toConstantValue(githubServiceMock);
   });
 
   afterEach(() => {

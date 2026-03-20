@@ -30266,7 +30266,7 @@ __nccwpck_require__.d(classic_schemas_namespaceObject, {
   nullish: () => (schemas_nullish),
   number: () => (schemas_number),
   object: () => (object),
-  optional: () => (optional),
+  optional: () => (schemas_optional),
   partialRecord: () => (partialRecord),
   pipe: () => (pipe),
   prefault: () => (prefault),
@@ -33247,36 +33247,5242 @@ function getIDToken(aud) {
  */
 
 //# sourceMappingURL=core.js.map
-;// CONCATENATED MODULE: ./node_modules/@inversifyjs/common/lib/esm/index.js
-function esm_e(e){return("object"==typeof e&&null!==e||"function"==typeof e)&&"function"==typeof e.then}function esm_t(e){switch(typeof e){case"string":case"symbol":return e.toString();case"function":return e.name;default:throw new Error(`Unexpected ${typeof e} service id type`)}}const esm_n=Symbol.for("@inversifyjs/common/islazyServiceIdentifier");class r{[esm_n];#e;constructor(e){this.#e=e,this[esm_n]=!0}static is(e){return"object"==typeof e&&null!==e&&!0===e[esm_n]}unwrap(){return this.#e()}}
-//# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/common/lib/common/calculations/isPromise.js
+function isPromise(object) {
+    const isObjectOrFunction = (typeof object === 'object' && object !== null) ||
+        typeof object === 'function';
+    return (isObjectOrFunction && typeof object.then === 'function');
+}
+//# sourceMappingURL=isPromise.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/common/lib/services/calculations/stringifyServiceIdentifier.js
+function stringifyServiceIdentifier(serviceIdentifier) {
+    switch (typeof serviceIdentifier) {
+        case 'string':
+        case 'symbol':
+            return serviceIdentifier.toString();
+        case 'function':
+            return serviceIdentifier.name;
+        default:
+            throw new Error(`Unexpected ${typeof serviceIdentifier} service id type`);
+    }
+}
+//# sourceMappingURL=stringifyServiceIdentifier.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/common/lib/services/models/LazyServiceIdentifier.js
+const islazyServiceIdentifierSymbol = Symbol.for('@inversifyjs/common/islazyServiceIdentifier');
+class LazyServiceIdentifier {
+    [islazyServiceIdentifierSymbol];
+    #buildServiceId;
+    constructor(buildServiceId) {
+        this.#buildServiceId = buildServiceId;
+        this[islazyServiceIdentifierSymbol] = true;
+    }
+    static is(value) {
+        return (typeof value === 'object' &&
+            value !== null &&
+            value[islazyServiceIdentifierSymbol] === true);
+    }
+    unwrap() {
+        return this.#buildServiceId();
+    }
+}
+//# sourceMappingURL=LazyServiceIdentifier.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/common/lib/index.js
 
+
+
+
+//# sourceMappingURL=index.js.map
 // EXTERNAL MODULE: ./node_modules/reflect-metadata/ReflectLite.js
 var ReflectLite = __nccwpck_require__(4945);
-;// CONCATENATED MODULE: ./node_modules/@inversifyjs/reflect-metadata-utils/lib/esm/index.js
-function t(t){return n=>(n.push(...t),n)}function lib_esm_n(t){return n=>(n.push(t),n)}function lib_esm_e(t,n){return e=>(e[n]=t,e)}function u(){return[]}function f(){return new Map}function esm_r(){return new Set}function c(t,n,e){return Reflect.getOwnMetadata(n,t,e)}function o(t,n,e){return Reflect.getMetadata(n,t,e)}function a(t,n,e,u){Reflect.defineMetadata(n,e,t,u)}function esm_i(t,n,e,u,f){const r=u(c(t,n,f)??e());Reflect.defineMetadata(n,r,t,f)}function d(t,n,e,u,f){const r=u(o(t,n,f)??e());Reflect.defineMetadata(n,r,t,f)}function M(t){return n=>{for(const e of t)n.add(e);return n}}
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/reflect-metadata-utils/lib/reflectMetadata/utils/getOwnReflectMetadata.js
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+function getOwnReflectMetadata(target, metadataKey, propertyKey) {
+    return Reflect.getOwnMetadata(metadataKey, target, propertyKey);
+}
+//# sourceMappingURL=getOwnReflectMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/reflect-metadata-utils/lib/reflectMetadata/utils/setReflectMetadata.js
+function setReflectMetadata(target, metadataKey, metadata, propertyKey) {
+    Reflect.defineMetadata(metadataKey, metadata, target, propertyKey);
+}
+//# sourceMappingURL=setReflectMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/reflect-metadata-utils/lib/reflectMetadata/utils/updateOwnReflectMetadata.js
+
+function updateOwnReflectMetadata_updateOwnReflectMetadata(target, metadataKey, buildDefaultValue, callback, propertyKey) {
+    const metadata = getOwnReflectMetadata(target, metadataKey, propertyKey) ??
+        buildDefaultValue();
+    const updatedMetadata = callback(metadata);
+    Reflect.defineMetadata(metadataKey, updatedMetadata, target, propertyKey);
+}
+//# sourceMappingURL=updateOwnReflectMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/actions/getContainerModuleId.js
+
+const ID_METADATA = '@inversifyjs/container/bindingId';
+function getContainerModuleId() {
+    const bindingId = getOwnReflectMetadata(Object, ID_METADATA) ?? 0;
+    if (bindingId === Number.MAX_SAFE_INTEGER) {
+        setReflectMetadata(Object, ID_METADATA, Number.MIN_SAFE_INTEGER);
+    }
+    else {
+        updateOwnReflectMetadata_updateOwnReflectMetadata(Object, ID_METADATA, () => bindingId, (id) => id + 1);
+    }
+    return bindingId;
+}
+//# sourceMappingURL=getContainerModuleId.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/models/ContainerModule.js
+
+class ContainerModule {
+    #id;
+    #load;
+    constructor(load) {
+        this.#id = getContainerModuleId();
+        this.#load = load;
+    }
+    get id() {
+        return this.#id;
+    }
+    load(options) {
+        return this.#load(options);
+    }
+}
+//# sourceMappingURL=ContainerModule.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/actions/getBindingId.js
+
+const getBindingId_ID_METADATA = '@inversifyjs/container/bindingId';
+function getBindingId() {
+    const bindingId = getOwnReflectMetadata(Object, getBindingId_ID_METADATA) ?? 0;
+    if (bindingId === Number.MAX_SAFE_INTEGER) {
+        setReflectMetadata(Object, getBindingId_ID_METADATA, Number.MIN_SAFE_INTEGER);
+    }
+    else {
+        updateOwnReflectMetadata_updateOwnReflectMetadata(Object, getBindingId_ID_METADATA, () => bindingId, (id) => id + 1);
+    }
+    return bindingId;
+}
+//# sourceMappingURL=getBindingId.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/models/BindingScope.js
+const bindingScopeValues = {
+    Request: 'Request',
+    Singleton: 'Singleton',
+    Transient: 'Transient',
+};
+//# sourceMappingURL=BindingScope.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/models/BindingType.js
+const bindingTypeValues = {
+    ConstantValue: 'ConstantValue',
+    DynamicValue: 'DynamicValue',
+    Factory: 'Factory',
+    Instance: 'Instance',
+    ResolvedValue: 'ResolvedValue',
+    ServiceRedirection: 'ServiceRedirection',
+};
+//# sourceMappingURL=BindingType.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/common/calculations/chain.js
+function* chain(...iterables) {
+    for (const iterable of iterables) {
+        yield* iterable;
+    }
+}
+//# sourceMappingURL=chain.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/common/models/OneToManyMapStar.js
+const NOT_FOUND_INDEX = -1;
+/**
+ * Data structure able to efficiently manage a set of models related to a set of properties in a one to many relation.
+ */
+class OneToManyMapStar {
+    #modelToRelationMap;
+    #relationToModelsMaps;
+    #spec;
+    constructor(spec) {
+        this.#modelToRelationMap = new Map();
+        this.#relationToModelsMaps = {};
+        for (const specProperty of Reflect.ownKeys(spec)) {
+            this.#relationToModelsMaps[specProperty] = new Map();
+        }
+        this.#spec = spec;
+    }
+    add(model, relation) {
+        this.#buildOrGetModelArray(model).push(relation);
+        for (const relationKey of Reflect.ownKeys(relation)) {
+            this.#buildOrGetRelationModels(relationKey, relation[relationKey]).push(model);
+        }
+    }
+    clone() {
+        const modelToCloneModelMap = this.#buildModelToCloneModelMap();
+        const relationToCloneRelationMap = this.#buildRelationToRelationModelMap();
+        const properties = Reflect.ownKeys(this.#spec);
+        const clone = this._buildNewInstance(this.#spec);
+        this.#pushRelationEntriesIntoRelationMap(this.#modelToRelationMap, clone.#modelToRelationMap, modelToCloneModelMap, relationToCloneRelationMap);
+        for (const property of properties) {
+            this.#pushModelEntriesIntoModelMap(this.#relationToModelsMaps[property], clone.#relationToModelsMaps[property], modelToCloneModelMap);
+        }
+        return clone;
+    }
+    get(key, value) {
+        return this.#relationToModelsMaps[key].get(value);
+    }
+    getAllKeys(key) {
+        return this.#relationToModelsMaps[key].keys();
+    }
+    removeByRelation(key, value) {
+        const models = this.get(key, value);
+        if (models === undefined) {
+            return;
+        }
+        const uniqueModelsSet = new Set(models);
+        for (const model of uniqueModelsSet) {
+            const relations = this.#modelToRelationMap.get(model);
+            if (relations === undefined) {
+                throw new Error('Expecting model relation, none found');
+            }
+            for (const relation of relations) {
+                if (relation[key] === value) {
+                    this.#removeModelFromRelationMaps(model, relation);
+                }
+            }
+            this.#modelToRelationMap.delete(model);
+        }
+    }
+    _buildNewInstance(spec) {
+        return new OneToManyMapStar(spec);
+    }
+    _cloneModel(model) {
+        return model;
+    }
+    _cloneRelation(relation) {
+        return relation;
+    }
+    #buildModelToCloneModelMap() {
+        const modelToCloneModelMap = new Map();
+        for (const model of this.#modelToRelationMap.keys()) {
+            const clonedModel = this._cloneModel(model);
+            modelToCloneModelMap.set(model, clonedModel);
+        }
+        return modelToCloneModelMap;
+    }
+    #buildRelationToRelationModelMap() {
+        const relationToCloneRelationMap = new Map();
+        for (const relations of this.#modelToRelationMap.values()) {
+            for (const relation of relations) {
+                const clonedRelation = this._cloneRelation(relation);
+                relationToCloneRelationMap.set(relation, clonedRelation);
+            }
+        }
+        return relationToCloneRelationMap;
+    }
+    #buildOrGetModelArray(model) {
+        let relations = this.#modelToRelationMap.get(model);
+        if (relations === undefined) {
+            relations = [];
+            this.#modelToRelationMap.set(model, relations);
+        }
+        return relations;
+    }
+    #buildOrGetRelationModels(relationKey, relationValue) {
+        let models = this.#relationToModelsMaps[relationKey].get(relationValue);
+        if (models === undefined) {
+            models = [];
+            this.#relationToModelsMaps[relationKey].set(relationValue, models);
+        }
+        return models;
+    }
+    #getCloneModel(model, modelToCloneModelMap) {
+        const clonedModel = modelToCloneModelMap.get(model);
+        if (clonedModel === undefined) {
+            throw new Error('Expecting model to be cloned, none found');
+        }
+        return clonedModel;
+    }
+    #getCloneRelation(relation, relationToCloneRelationMap) {
+        const clonedRelation = relationToCloneRelationMap.get(relation);
+        if (clonedRelation === undefined) {
+            throw new Error('Expecting relation to be cloned, none found');
+        }
+        return clonedRelation;
+    }
+    #pushModelEntriesIntoModelMap(source, target, modelToCloneModelMap) {
+        for (const [relationValue, models] of source) {
+            const modelsClone = new Array();
+            for (const model of models) {
+                modelsClone.push(this.#getCloneModel(model, modelToCloneModelMap));
+            }
+            target.set(relationValue, modelsClone);
+        }
+    }
+    #pushRelationEntriesIntoRelationMap(source, target, modelToCloneModelMap, relationToCloneRelationMap) {
+        for (const [model, relations] of source) {
+            const relationsClone = new Array();
+            for (const relation of relations) {
+                relationsClone.push(this.#getCloneRelation(relation, relationToCloneRelationMap));
+            }
+            target.set(this.#getCloneModel(model, modelToCloneModelMap), relationsClone);
+        }
+    }
+    #removeModelFromRelationMaps(model, relation) {
+        for (const relationKey of Reflect.ownKeys(relation)) {
+            this.#removeModelFromRelationMap(model, relationKey, relation[relationKey]);
+        }
+    }
+    #removeModelFromRelationMap(model, relationKey, relationValue) {
+        const relationModels = this.#relationToModelsMaps[relationKey].get(relationValue);
+        if (relationModels !== undefined) {
+            const index = relationModels.indexOf(model);
+            if (index !== NOT_FOUND_INDEX) {
+                relationModels.splice(index, 1);
+            }
+            if (relationModels.length === 0) {
+                this.#relationToModelsMaps[relationKey].delete(relationValue);
+            }
+        }
+    }
+}
+//# sourceMappingURL=OneToManyMapStar.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/services/ActivationsService.js
+
+
+var ActivationRelationKind;
+(function (ActivationRelationKind) {
+    ActivationRelationKind["moduleId"] = "moduleId";
+    ActivationRelationKind["serviceId"] = "serviceId";
+})(ActivationRelationKind || (ActivationRelationKind = {}));
+class ActivationsService {
+    #activationMaps;
+    #getParent;
+    constructor(getParent, activationMaps) {
+        this.#activationMaps =
+            activationMaps ??
+                new OneToManyMapStar({
+                    moduleId: {
+                        isOptional: true,
+                    },
+                    serviceId: {
+                        isOptional: false,
+                    },
+                });
+        this.#getParent = getParent;
+    }
+    static build(getParent) {
+        return new ActivationsService(getParent);
+    }
+    add(activation, relation) {
+        this.#activationMaps.add(activation, relation);
+    }
+    clone() {
+        const clone = new ActivationsService(this.#getParent, this.#activationMaps.clone());
+        return clone;
+    }
+    get(serviceIdentifier) {
+        const activationIterables = [];
+        const activations = this.#activationMaps.get(ActivationRelationKind.serviceId, serviceIdentifier);
+        if (activations !== undefined) {
+            activationIterables.push(activations);
+        }
+        const parentActivations = this.#getParent()?.get(serviceIdentifier);
+        if (parentActivations !== undefined) {
+            activationIterables.push(parentActivations);
+        }
+        if (activationIterables.length === 0) {
+            return undefined;
+        }
+        return chain(...activationIterables);
+    }
+    removeAllByModuleId(moduleId) {
+        this.#activationMaps.removeByRelation(ActivationRelationKind.moduleId, moduleId);
+    }
+    removeAllByServiceId(serviceId) {
+        this.#activationMaps.removeByRelation(ActivationRelationKind.serviceId, serviceId);
+    }
+}
+//# sourceMappingURL=ActivationsService.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/reflectMetadata/data/classMetadataReflectKey.js
+const classMetadataReflectKey_classMetadataReflectKey = '@inversifyjs/core/classMetadataReflectKey';
+//# sourceMappingURL=classMetadataReflectKey.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/getDefaultClassMetadata.js
+function getDefaultClassMetadata_getDefaultClassMetadata() {
+    return {
+        constructorArguments: [],
+        lifecycle: {
+            postConstructMethodNames: new Set(),
+            preDestroyMethodNames: new Set(),
+        },
+        properties: new Map(),
+        scope: undefined,
+    };
+}
+//# sourceMappingURL=getDefaultClassMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/reflectMetadata/data/pendingClassMetadataCountReflectKey.js
+const pendingClassMetadataCountReflectKey = '@inversifyjs/core/pendingClassMetadataCountReflectKey';
+//# sourceMappingURL=pendingClassMetadataCountReflectKey.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/isPendingClassMetadata.js
+
+
+function isPendingClassMetadata(type) {
+    const pendingClassMetadataCount = getOwnReflectMetadata(type, pendingClassMetadataCountReflectKey);
+    return (pendingClassMetadataCount !== undefined && pendingClassMetadataCount !== 0);
+}
+//# sourceMappingURL=isPendingClassMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/error/models/InversifyCoreError.js
+const isAppErrorSymbol = Symbol.for('@inversifyjs/core/InversifyCoreError');
+class InversifyCoreError_InversifyCoreError extends Error {
+    [isAppErrorSymbol];
+    kind;
+    constructor(kind, message, options) {
+        super(message, options);
+        this[isAppErrorSymbol] = true;
+        this.kind = kind;
+    }
+    static is(value) {
+        return (typeof value === 'object' &&
+            value !== null &&
+            value[isAppErrorSymbol] === true);
+    }
+    static isErrorOfKind(value, kind) {
+        return InversifyCoreError_InversifyCoreError.is(value) && value.kind === kind;
+    }
+}
+//# sourceMappingURL=InversifyCoreError.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/error/models/InversifyCoreErrorKind.js
+var InversifyCoreErrorKind_InversifyCoreErrorKind;
+(function (InversifyCoreErrorKind) {
+    InversifyCoreErrorKind[InversifyCoreErrorKind["injectionDecoratorConflict"] = 0] = "injectionDecoratorConflict";
+    InversifyCoreErrorKind[InversifyCoreErrorKind["missingInjectionDecorator"] = 1] = "missingInjectionDecorator";
+    InversifyCoreErrorKind[InversifyCoreErrorKind["planning"] = 2] = "planning";
+    InversifyCoreErrorKind[InversifyCoreErrorKind["planningMaxDepthExceeded"] = 3] = "planningMaxDepthExceeded";
+    InversifyCoreErrorKind[InversifyCoreErrorKind["resolution"] = 4] = "resolution";
+    InversifyCoreErrorKind[InversifyCoreErrorKind["unknown"] = 5] = "unknown";
+})(InversifyCoreErrorKind_InversifyCoreErrorKind || (InversifyCoreErrorKind_InversifyCoreErrorKind = {}));
+//# sourceMappingURL=InversifyCoreErrorKind.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/models/MaybeClassElementMetadataKind.js
+var MaybeClassElementMetadataKind_MaybeClassElementMetadataKind;
+(function (MaybeClassElementMetadataKind) {
+    MaybeClassElementMetadataKind[MaybeClassElementMetadataKind["unknown"] = 32] = "unknown";
+})(MaybeClassElementMetadataKind_MaybeClassElementMetadataKind || (MaybeClassElementMetadataKind_MaybeClassElementMetadataKind = {}));
+//# sourceMappingURL=MaybeClassElementMetadataKind.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/throwAtInvalidClassMetadata.js
+
+
+
+function throwAtInvalidClassMetadata(type, classMetadata) {
+    const errors = [];
+    for (let i = 0; i < classMetadata.constructorArguments.length; ++i) {
+        const constructorArgument = classMetadata.constructorArguments[i];
+        if (constructorArgument === undefined ||
+            constructorArgument.kind === MaybeClassElementMetadataKind_MaybeClassElementMetadataKind.unknown) {
+            errors.push(`  - Missing or incomplete metadata for type "${type.name}" at constructor argument with index ${i.toString()}.
+Every constructor parameter must be decorated either with @inject, @multiInject or @unmanaged decorator.`);
+        }
+    }
+    for (const [propertyKey, property] of classMetadata.properties) {
+        if (property.kind === MaybeClassElementMetadataKind_MaybeClassElementMetadataKind.unknown) {
+            errors.push(`  - Missing or incomplete metadata for type "${type.name}" at property "${propertyKey.toString()}".
+This property must be decorated either with @inject or @multiInject decorator.`);
+        }
+    }
+    if (errors.length === 0) {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.unknown, `Unexpected class metadata for type "${type.name}" with uncompletion traces.
+This might be caused by one of the following reasons:
+
+1. A third party library is targeting inversify reflection metadata.
+2. A bug is causing the issue. Consider submiting an issue to fix it.`);
+    }
+    throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.missingInjectionDecorator, `Invalid class metadata at type ${type.name}:
+
+${errors.join('\n\n')}`);
+}
+//# sourceMappingURL=throwAtInvalidClassMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/validateConstructorMetadataArray.js
+
+
+function validateConstructorMetadataArray(type, value) {
+    const undefinedIndexes = [];
+    if (value.length < type.length) {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.missingInjectionDecorator, `Found unexpected missing metadata on type "${type.name}". "${type.name}" constructor requires at least ${type.length.toString()} arguments, found ${value.length.toString()} instead.
+Are you using @inject, @multiInject or @unmanaged decorators in every non optional constructor argument?
+
+If you're using typescript and want to rely on auto injection, set "emitDecoratorMetadata" compiler option to true`);
+    }
+    // Using a for loop to ensure empty values are traversed as well
+    for (let i = 0; i < value.length; ++i) {
+        const element = value[i];
+        if (element === undefined) {
+            undefinedIndexes.push(i);
+        }
+    }
+    if (undefinedIndexes.length > 0) {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.missingInjectionDecorator, `Found unexpected missing metadata on type "${type.name}" at constructor indexes "${undefinedIndexes.join('", "')}".
+
+Are you using @inject, @multiInject or @unmanaged decorators at those indexes?
+
+If you're using typescript and want to rely on auto injection, set "emitDecoratorMetadata" compiler option to true`);
+    }
+}
+//# sourceMappingURL=validateConstructorMetadataArray.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/getClassMetadata.js
+
+
+
+
+
+
+function getClassMetadata(type) {
+    const classMetadata = getOwnReflectMetadata(type, classMetadataReflectKey_classMetadataReflectKey) ??
+        getDefaultClassMetadata_getDefaultClassMetadata();
+    if (isPendingClassMetadata(type)) {
+        throwAtInvalidClassMetadata(type, classMetadata);
+    }
+    else {
+        validateConstructorMetadataArray(type, classMetadata.constructorArguments);
+        return classMetadata;
+    }
+}
+//# sourceMappingURL=getClassMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/buildInstanceBinding.js
+
+
+
+function buildInstanceBinding(autobindOptions, serviceIdentifier) {
+    const classMetadata = getClassMetadata(serviceIdentifier);
+    const scope = classMetadata.scope ?? autobindOptions.scope;
+    return {
+        cache: {
+            isRight: false,
+            value: undefined,
+        },
+        id: getBindingId(),
+        implementationType: serviceIdentifier,
+        isSatisfiedBy: () => true,
+        moduleId: undefined,
+        onActivation: undefined,
+        onDeactivation: undefined,
+        scope,
+        serviceIdentifier,
+        type: bindingTypeValues.Instance,
+    };
+}
+//# sourceMappingURL=buildInstanceBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneBindingCache.js
+function cloneBindingCache(cache) {
+    if (cache.isRight) {
+        return {
+            isRight: true,
+            value: cache.value,
+        };
+    }
+    // A left cache is not cloned, just returned
+    return cache;
+}
+//# sourceMappingURL=cloneBindingCache.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneConstantValueBinding.js
+
+/**
+ * Clones a ConstantValueBinding
+ */
+function cloneConstantValueBinding(binding) {
+    return {
+        cache: cloneBindingCache(binding.cache),
+        id: binding.id,
+        isSatisfiedBy: binding.isSatisfiedBy,
+        moduleId: binding.moduleId,
+        onActivation: binding.onActivation,
+        onDeactivation: binding.onDeactivation,
+        scope: binding.scope,
+        serviceIdentifier: binding.serviceIdentifier,
+        type: binding.type,
+        // The value is not cloned as it's a resolved value
+        value: binding.value,
+    };
+}
+//# sourceMappingURL=cloneConstantValueBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneDynamicValueBinding.js
+
+/**
+ * Clones a DynamicValueBinding
+ */
+function cloneDynamicValueBinding(binding) {
+    return {
+        cache: cloneBindingCache(binding.cache),
+        id: binding.id,
+        isSatisfiedBy: binding.isSatisfiedBy,
+        moduleId: binding.moduleId,
+        onActivation: binding.onActivation,
+        onDeactivation: binding.onDeactivation,
+        scope: binding.scope,
+        serviceIdentifier: binding.serviceIdentifier,
+        type: binding.type,
+        // The value is not cloned
+        value: binding.value,
+    };
+}
+//# sourceMappingURL=cloneDynamicValueBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneFactoryBinding.js
+
+/**
+ * Clones a FactoryBinding
+ */
+function cloneFactoryBinding(binding) {
+    return {
+        cache: cloneBindingCache(binding.cache),
+        factory: binding.factory,
+        id: binding.id,
+        isSatisfiedBy: binding.isSatisfiedBy,
+        moduleId: binding.moduleId,
+        onActivation: binding.onActivation,
+        onDeactivation: binding.onDeactivation,
+        scope: binding.scope,
+        serviceIdentifier: binding.serviceIdentifier,
+        type: binding.type,
+    };
+}
+//# sourceMappingURL=cloneFactoryBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneInstanceBinding.js
+
+/**
+ * Clones an InstanceBinding
+ */
+function cloneInstanceBinding(binding) {
+    return {
+        cache: cloneBindingCache(binding.cache),
+        id: binding.id,
+        implementationType: binding.implementationType,
+        isSatisfiedBy: binding.isSatisfiedBy,
+        moduleId: binding.moduleId,
+        onActivation: binding.onActivation,
+        onDeactivation: binding.onDeactivation,
+        scope: binding.scope,
+        serviceIdentifier: binding.serviceIdentifier,
+        type: binding.type,
+    };
+}
+//# sourceMappingURL=cloneInstanceBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneResolvedValueBinding.js
+
+/**
+ * Clones a ResolvedValueBinding
+ */
+function cloneResolvedValueBinding(binding) {
+    return {
+        cache: cloneBindingCache(binding.cache),
+        factory: binding.factory,
+        id: binding.id,
+        isSatisfiedBy: binding.isSatisfiedBy,
+        metadata: binding.metadata,
+        moduleId: binding.moduleId,
+        onActivation: binding.onActivation,
+        onDeactivation: binding.onDeactivation,
+        scope: binding.scope,
+        serviceIdentifier: binding.serviceIdentifier,
+        type: binding.type,
+    };
+}
+//# sourceMappingURL=cloneResolvedValueBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneServiceRedirectionBinding.js
+/**
+ * Clones a ServiceRedirectionBinding
+ */
+function cloneServiceRedirectionBinding(binding) {
+    return {
+        id: binding.id,
+        isSatisfiedBy: binding.isSatisfiedBy,
+        moduleId: binding.moduleId,
+        serviceIdentifier: binding.serviceIdentifier,
+        targetServiceIdentifier: binding.targetServiceIdentifier,
+        type: binding.type,
+    };
+}
+//# sourceMappingURL=cloneServiceRedirectionBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/cloneBinding.js
+
+
+
+
+
+
+
+/**
+ * Creates a deep clone of a binding.
+ *
+ * @param binding - The binding to clone
+ * @returns A clone of the binding
+ */
+function cloneBinding(binding) {
+    // Switch based on binding type to delegate to specific clone functions
+    switch (binding.type) {
+        case bindingTypeValues.ConstantValue:
+            return cloneConstantValueBinding(binding);
+        case bindingTypeValues.DynamicValue:
+            return cloneDynamicValueBinding(binding);
+        case bindingTypeValues.Factory:
+            return cloneFactoryBinding(binding);
+        case bindingTypeValues.Instance:
+            return cloneInstanceBinding(binding);
+        case bindingTypeValues.ResolvedValue:
+            return cloneResolvedValueBinding(binding);
+        case bindingTypeValues.ServiceRedirection:
+            return cloneServiceRedirectionBinding(binding);
+    }
+}
+//# sourceMappingURL=cloneBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/services/BindingService.js
+
+
+
+var BindingRelationKind;
+(function (BindingRelationKind) {
+    BindingRelationKind["id"] = "id";
+    BindingRelationKind["moduleId"] = "moduleId";
+    BindingRelationKind["serviceId"] = "serviceId";
+})(BindingRelationKind || (BindingRelationKind = {}));
+class OneToManyBindingMapStar extends OneToManyMapStar {
+    _buildNewInstance(spec) {
+        return new OneToManyBindingMapStar(spec);
+    }
+    _cloneModel(model) {
+        return cloneBinding(model);
+    }
+}
+class BindingService {
+    #autobindOptions;
+    #bindingMaps;
+    #getParent;
+    constructor(getParent, autobindOptions, bindingMaps) {
+        this.#bindingMaps =
+            bindingMaps ??
+                new OneToManyBindingMapStar({
+                    id: {
+                        isOptional: false,
+                    },
+                    moduleId: {
+                        isOptional: true,
+                    },
+                    serviceId: {
+                        isOptional: false,
+                    },
+                });
+        this.#getParent = getParent;
+        this.#autobindOptions = autobindOptions;
+    }
+    static build(getParent, autobindOptions) {
+        return new BindingService(getParent, autobindOptions);
+    }
+    clone() {
+        const clone = new BindingService(this.#getParent, this.#autobindOptions, this.#bindingMaps.clone());
+        return clone;
+    }
+    get(serviceIdentifier) {
+        const bindings = this.getNonParentBindings(serviceIdentifier) ??
+            this.#getParent()?.get(serviceIdentifier);
+        if (bindings !== undefined) {
+            return bindings;
+        }
+        const autoBoundBinding = this.#tryAutobind(serviceIdentifier);
+        return autoBoundBinding === undefined
+            ? autoBoundBinding
+            : [autoBoundBinding];
+    }
+    *getChained(serviceIdentifier) {
+        const currentBindings = this.getNonParentBindings(serviceIdentifier);
+        if (currentBindings !== undefined) {
+            yield* currentBindings;
+        }
+        const parent = this.#getParent();
+        if (parent === undefined) {
+            if (currentBindings === undefined) {
+                const autobindBindings = this.#tryAutobind(serviceIdentifier);
+                if (autobindBindings !== undefined) {
+                    yield autobindBindings;
+                }
+            }
+        }
+        else {
+            yield* parent.getChained(serviceIdentifier);
+        }
+    }
+    getBoundServices() {
+        const serviceIdentifierSet = new Set(this.#bindingMaps.getAllKeys(BindingRelationKind.serviceId));
+        const parent = this.#getParent();
+        if (parent !== undefined) {
+            for (const serviceIdentifier of parent.getBoundServices()) {
+                serviceIdentifierSet.add(serviceIdentifier);
+            }
+        }
+        return serviceIdentifierSet;
+    }
+    getById(id) {
+        return (this.#bindingMaps.get(BindingRelationKind.id, id) ?? this.#getParent()?.getById(id));
+    }
+    getByModuleId(moduleId) {
+        return (this.#bindingMaps.get(BindingRelationKind.moduleId, moduleId) ?? this.#getParent()?.getByModuleId(moduleId));
+    }
+    getNonParentBindings(serviceId) {
+        return this.#bindingMaps.get(BindingRelationKind.serviceId, serviceId);
+    }
+    getNonParentBoundServices() {
+        return this.#bindingMaps.getAllKeys(BindingRelationKind.serviceId);
+    }
+    removeById(id) {
+        this.#bindingMaps.removeByRelation(BindingRelationKind.id, id);
+    }
+    removeAllByModuleId(moduleId) {
+        this.#bindingMaps.removeByRelation(BindingRelationKind.moduleId, moduleId);
+    }
+    removeAllByServiceId(serviceId) {
+        this.#bindingMaps.removeByRelation(BindingRelationKind.serviceId, serviceId);
+    }
+    set(binding) {
+        const relation = {
+            [BindingRelationKind.id]: binding.id,
+            [BindingRelationKind.serviceId]: binding.serviceIdentifier,
+        };
+        if (binding.moduleId !== undefined) {
+            relation[BindingRelationKind.moduleId] = binding.moduleId;
+        }
+        this.#bindingMaps.add(binding, relation);
+    }
+    #tryAutobind(serviceIdentifier) {
+        if (this.#autobindOptions === undefined ||
+            typeof serviceIdentifier !== 'function') {
+            return undefined;
+        }
+        const binding = buildInstanceBinding(this.#autobindOptions, serviceIdentifier);
+        this.set(binding);
+        return binding;
+    }
+}
+//# sourceMappingURL=BindingService.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/services/DeactivationsService.js
+
+
+var DeactivationRelationKind;
+(function (DeactivationRelationKind) {
+    DeactivationRelationKind["moduleId"] = "moduleId";
+    DeactivationRelationKind["serviceId"] = "serviceId";
+})(DeactivationRelationKind || (DeactivationRelationKind = {}));
+class DeactivationsService {
+    #deactivationMaps;
+    #getParent;
+    constructor(getParent, deactivationMaps) {
+        this.#deactivationMaps =
+            deactivationMaps ??
+                new OneToManyMapStar({
+                    moduleId: {
+                        isOptional: true,
+                    },
+                    serviceId: {
+                        isOptional: false,
+                    },
+                });
+        this.#getParent = getParent;
+    }
+    static build(getParent) {
+        return new DeactivationsService(getParent);
+    }
+    add(deactivation, relation) {
+        this.#deactivationMaps.add(deactivation, relation);
+    }
+    clone() {
+        const clone = new DeactivationsService(this.#getParent, this.#deactivationMaps.clone());
+        return clone;
+    }
+    get(serviceIdentifier) {
+        const deactivationIterables = [];
+        const deactivations = this.#deactivationMaps.get(DeactivationRelationKind.serviceId, serviceIdentifier);
+        if (deactivations !== undefined) {
+            deactivationIterables.push(deactivations);
+        }
+        const parentDeactivations = this.#getParent()?.get(serviceIdentifier);
+        if (parentDeactivations !== undefined) {
+            deactivationIterables.push(parentDeactivations);
+        }
+        if (deactivationIterables.length === 0) {
+            return undefined;
+        }
+        return chain(...deactivationIterables);
+    }
+    removeAllByModuleId(moduleId) {
+        this.#deactivationMaps.removeByRelation(DeactivationRelationKind.moduleId, moduleId);
+    }
+    removeAllByServiceId(serviceId) {
+        this.#deactivationMaps.removeByRelation(DeactivationRelationKind.serviceId, serviceId);
+    }
+}
+//# sourceMappingURL=DeactivationsService.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/getDefaultPendingClassMetadataCount.js
+function getDefaultPendingClassMetadataCount() {
+    return 0;
+}
+//# sourceMappingURL=getDefaultPendingClassMetadataCount.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/decrementPendingClassMetadataCount.js
+
+
+
+
+function decrementPendingClassMetadataCount(type) {
+    return (metadata) => {
+        if (metadata !== undefined &&
+            metadata.kind === MaybeClassElementMetadataKind_MaybeClassElementMetadataKind.unknown) {
+            updateOwnReflectMetadata_updateOwnReflectMetadata(type, pendingClassMetadataCountReflectKey, getDefaultPendingClassMetadataCount, (count) => count - 1);
+        }
+    };
+}
+//# sourceMappingURL=decrementPendingClassMetadataCount.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/models/ClassElementMetadataKind.js
+var ClassElementMetadataKind_ClassElementMetadataKind;
+(function (ClassElementMetadataKind) {
+    ClassElementMetadataKind[ClassElementMetadataKind["multipleInjection"] = 0] = "multipleInjection";
+    ClassElementMetadataKind[ClassElementMetadataKind["singleInjection"] = 1] = "singleInjection";
+    ClassElementMetadataKind[ClassElementMetadataKind["unmanaged"] = 2] = "unmanaged";
+})(ClassElementMetadataKind_ClassElementMetadataKind || (ClassElementMetadataKind_ClassElementMetadataKind = {}));
+//# sourceMappingURL=ClassElementMetadataKind.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildClassElementMetadataFromMaybeClassElementMetadata.js
+
+
+
+function buildClassElementMetadataFromMaybeClassElementMetadata(buildDefaultMetadata, buildMetadataFromMaybeManagedMetadata) {
+    return (...params) => (metadata) => {
+        if (metadata === undefined) {
+            return buildDefaultMetadata(...params);
+        }
+        if (metadata.kind === ClassElementMetadataKind_ClassElementMetadataKind.unmanaged) {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected injection found. Multiple @inject, @multiInject or @unmanaged decorators found');
+        }
+        return buildMetadataFromMaybeManagedMetadata(metadata, ...params);
+    };
+}
+//# sourceMappingURL=buildClassElementMetadataFromMaybeClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildDefaultManagedMetadata.js
+
+function buildDefaultManagedMetadata(kind, serviceIdentifier, options) {
+    if (kind === ClassElementMetadataKind_ClassElementMetadataKind.multipleInjection) {
+        return {
+            chained: options?.chained ?? false,
+            kind,
+            name: undefined,
+            optional: false,
+            tags: new Map(),
+            value: serviceIdentifier,
+        };
+    }
+    else {
+        return {
+            kind,
+            name: undefined,
+            optional: false,
+            tags: new Map(),
+            value: serviceIdentifier,
+        };
+    }
+}
+//# sourceMappingURL=buildDefaultManagedMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/assertMetadataFromTypescriptIfManaged.js
+
+
+
+function assertMetadataFromTypescriptIfManaged(metadata) {
+    if (metadata.kind !== MaybeClassElementMetadataKind_MaybeClassElementMetadataKind.unknown &&
+        metadata.isFromTypescriptParamType !== true) {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected injection found. Multiple @inject, @multiInject or @unmanaged decorators found');
+    }
+}
+//# sourceMappingURL=assertMetadataFromTypescriptIfManaged.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildManagedMetadataFromMaybeManagedMetadata.js
+
+
+function buildManagedMetadataFromMaybeManagedMetadata(metadata, kind, serviceIdentifier, options) {
+    assertMetadataFromTypescriptIfManaged(metadata);
+    if (kind === ClassElementMetadataKind_ClassElementMetadataKind.multipleInjection) {
+        return {
+            ...metadata,
+            chained: options?.chained ?? false,
+            kind,
+            value: serviceIdentifier,
+        };
+    }
+    else {
+        return {
+            ...metadata,
+            kind,
+            value: serviceIdentifier,
+        };
+    }
+}
+//# sourceMappingURL=buildManagedMetadataFromMaybeManagedMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildManagedMetadataFromMaybeClassElementMetadata.js
+
+
+
+const buildManagedMetadataFromMaybeClassElementMetadata = buildClassElementMetadataFromMaybeClassElementMetadata(buildDefaultManagedMetadata, buildManagedMetadataFromMaybeManagedMetadata);
+//# sourceMappingURL=buildManagedMetadataFromMaybeClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateMaybeClassMetadataConstructorArgument.js
+function updateMaybeClassMetadataConstructorArgument(updateMetadata, index) {
+    return (classMetadata) => {
+        const propertyMetadata = classMetadata.constructorArguments[index];
+        classMetadata.constructorArguments[index] =
+            updateMetadata(propertyMetadata);
+        return classMetadata;
+    };
+}
+//# sourceMappingURL=updateMaybeClassMetadataConstructorArgument.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateMaybeClassMetadataProperty.js
+function updateMaybeClassMetadataProperty(updateMetadata, propertyKey) {
+    return (classMetadata) => {
+        const propertyMetadata = classMetadata.properties.get(propertyKey);
+        classMetadata.properties.set(propertyKey, updateMetadata(propertyMetadata));
+        return classMetadata;
+    };
+}
+//# sourceMappingURL=updateMaybeClassMetadataProperty.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/decorator/models/DecoratorInfoKind.js
+var DecoratorInfoKind;
+(function (DecoratorInfoKind) {
+    DecoratorInfoKind[DecoratorInfoKind["method"] = 0] = "method";
+    DecoratorInfoKind[DecoratorInfoKind["parameter"] = 1] = "parameter";
+    DecoratorInfoKind[DecoratorInfoKind["property"] = 2] = "property";
+})(DecoratorInfoKind || (DecoratorInfoKind = {}));
+//# sourceMappingURL=DecoratorInfoKind.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/decorator/calculations/getDecoratorInfo.js
+
+
+
+function getDecoratorInfo(target, propertyKey, parameterIndexOrDescriptor) {
+    if (parameterIndexOrDescriptor === undefined) {
+        if (propertyKey === undefined) {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.unknown, 'Unexpected undefined property and index values');
+        }
+        return {
+            kind: DecoratorInfoKind.property,
+            property: propertyKey,
+            targetClass: target.constructor,
+        };
+    }
+    if (typeof parameterIndexOrDescriptor === 'number') {
+        return {
+            index: parameterIndexOrDescriptor,
+            kind: DecoratorInfoKind.parameter,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+            targetClass: target,
+        };
+    }
+    return {
+        kind: DecoratorInfoKind.method,
+        method: propertyKey,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+        targetClass: target,
+    };
+}
+//# sourceMappingURL=getDecoratorInfo.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/decorator/calculations/stringifyDecoratorInfo.js
+
+function stringifyDecoratorInfo(decoratorTargetInfo) {
+    switch (decoratorTargetInfo.kind) {
+        case DecoratorInfoKind.method:
+            return `[class: "${decoratorTargetInfo.targetClass.name}", method: "${decoratorTargetInfo.method.toString()}"]`;
+        case DecoratorInfoKind.parameter:
+            return `[class: "${decoratorTargetInfo.targetClass.name}", index: "${decoratorTargetInfo.index.toString()}"]`;
+        case DecoratorInfoKind.property:
+            return `[class: "${decoratorTargetInfo.targetClass.name}", property: "${decoratorTargetInfo.property.toString()}"]`;
+    }
+}
+//# sourceMappingURL=stringifyDecoratorInfo.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/handleInjectionError.js
+
+
+
+
+function handleInjectionError_handleInjectionError(target, propertyKey, parameterIndex, error) {
+    if (InversifyCoreError_InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict)) {
+        const info = getDecoratorInfo(target, propertyKey, parameterIndex);
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, `Unexpected injection error.
+
+Cause:
+
+${error.message}
+
+Details
+
+${stringifyDecoratorInfo(info)}`, { cause: error });
+    }
+    throw error;
+}
+//# sourceMappingURL=handleInjectionError.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/injectBase.js
+
+
+
+
+
+
+
+
+function injectBase_injectBase(updateMetadata, updatePendingClassMetadataCount) {
+    const decorator = (target, propertyKey, parameterIndexOrDescriptor) => {
+        try {
+            if (parameterIndexOrDescriptor === undefined) {
+                injectProperty(updateMetadata, updatePendingClassMetadataCount)(target, propertyKey);
+            }
+            else {
+                if (typeof parameterIndexOrDescriptor === 'number') {
+                    injectParameter(updateMetadata, updatePendingClassMetadataCount)(target, propertyKey, parameterIndexOrDescriptor);
+                }
+                else {
+                    injectMethod(updateMetadata, updatePendingClassMetadataCount)(target, propertyKey, parameterIndexOrDescriptor);
+                }
+            }
+        }
+        catch (error) {
+            handleInjectionError_handleInjectionError(target, propertyKey, parameterIndexOrDescriptor, error);
+        }
+    };
+    return decorator;
+}
+function buildComposedUpdateMetadata(updateMetadata, updatePendingClassMetadataCount) {
+    return (target) => {
+        const updateTargetPendingClassMetadataCount = updatePendingClassMetadataCount(target);
+        return (metadata) => {
+            updateTargetPendingClassMetadataCount(metadata);
+            return updateMetadata(metadata);
+        };
+    };
+}
+function injectMethod(updateMetadata, updatePendingClassMetadataCount) {
+    const buildComposedUpdateMetadataFromTarget = buildComposedUpdateMetadata(updateMetadata, updatePendingClassMetadataCount);
+    return (target, propertyKey, descriptor) => {
+        if (isPropertySetter(descriptor)) {
+            updateOwnReflectMetadata_updateOwnReflectMetadata(target.constructor, classMetadataReflectKey_classMetadataReflectKey, getDefaultClassMetadata_getDefaultClassMetadata, updateMaybeClassMetadataProperty(buildComposedUpdateMetadataFromTarget(target), propertyKey));
+        }
+        else {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, `Found an @inject decorator in a non setter property method.
+Found @inject decorator at method "${propertyKey.toString()}" at class "${target.constructor.name}"`);
+        }
+    };
+}
+function injectParameter(updateMetadata, updatePendingClassMetadataCount) {
+    const buildComposedUpdateMetadataFromTarget = buildComposedUpdateMetadata(updateMetadata, updatePendingClassMetadataCount);
+    return (target, propertyKey, parameterIndex) => {
+        if (isConstructorParameter(target, propertyKey)) {
+            updateOwnReflectMetadata_updateOwnReflectMetadata(target, classMetadataReflectKey_classMetadataReflectKey, getDefaultClassMetadata_getDefaultClassMetadata, updateMaybeClassMetadataConstructorArgument(buildComposedUpdateMetadataFromTarget(target), parameterIndex));
+        }
+        else {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, `Found an @inject decorator in a non constructor parameter.
+Found @inject decorator at method "${propertyKey?.toString() ?? ''}" at class "${target.constructor.name}"`);
+        }
+    };
+}
+function injectProperty(updateMetadata, updatePendingClassMetadataCount) {
+    const buildComposedUpdateMetadataFromTarget = buildComposedUpdateMetadata(updateMetadata, updatePendingClassMetadataCount);
+    return (target, propertyKey) => {
+        updateOwnReflectMetadata_updateOwnReflectMetadata(target.constructor, classMetadataReflectKey_classMetadataReflectKey, getDefaultClassMetadata_getDefaultClassMetadata, updateMaybeClassMetadataProperty(buildComposedUpdateMetadataFromTarget(target), propertyKey));
+    };
+}
+function isConstructorParameter(target, propertyKey) {
+    return typeof target === 'function' && propertyKey === undefined;
+}
+function isPropertySetter(descriptor) {
+    return descriptor.set !== undefined;
+}
+//# sourceMappingURL=injectBase.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/inject.js
+
+
+
+
+function inject(serviceIdentifier) {
+    const updateMetadata = buildManagedMetadataFromMaybeClassElementMetadata(ClassElementMetadataKind_ClassElementMetadataKind.singleInjection, serviceIdentifier);
+    return injectBase_injectBase(updateMetadata, decrementPendingClassMetadataCount);
+}
+//# sourceMappingURL=inject.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/reflectMetadata/data/classIsInjectableFlagReflectKey.js
+const classIsInjectableFlagReflectKey = '@inversifyjs/core/classIsInjectableFlagReflectKey';
+//# sourceMappingURL=classIsInjectableFlagReflectKey.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/setIsInjectableFlag.js
+
+
+
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+function setIsInjectableFlag(target) {
+    const isInjectableFlag = getOwnReflectMetadata(target, classIsInjectableFlagReflectKey);
+    if (isInjectableFlag !== undefined) {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, `Cannot apply @injectable decorator multiple times at class "${target.name}"`);
+    }
+    setReflectMetadata(target, classIsInjectableFlagReflectKey, true);
+}
+//# sourceMappingURL=setIsInjectableFlag.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/reflectMetadata/data/typescriptDesignParameterTypesReflectKey.js
+const typescriptParameterTypesReflectKey = 'design:paramtypes';
+//# sourceMappingURL=typescriptDesignParameterTypesReflectKey.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildClassElementMetadataFromTypescriptParameterType.js
+
+function buildClassElementMetadataFromTypescriptParameterType(type) {
+    return {
+        isFromTypescriptParamType: true,
+        kind: ClassElementMetadataKind_ClassElementMetadataKind.singleInjection,
+        name: undefined,
+        optional: false,
+        tags: new Map(),
+        value: type,
+    };
+}
+//# sourceMappingURL=buildClassElementMetadataFromTypescriptParameterType.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/isUserlandEmittedType.js
+const NON_USERLAND_TYPES = [
+    Array,
+    BigInt,
+    Boolean,
+    Function,
+    Number,
+    Object,
+    String,
+];
+function isUserlandEmittedType(type) {
+    return !NON_USERLAND_TYPES.includes(type);
+}
+//# sourceMappingURL=isUserlandEmittedType.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateClassMetadataWithTypescriptParameterTypes.js
+
+
+
+
+
+
+function updateClassMetadataWithTypescriptParameterTypes(target) {
+    const typescriptConstructorArguments = getOwnReflectMetadata(target, typescriptParameterTypesReflectKey);
+    if (typescriptConstructorArguments !== undefined) {
+        updateOwnReflectMetadata_updateOwnReflectMetadata(target, classMetadataReflectKey_classMetadataReflectKey, getDefaultClassMetadata_getDefaultClassMetadata, updateMaybeClassMetadataWithTypescriptClassMetadata(typescriptConstructorArguments));
+    }
+}
+function updateMaybeClassMetadataWithTypescriptClassMetadata(typescriptConstructorArguments) {
+    return (classMetadata) => {
+        typescriptConstructorArguments.forEach((constructorArgumentType, index) => {
+            if (classMetadata.constructorArguments[index] === undefined &&
+                isUserlandEmittedType(constructorArgumentType)) {
+                classMetadata.constructorArguments[index] =
+                    buildClassElementMetadataFromTypescriptParameterType(constructorArgumentType);
+            }
+        });
+        return classMetadata;
+    };
+}
+//# sourceMappingURL=updateClassMetadataWithTypescriptParameterTypes.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/injectable.js
+
+
+
+
+
+function injectable(scope) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    return (target) => {
+        setIsInjectableFlag(target);
+        updateClassMetadataWithTypescriptParameterTypes(target);
+        if (scope !== undefined) {
+            updateOwnReflectMetadata_updateOwnReflectMetadata(target, classMetadataReflectKey_classMetadataReflectKey, getDefaultClassMetadata_getDefaultClassMetadata, (metadata) => ({
+                ...metadata,
+                scope,
+            }));
+        }
+    };
+}
+//# sourceMappingURL=injectable.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/prototype-utils/lib/prototype/calculations/getBaseType.js
+function getBaseType_getBaseType(type) {
+    const prototype = Object.getPrototypeOf(type.prototype);
+    const baseType = prototype?.constructor;
+    return baseType;
+}
+//# sourceMappingURL=getBaseType.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/getExtendedConstructorArguments.js
+function getExtendedConstructorArguments(options, baseTypeClassMetadata, typeMetadata) {
+    const extendConstructorArguments = options.extendConstructorArguments ?? true;
+    let extendedConstructorArguments;
+    if (extendConstructorArguments) {
+        extendedConstructorArguments = [
+            ...baseTypeClassMetadata.constructorArguments,
+        ];
+        typeMetadata.constructorArguments.map((classElementMetadata, index) => {
+            extendedConstructorArguments[index] = classElementMetadata;
+        });
+    }
+    else {
+        extendedConstructorArguments = typeMetadata.constructorArguments;
+    }
+    return extendedConstructorArguments;
+}
+//# sourceMappingURL=getExtendedConstructorArguments.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/getExtendedLifecycle.js
+function getLifecycleSetUnion(extend, baseSet, currentSet) {
+    if (extend) {
+        return new Set([...baseSet, ...currentSet]);
+    }
+    return currentSet;
+}
+function getExtendedLifecycle(options, baseTypeClassMetadata, typeMetadata) {
+    const extendPostConstructMethods = options.lifecycle?.extendPostConstructMethods ?? true;
+    const extendPreDestroyMethods = options.lifecycle?.extendPreDestroyMethods ?? true;
+    const preDestroyMethodNames = getLifecycleSetUnion(extendPreDestroyMethods, baseTypeClassMetadata.lifecycle.preDestroyMethodNames, typeMetadata.lifecycle.preDestroyMethodNames);
+    const postConstructMethodNames = getLifecycleSetUnion(extendPostConstructMethods, baseTypeClassMetadata.lifecycle.postConstructMethodNames, typeMetadata.lifecycle.postConstructMethodNames);
+    return {
+        postConstructMethodNames,
+        preDestroyMethodNames,
+    };
+}
+//# sourceMappingURL=getExtendedLifecycle.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/getExtendedProperties.js
+
+function getExtendedProperties(options, baseTypeClassMetadata, typeMetadata) {
+    const extendProperties = options.extendProperties ?? true;
+    let extendedProperties;
+    if (extendProperties) {
+        extendedProperties = new Map(chain(baseTypeClassMetadata.properties, typeMetadata.properties));
+    }
+    else {
+        extendedProperties = typeMetadata.properties;
+    }
+    return extendedProperties;
+}
+//# sourceMappingURL=getExtendedProperties.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/injectFrom.js
+
+
+
+
+
+
+
+function injectFrom_injectFrom(options) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    const decorator = (target) => {
+        const baseTypeClassMetadata = getClassMetadata(options.type);
+        updateOwnReflectMetadata_updateOwnReflectMetadata(target, classMetadataReflectKey_classMetadataReflectKey, getDefaultClassMetadata_getDefaultClassMetadata, composeUpdateReflectMetadataCallback(options, baseTypeClassMetadata));
+    };
+    return decorator;
+}
+function composeUpdateReflectMetadataCallback(options, baseTypeClassMetadata) {
+    const callback = (typeMetadata) => ({
+        constructorArguments: getExtendedConstructorArguments(options, baseTypeClassMetadata, typeMetadata),
+        lifecycle: getExtendedLifecycle(options, baseTypeClassMetadata, typeMetadata),
+        properties: getExtendedProperties(options, baseTypeClassMetadata, typeMetadata),
+        scope: typeMetadata.scope,
+    });
+    return callback;
+}
+//# sourceMappingURL=injectFrom.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/injectFromBase.js
+
+
+
+
+function injectFromBase(options) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    return (target) => {
+        const baseType = getBaseType_getBaseType(target);
+        if (baseType === undefined) {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, `Expected base type for type "${target.name}", none found.`);
+        }
+        injectFrom_injectFrom({
+            ...options,
+            type: baseType,
+        })(target);
+    };
+}
+//# sourceMappingURL=injectFromBase.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/injectFromHierarchy.js
+
+
+function injectFromHierarchy(options) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    return (target) => {
+        const chain = [];
+        let current = getBaseType(target);
+        while (current !== undefined && current !== Object) {
+            const ancestor = current;
+            chain.push(ancestor);
+            current = getBaseType(ancestor);
+        }
+        chain.reverse();
+        for (const type of chain) {
+            injectFrom({ ...options, type })(target);
+        }
+    };
+}
+//# sourceMappingURL=injectFromHierarchy.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/multiInject.js
+
+
+
+
+function multiInject(serviceIdentifier, options) {
+    const updateMetadata = buildManagedMetadataFromMaybeClassElementMetadata(ClassElementMetadataKind_ClassElementMetadataKind.multipleInjection, serviceIdentifier, options);
+    return injectBase_injectBase(updateMetadata, decrementPendingClassMetadataCount);
+}
+//# sourceMappingURL=multiInject.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateMetadataName.js
+
+
+function updateMetadataName_updateMetadataName(name) {
+    return (metadata) => {
+        if (metadata.name !== undefined) {
+            throw new InversifyCoreError(InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected duplicated named decorator');
+        }
+        metadata.name = name;
+        return metadata;
+    };
+}
+//# sourceMappingURL=updateMetadataName.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildDefaultMaybeClassElementMetadata.js
+
+function buildDefaultMaybeClassElementMetadata_buildDefaultMaybeClassElementMetadata() {
+    return {
+        kind: MaybeClassElementMetadataKind.unknown,
+        name: undefined,
+        optional: false,
+        tags: new Map(),
+    };
+}
+//# sourceMappingURL=buildDefaultMaybeClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildMaybeClassElementMetadataFromMaybeClassElementMetadata.js
+
+
+
+
+function buildMaybeClassElementMetadataFromMaybeClassElementMetadata_buildMaybeClassElementMetadataFromMaybeClassElementMetadata(updateMetadata) {
+    return (metadata) => {
+        const definedMetadata = metadata ?? buildDefaultMaybeClassElementMetadata();
+        switch (definedMetadata.kind) {
+            case ClassElementMetadataKind.unmanaged:
+                throw new InversifyCoreError(InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected injection found. Found @unmanaged injection with additional @named, @optional, @tagged or @targetName injections');
+            default:
+                return updateMetadata(definedMetadata);
+        }
+    };
+}
+//# sourceMappingURL=buildMaybeClassElementMetadataFromMaybeClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/named.js
+
+
+
+
+function named(name) {
+    const updateMetadata = buildMaybeClassElementMetadataFromMaybeClassElementMetadata(updateMetadataName(name));
+    return injectBase(updateMetadata, incrementPendingClassMetadataCount);
+}
+//# sourceMappingURL=named.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateMetadataOptional.js
+
+
+function updateMetadataOptional_updateMetadataOptional(metadata) {
+    if (metadata.optional) {
+        throw new InversifyCoreError(InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected duplicated optional decorator');
+    }
+    metadata.optional = true;
+    return metadata;
+}
+//# sourceMappingURL=updateMetadataOptional.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/optional.js
+
+
+
+
+function optional() {
+    const updateMetadata = buildMaybeClassElementMetadataFromMaybeClassElementMetadata(updateMetadataOptional);
+    return injectBase(updateMetadata, incrementPendingClassMetadataCount);
+}
+//# sourceMappingURL=optional.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateMaybeClassMetadataPostConstructor.js
+
+
+function updateMaybeClassMetadataPostConstructor_updateMaybeClassMetadataPostConstructor(methodName) {
+    return (metadata) => {
+        if (metadata.lifecycle.postConstructMethodNames.has(methodName)) {
+            throw new InversifyCoreError(InversifyCoreErrorKind.injectionDecoratorConflict, `Unexpected duplicated postConstruct method ${methodName.toString()}`);
+        }
+        metadata.lifecycle.postConstructMethodNames.add(methodName);
+        return metadata;
+    };
+}
+//# sourceMappingURL=updateMaybeClassMetadataPostConstructor.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/postConstruct.js
+
+
+
+
+
+function postConstruct() {
+    return (target, propertyKey, _descriptor) => {
+        try {
+            updateOwnReflectMetadata(target.constructor, classMetadataReflectKey, getDefaultClassMetadata, updateMaybeClassMetadataPostConstructor(propertyKey));
+        }
+        catch (error) {
+            handleInjectionError(target, propertyKey, undefined, error);
+        }
+    };
+}
+//# sourceMappingURL=postConstruct.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateMaybeClassMetadataPreDestroy.js
+
+
+function updateMaybeClassMetadataPreDestroy_updateMaybeClassMetadataPreDestroy(methodName) {
+    return (metadata) => {
+        if (metadata.lifecycle.preDestroyMethodNames.has(methodName)) {
+            throw new InversifyCoreError(InversifyCoreErrorKind.injectionDecoratorConflict, `Unexpected duplicated preDestroy method ${methodName.toString()}`);
+        }
+        metadata.lifecycle.preDestroyMethodNames.add(methodName);
+        return metadata;
+    };
+}
+//# sourceMappingURL=updateMaybeClassMetadataPreDestroy.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/preDestroy.js
+
+
+
+
+
+function preDestroy() {
+    return (target, propertyKey, _descriptor) => {
+        try {
+            updateOwnReflectMetadata(target.constructor, classMetadataReflectKey, getDefaultClassMetadata, updateMaybeClassMetadataPreDestroy(propertyKey));
+        }
+        catch (error) {
+            handleInjectionError(target, propertyKey, undefined, error);
+        }
+    };
+}
+//# sourceMappingURL=preDestroy.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/actions/updateMetadataTag.js
+
+
+function updateMetadataTag_updateMetadataTag(key, value) {
+    return (metadata) => {
+        if (metadata.tags.has(key)) {
+            throw new InversifyCoreError(InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected duplicated tag decorator with existing tag');
+        }
+        metadata.tags.set(key, value);
+        return metadata;
+    };
+}
+//# sourceMappingURL=updateMetadataTag.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/tagged.js
+
+
+
+
+function tagged(key, value) {
+    const updateMetadata = buildMaybeClassElementMetadataFromMaybeClassElementMetadata(updateMetadataTag(key, value));
+    return injectBase(updateMetadata, incrementPendingClassMetadataCount);
+}
+//# sourceMappingURL=tagged.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildDefaultUnmanagedMetadata.js
+
+function buildDefaultUnmanagedMetadata() {
+    return {
+        kind: ClassElementMetadataKind_ClassElementMetadataKind.unmanaged,
+    };
+}
+//# sourceMappingURL=buildDefaultUnmanagedMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildUnmanagedMetadataFromMaybeManagedMetadata.js
+
+
+
+
+function buildUnmanagedMetadataFromMaybeManagedMetadata(metadata) {
+    assertMetadataFromTypescriptIfManaged(metadata);
+    if (hasManagedMetadata(metadata)) {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.injectionDecoratorConflict, 'Unexpected injection found. Found @unmanaged injection with additional @named, @optional, @tagged or @targetName injections');
+    }
+    return buildDefaultUnmanagedMetadata();
+}
+function hasManagedMetadata(metadata) {
+    return (metadata.name !== undefined || metadata.optional || metadata.tags.size > 0);
+}
+//# sourceMappingURL=buildUnmanagedMetadataFromMaybeManagedMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/calculations/buildUnmanagedMetadataFromMaybeClassElementMetadata.js
+
+
+
+const buildUnmanagedMetadataFromMaybeClassElementMetadata = buildClassElementMetadataFromMaybeClassElementMetadata(buildDefaultUnmanagedMetadata, buildUnmanagedMetadataFromMaybeManagedMetadata);
+//# sourceMappingURL=buildUnmanagedMetadataFromMaybeClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/decorators/unmanaged.js
+
+
+
+function unmanaged() {
+    const updateMetadata = buildUnmanagedMetadataFromMaybeClassElementMetadata();
+    return injectBase_injectBase(updateMetadata, decrementPendingClassMetadataCount);
+}
+//# sourceMappingURL=unmanaged.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/metadata/models/ResolvedValueElementMetadataKind.js
+var ResolvedValueElementMetadataKind;
+(function (ResolvedValueElementMetadataKind) {
+    ResolvedValueElementMetadataKind[ResolvedValueElementMetadataKind["multipleInjection"] = 0] = "multipleInjection";
+    ResolvedValueElementMetadataKind[ResolvedValueElementMetadataKind["singleInjection"] = 1] = "singleInjection";
+})(ResolvedValueElementMetadataKind || (ResolvedValueElementMetadataKind = {}));
+//# sourceMappingURL=ResolvedValueElementMetadataKind.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/buildGetPlanOptionsFromPlanParams.js
+function buildGetPlanOptionsFromPlanParams(params) {
+    if (params.rootConstraints.isMultiple) {
+        return {
+            chained: params.rootConstraints.chained,
+            isMultiple: true,
+            name: params.rootConstraints.name,
+            optional: params.rootConstraints.isOptional ?? false,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+            tag: params.rootConstraints.tag,
+        };
+    }
+    else {
+        return {
+            isMultiple: false,
+            name: params.rootConstraints.name,
+            optional: params.rootConstraints.isOptional ?? false,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+            tag: params.rootConstraints.tag,
+        };
+    }
+}
+//# sourceMappingURL=buildGetPlanOptionsFromPlanParams.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/error/calculations/isStackOverflowError.js
+/*
+ * V8 (Chrome, Node.js, Edge, Deno): "Maximum call stack size exceeded"
+ * SpiderMonkey (Firefox): "too much recursion"
+ * JavaScriptCore (Safari): "call stack size exceeded"
+ * Chakra (IE/legacy Edge): "Out of stack space"
+ */
+const STACK_OVERFLOW_PATTERNS = /stack space|call stack|too much recursion/i;
+// SpiderMonkey throws InternalError with "too much recursion"
+const SPIDER_MONKEY_REGEXP = /too much recursion/;
+function isStackOverflowError(error) {
+    try {
+        if (!(error instanceof Error)) {
+            return false;
+        }
+        return (
+        // V8 and JavaScriptCore typically throw RangeError
+        (error instanceof RangeError &&
+            STACK_OVERFLOW_PATTERNS.test(error.message)) ||
+            (error.name === 'InternalError' &&
+                SPIDER_MONKEY_REGEXP.test(error.message)));
+    }
+    catch (innerError) {
+        /*
+         * The following code flow can lead to a secondary stack overflow:
+         * 1. Code flow triggers infinite recursion
+         * 3. On V8, `RangeError: Maximum call stack size exceeded` is thrown
+         * 4. `isStackOverflowError(error)` is called in a catch block
+         * 5. regex.test()` is called when the call stack is nearly exhausted
+         * 6. Regex execution requires stack space, causing a secondary stack overflow
+         * 7. V8 reports this as: `SyntaxError: Invalid regular expression: ... Stack overflow`
+         */
+        return (innerError instanceof SyntaxError &&
+            innerError.message.includes('Stack overflow'));
+    }
+}
+//# sourceMappingURL=isStackOverflowError.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/handlePlanError.js
+
+
+
+
+/**
+ * Extracts a likely circular dependency asuming a service asociated to a
+ * service identifier should not be asociated to services asociated to the same
+ * service identifier.
+ *
+ * Important note: given the current binding constraints, there's no way to know
+ * which is exactly the circular dependency. Custom ancestor based constraints might
+ * allow circular dependencies breaking the loop when a certain condition is met.
+ *
+ * @param params plan params
+ */
+function extractLikelyCircularDependency(params) {
+    const serviceIdentifiers = new Set();
+    for (const serviceIdentifier of params.servicesBranch) {
+        if (serviceIdentifiers.has(serviceIdentifier)) {
+            return [...serviceIdentifiers, serviceIdentifier];
+        }
+        serviceIdentifiers.add(serviceIdentifier);
+    }
+    return [...serviceIdentifiers];
+}
+function handlePlanError(params, error) {
+    if (isStackOverflowError(error) ||
+        InversifyCoreError_InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_InversifyCoreErrorKind.planningMaxDepthExceeded)) {
+        const stringifiedCircularDependencies = stringifyServiceIdentifierTrace(extractLikelyCircularDependency(params));
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.planning, `Circular dependency found: ${stringifiedCircularDependencies}`, { cause: error });
+    }
+    throw error;
+}
+function stringifyServiceIdentifierTrace(serviceIdentifiers) {
+    const serviceIdentifiersArray = [...serviceIdentifiers];
+    if (serviceIdentifiersArray.length === 0) {
+        return '(No dependency trace)';
+    }
+    return serviceIdentifiersArray.map(stringifyServiceIdentifier).join(' -> ');
+}
+//# sourceMappingURL=handlePlanError.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/models/LazyPlanServiceNode.js
+const isLazyPlanServiceNodeSymbol = Symbol.for('@inversifyjs/core/LazyPlanServiceNode');
+class LazyPlanServiceNode {
+    [isLazyPlanServiceNodeSymbol];
+    _serviceIdentifier;
+    _serviceNode;
+    constructor(serviceNode, serviceIdentifier) {
+        this[isLazyPlanServiceNodeSymbol] = true;
+        this._serviceNode = serviceNode;
+        this._serviceIdentifier = serviceIdentifier;
+    }
+    get bindings() {
+        return this._getNode().bindings;
+    }
+    get isContextFree() {
+        return this._getNode().isContextFree;
+    }
+    get serviceIdentifier() {
+        return this._serviceIdentifier;
+    }
+    set bindings(bindings) {
+        this._getNode().bindings = bindings;
+    }
+    set isContextFree(isContextFree) {
+        this._getNode().isContextFree = isContextFree;
+    }
+    static is(value) {
+        return (typeof value === 'object' &&
+            value !== null &&
+            value[isLazyPlanServiceNodeSymbol] ===
+                true);
+    }
+    invalidate() {
+        this._serviceNode = undefined;
+    }
+    isExpanded() {
+        return this._serviceNode !== undefined;
+    }
+    _getNode() {
+        if (this._serviceNode === undefined) {
+            this._serviceNode = this._buildPlanServiceNode();
+        }
+        return this._serviceNode;
+    }
+}
+//# sourceMappingURL=LazyPlanServiceNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/models/BindingConstraintsImplementation.js
+class BindingConstraintsImplementation {
+    #node;
+    constructor(node) {
+        this.#node = node;
+    }
+    get name() {
+        return this.#node.elem.name;
+    }
+    get serviceIdentifier() {
+        return this.#node.elem.serviceIdentifier;
+    }
+    get tags() {
+        return this.#node.elem.tags;
+    }
+    getAncestor() {
+        this.#node.elem.getAncestorsCalled = true;
+        if (this.#node.previous === undefined) {
+            return undefined;
+        }
+        return new BindingConstraintsImplementation(this.#node.previous);
+    }
+}
+//# sourceMappingURL=BindingConstraintsImplementation.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/buildFilteredServiceBindings.js
+
+function buildFilteredServiceBindings(params, bindingConstraints, options) {
+    const serviceIdentifier = options?.customServiceIdentifier ?? bindingConstraints.serviceIdentifier;
+    const serviceBindings = options?.chained === true
+        ? [...params.operations.getBindingsChained(serviceIdentifier)]
+        : [...(params.operations.getBindings(serviceIdentifier) ?? [])];
+    const filteredBindings = serviceBindings.filter((binding) => binding.isSatisfiedBy(bindingConstraints));
+    if (filteredBindings.length === 0 &&
+        params.autobindOptions !== undefined &&
+        typeof serviceIdentifier === 'function') {
+        const binding = buildInstanceBinding(params.autobindOptions, serviceIdentifier);
+        params.operations.setBinding(binding);
+        if (binding.isSatisfiedBy(bindingConstraints)) {
+            filteredBindings.push(binding);
+        }
+    }
+    return filteredBindings;
+}
+//# sourceMappingURL=buildFilteredServiceBindings.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/common/models/SingleImmutableLinkedList.js
+class SingleImmutableLinkedList {
+    last;
+    length;
+    constructor(last, length) {
+        this.last = last;
+        this.length = length;
+    }
+    concat(elem) {
+        return new SingleImmutableLinkedList({
+            elem,
+            previous: this.last,
+        }, this.length + 1);
+    }
+    [Symbol.iterator]() {
+        let node = this.last;
+        return {
+            next: () => {
+                if (node === undefined) {
+                    return {
+                        done: true,
+                        value: undefined,
+                    };
+                }
+                const elem = node.elem;
+                node = node.previous;
+                return {
+                    done: false,
+                    value: elem,
+                };
+            },
+        };
+    }
+}
+//# sourceMappingURL=SingleImmutableLinkedList.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/buildPlanBindingConstraintsList.js
+
+function buildPlanBindingConstraintsList(params) {
+    const tags = new Map();
+    if (params.rootConstraints.tag !== undefined) {
+        tags.set(params.rootConstraints.tag.key, params.rootConstraints.tag.value);
+    }
+    return new SingleImmutableLinkedList({
+        elem: {
+            getAncestorsCalled: false,
+            name: params.rootConstraints.name,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+            tags,
+        },
+        previous: undefined,
+    }, 1);
+}
+//# sourceMappingURL=buildPlanBindingConstraintsList.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/isPlanServiceRedirectionBindingNode.js
+function isPlanServiceRedirectionBindingNode(node) {
+    return (node.redirections !==
+        undefined);
+}
+//# sourceMappingURL=isPlanServiceRedirectionBindingNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/stringifyBinding.js
+
+
+function stringifyBinding(binding) {
+    switch (binding.type) {
+        case bindingTypeValues.Instance:
+            return `[ type: "${binding.type}", serviceIdentifier: "${stringifyServiceIdentifier(binding.serviceIdentifier)}", scope: "${binding.scope}", implementationType: "${binding.implementationType.name}" ]`;
+        case bindingTypeValues.ServiceRedirection:
+            return `[ type: "${binding.type}", serviceIdentifier: "${stringifyServiceIdentifier(binding.serviceIdentifier)}", redirection: "${stringifyServiceIdentifier(binding.targetServiceIdentifier)}" ]`;
+        default:
+            return `[ type: "${binding.type}", serviceIdentifier: "${stringifyServiceIdentifier(binding.serviceIdentifier)}", scope: "${binding.scope}" ]`;
+    }
+}
+//# sourceMappingURL=stringifyBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/throwErrorWhenUnexpectedBindingsAmountFound.js
+
+
+
+
+function throwErrorWhenUnexpectedBindingsAmountFound(bindingNodes, isOptional, bindingConstraintNode, serviceRedirections) {
+    const serviceIdentifier = bindingConstraintNode.elem.serviceIdentifier;
+    const parentServiceIdentifier = bindingConstraintNode.previous?.elem.serviceIdentifier;
+    if (Array.isArray(bindingNodes)) {
+        throwErrorWhenMultipleUnexpectedBindingsAmountFound(bindingNodes, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraintNode.elem, serviceRedirections);
+    }
+    else {
+        throwErrorWhenSingleUnexpectedBindingFound(bindingNodes, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraintNode.elem, serviceRedirections);
+    }
+}
+function throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections) {
+    const lastResolvedServiceIdentifier = serviceRedirections[serviceRedirections.length - 1] ?? serviceIdentifier;
+    const errorMessage = `No bindings found for service: "${stringifyServiceIdentifier(lastResolvedServiceIdentifier)}".
+
+Trying to resolve bindings for "${stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier)}".${stringifyServiceRedirections(serviceRedirections)}${stringifyBindingConstraints(bindingConstraints)}`;
+    throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.planning, errorMessage);
+}
+function throwErrorWhenMultipleUnexpectedBindingsAmountFound(bindingNodes, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections) {
+    if (bindingNodes.length === 0) {
+        if (!isOptional) {
+            throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections);
+        }
+    }
+    else {
+        const lastResolvedServiceIdentifier = serviceRedirections[serviceRedirections.length - 1] ?? serviceIdentifier;
+        const errorMessage = `Ambiguous bindings found for service: "${stringifyServiceIdentifier(lastResolvedServiceIdentifier)}".${stringifyServiceRedirections(serviceRedirections)}
+
+Registered bindings:
+
+${bindingNodes.map((bindingNode) => stringifyBinding(bindingNode.binding)).join('\n')}
+
+Trying to resolve bindings for "${stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier)}".${stringifyBindingConstraints(bindingConstraints)}`;
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.planning, errorMessage);
+    }
+}
+function throwErrorWhenSingleUnexpectedBindingFound(bindingNode, isOptional, serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections) {
+    if (bindingNode === undefined && !isOptional) {
+        throwBindingNotFoundError(serviceIdentifier, parentServiceIdentifier, bindingConstraints, serviceRedirections);
+    }
+}
+function stringifyParentServiceIdentifier(serviceIdentifier, parentServiceIdentifier) {
+    return parentServiceIdentifier === undefined
+        ? `${stringifyServiceIdentifier(serviceIdentifier)} (Root service)`
+        : stringifyServiceIdentifier(parentServiceIdentifier);
+}
+function stringifyBindingConstraints(bindingConstraints) {
+    const stringifiedTags = bindingConstraints.tags.size === 0
+        ? ''
+        : `
+- tags:
+  - ${[...bindingConstraints.tags.keys()].map((key) => key.toString()).join('\n  - ')}`;
+    return `
+
+Binding constraints:
+- service identifier: ${stringifyServiceIdentifier(bindingConstraints.serviceIdentifier)}
+- name: ${bindingConstraints.name?.toString() ?? '-'}${stringifiedTags}`;
+}
+function stringifyServiceRedirections(serviceRedirections) {
+    return serviceRedirections.length === 0
+        ? ''
+        : `
+
+- service redirections:
+  - ${serviceRedirections
+            .map((serviceIdentifier) => stringifyServiceIdentifier(serviceIdentifier))
+            .join('\n  - ')}`;
+}
+//# sourceMappingURL=throwErrorWhenUnexpectedBindingsAmountFound.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/checkPlanServiceRedirectionBindingNodeSingleInjectionBindings.js
+
+
+const SINGLE_INJECTION_BINDINGS = 1;
+function checkPlanServiceRedirectionBindingNodeSingleInjectionBindings(serviceRedirectionBindingNode, isOptional, bindingConstraintNode, serviceRedirections) {
+    if (serviceRedirectionBindingNode.redirections.length ===
+        SINGLE_INJECTION_BINDINGS) {
+        const [planBindingNode] = serviceRedirectionBindingNode.redirections;
+        if (isPlanServiceRedirectionBindingNode(planBindingNode)) {
+            checkPlanServiceRedirectionBindingNodeSingleInjectionBindings(planBindingNode, isOptional, bindingConstraintNode, [
+                ...serviceRedirections,
+                planBindingNode.binding.targetServiceIdentifier,
+            ]);
+        }
+        return;
+    }
+    throwErrorWhenUnexpectedBindingsAmountFound(serviceRedirectionBindingNode.redirections, isOptional, bindingConstraintNode, serviceRedirections);
+}
+//# sourceMappingURL=checkPlanServiceRedirectionBindingNodeSingleInjectionBindings.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/checkServiceNodeSingleInjectionBindings.js
+
+
+
+const checkServiceNodeSingleInjectionBindings_SINGLE_INJECTION_BINDINGS = 1;
+function checkServiceNodeSingleInjectionBindings(serviceNode, isOptional, bindingConstraintNode) {
+    if (Array.isArray(serviceNode.bindings)) {
+        if (serviceNode.bindings.length === checkServiceNodeSingleInjectionBindings_SINGLE_INJECTION_BINDINGS) {
+            const [planBindingNode] = serviceNode.bindings;
+            if (isPlanServiceRedirectionBindingNode(planBindingNode)) {
+                checkPlanServiceRedirectionBindingNodeSingleInjectionBindings(planBindingNode, isOptional, bindingConstraintNode, [planBindingNode.binding.targetServiceIdentifier]);
+            }
+            return;
+        }
+    }
+    throwErrorWhenUnexpectedBindingsAmountFound(serviceNode.bindings, isOptional, bindingConstraintNode, []);
+}
+//# sourceMappingURL=checkServiceNodeSingleInjectionBindings.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/curryBuildPlanServiceNode.js
+
+
+
+
+function curryBuildPlanServiceNode(buildServiceNodeBindings) {
+    return (params) => {
+        const bindingConstraintsList = buildPlanBindingConstraintsList(params);
+        const bindingConstraints = new BindingConstraintsImplementation(bindingConstraintsList.last);
+        const chained = params.rootConstraints.isMultiple && params.rootConstraints.chained;
+        const filteredServiceBindings = buildFilteredServiceBindings(params, bindingConstraints, {
+            chained,
+        });
+        const serviceNodeBindings = [];
+        const serviceNode = {
+            bindings: serviceNodeBindings,
+            isContextFree: true,
+            serviceIdentifier: params.rootConstraints.serviceIdentifier,
+        };
+        serviceNodeBindings.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, serviceNode, chained));
+        serviceNode.isContextFree =
+            !bindingConstraintsList.last.elem.getAncestorsCalled;
+        if (!params.rootConstraints.isMultiple) {
+            checkServiceNodeSingleInjectionBindings(serviceNode, params.rootConstraints.isOptional ?? false, bindingConstraintsList.last);
+            const [planBindingNode] = serviceNodeBindings;
+            serviceNode.bindings = planBindingNode;
+        }
+        return serviceNode;
+    };
+}
+//# sourceMappingURL=curryBuildPlanServiceNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/getServiceFromMaybeLazyServiceIdentifier.js
+
+function getServiceFromMaybeLazyServiceIdentifier(serviceIdentifier) {
+    return LazyServiceIdentifier.is(serviceIdentifier)
+        ? serviceIdentifier.unwrap()
+        : serviceIdentifier;
+}
+//# sourceMappingURL=getServiceFromMaybeLazyServiceIdentifier.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/curryBuildPlanServiceNodeFromClassElementMetadata.js
+
+
+
+
+
+function curryBuildPlanServiceNodeFromClassElementMetadata(buildServiceNodeBindings) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        const serviceIdentifier = getServiceFromMaybeLazyServiceIdentifier(elementMetadata.value);
+        const updatedBindingConstraintsList = bindingConstraintsList.concat({
+            getAncestorsCalled: false,
+            name: elementMetadata.name,
+            serviceIdentifier,
+            tags: elementMetadata.tags,
+        });
+        const bindingConstraints = new BindingConstraintsImplementation(updatedBindingConstraintsList.last);
+        const chained = elementMetadata.kind === ClassElementMetadataKind_ClassElementMetadataKind.multipleInjection &&
+            elementMetadata.chained;
+        const filteredServiceBindings = buildFilteredServiceBindings(params, bindingConstraints, {
+            chained,
+        });
+        const serviceNodeBindings = [];
+        const serviceNode = {
+            bindings: serviceNodeBindings,
+            isContextFree: true,
+            serviceIdentifier,
+        };
+        serviceNodeBindings.push(...buildServiceNodeBindings(params, updatedBindingConstraintsList, filteredServiceBindings, serviceNode, chained));
+        serviceNode.isContextFree =
+            !updatedBindingConstraintsList.last.elem.getAncestorsCalled;
+        if (elementMetadata.kind === ClassElementMetadataKind_ClassElementMetadataKind.singleInjection) {
+            checkServiceNodeSingleInjectionBindings(serviceNode, elementMetadata.optional, updatedBindingConstraintsList.last);
+            const [planBindingNode] = serviceNodeBindings;
+            serviceNode.bindings = planBindingNode;
+        }
+        return serviceNode;
+    };
+}
+//# sourceMappingURL=curryBuildPlanServiceNodeFromClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/curryBuildPlanServiceNodeFromResolvedValueElementMetadata.js
+
+
+
+
+
+function curryBuildPlanServiceNodeFromResolvedValueElementMetadata(buildServiceNodeBindings) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        const serviceIdentifier = getServiceFromMaybeLazyServiceIdentifier(elementMetadata.value);
+        const updatedBindingConstraintsList = bindingConstraintsList.concat({
+            getAncestorsCalled: false,
+            name: elementMetadata.name,
+            serviceIdentifier,
+            tags: elementMetadata.tags,
+        });
+        const bindingConstraints = new BindingConstraintsImplementation(updatedBindingConstraintsList.last);
+        const chained = elementMetadata.kind ===
+            ResolvedValueElementMetadataKind.multipleInjection &&
+            elementMetadata.chained;
+        const filteredServiceBindings = buildFilteredServiceBindings(params, bindingConstraints, {
+            chained,
+        });
+        const serviceNodeBindings = [];
+        const serviceNode = {
+            bindings: serviceNodeBindings,
+            isContextFree: true,
+            serviceIdentifier,
+        };
+        serviceNodeBindings.push(...buildServiceNodeBindings(params, updatedBindingConstraintsList, filteredServiceBindings, serviceNode, chained));
+        serviceNode.isContextFree =
+            !updatedBindingConstraintsList.last.elem.getAncestorsCalled;
+        if (elementMetadata.kind === ResolvedValueElementMetadataKind.singleInjection) {
+            checkServiceNodeSingleInjectionBindings(serviceNode, elementMetadata.optional, updatedBindingConstraintsList.last);
+            const [planBindingNode] = serviceNodeBindings;
+            serviceNode.bindings = planBindingNode;
+        }
+        return serviceNode;
+    };
+}
+//# sourceMappingURL=curryBuildPlanServiceNodeFromResolvedValueElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/curryBuildServiceNodeBindings.js
+
+
+
+
+function curryBuildServiceNodeBindings(subplan) {
+    const buildInstancePlanBindingNode = curryBuildInstancePlanBindingNode(subplan);
+    const buildResolvedValuePlanBindingNode = curryBuildResolvedValuePlanBindingNode(subplan);
+    const buildServiceNodeBindings = (params, bindingConstraintsList, serviceBindings, parentNode, chainedBindings) => {
+        const serviceIdentifier = isPlanServiceRedirectionBindingNode(parentNode)
+            ? parentNode.binding.targetServiceIdentifier
+            : parentNode.serviceIdentifier;
+        params.servicesBranch.push(serviceIdentifier);
+        const planBindingNodes = [];
+        for (const binding of serviceBindings) {
+            switch (binding.type) {
+                case bindingTypeValues.Instance: {
+                    planBindingNodes.push(buildInstancePlanBindingNode(params, binding, bindingConstraintsList));
+                    break;
+                }
+                case bindingTypeValues.ResolvedValue: {
+                    planBindingNodes.push(buildResolvedValuePlanBindingNode(params, binding, bindingConstraintsList));
+                    break;
+                }
+                case bindingTypeValues.ServiceRedirection: {
+                    const planBindingNode = buildServiceRedirectionPlanBindingNode(params, bindingConstraintsList, binding, chainedBindings);
+                    planBindingNodes.push(planBindingNode);
+                    break;
+                }
+                default:
+                    planBindingNodes.push({
+                        binding: binding,
+                    });
+            }
+        }
+        params.servicesBranch.pop();
+        return planBindingNodes;
+    };
+    const buildServiceRedirectionPlanBindingNode = curryBuildServiceRedirectionPlanBindingNode(buildServiceNodeBindings);
+    return buildServiceNodeBindings;
+}
+function curryBuildInstancePlanBindingNode(subplan) {
+    return (params, binding, bindingConstraintsList) => {
+        const classMetadata = params.operations.getClassMetadata(binding.implementationType);
+        const childNode = {
+            binding: binding,
+            classMetadata,
+            constructorParams: [],
+            propertyParams: new Map(),
+        };
+        const subplanParams = {
+            autobindOptions: params.autobindOptions,
+            node: childNode,
+            operations: params.operations,
+            servicesBranch: params.servicesBranch,
+        };
+        return subplan(subplanParams, bindingConstraintsList);
+    };
+}
+function curryBuildResolvedValuePlanBindingNode(subplan) {
+    return (params, binding, bindingConstraintsList) => {
+        const childNode = {
+            binding: binding,
+            params: [],
+        };
+        const subplanParams = {
+            autobindOptions: params.autobindOptions,
+            node: childNode,
+            operations: params.operations,
+            servicesBranch: params.servicesBranch,
+        };
+        return subplan(subplanParams, bindingConstraintsList);
+    };
+}
+function curryBuildServiceRedirectionPlanBindingNode(buildServiceNodeBindings) {
+    return (params, bindingConstraintsList, binding, chainedBindings) => {
+        const childNode = {
+            binding,
+            redirections: [],
+        };
+        const bindingConstraints = new BindingConstraintsImplementation(bindingConstraintsList.last);
+        const filteredServiceBindings = buildFilteredServiceBindings(params, bindingConstraints, {
+            chained: chainedBindings,
+            customServiceIdentifier: binding.targetServiceIdentifier,
+        });
+        childNode.redirections.push(...buildServiceNodeBindings(params, bindingConstraintsList, filteredServiceBindings, childNode, chainedBindings));
+        return childNode;
+    };
+}
+//# sourceMappingURL=curryBuildServiceNodeBindings.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/isInstanceBindingNode.js
+
+function isInstanceBindingNode(node) {
+    return node.binding.type === bindingTypeValues.Instance;
+}
+//# sourceMappingURL=isInstanceBindingNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/tryBuildGetPlanOptionsFromManagedClassElementMetadata.js
+
+
+function tryBuildGetPlanOptionsFromManagedClassElementMetadata(elementMetadata) {
+    let tag;
+    if (elementMetadata.tags.size === 0) {
+        tag = undefined;
+    }
+    else if (elementMetadata.tags.size === 1) {
+        const [key, value] = elementMetadata.tags
+            .entries()
+            .next().value;
+        tag = { key, value };
+    }
+    else {
+        return undefined;
+    }
+    const serviceIdentifier = LazyServiceIdentifier.is(elementMetadata.value)
+        ? elementMetadata.value.unwrap()
+        : elementMetadata.value;
+    if (elementMetadata.kind === ClassElementMetadataKind_ClassElementMetadataKind.multipleInjection) {
+        return {
+            chained: elementMetadata.chained,
+            isMultiple: true,
+            name: elementMetadata.name,
+            optional: elementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+    else {
+        return {
+            isMultiple: false,
+            name: elementMetadata.name,
+            optional: elementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+}
+//# sourceMappingURL=tryBuildGetPlanOptionsFromManagedClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/tryBuildGetPlanOptionsFromResolvedValueElementMetadata.js
+
+
+function tryBuildGetPlanOptionsFromResolvedValueElementMetadata(resolvedValueElementMetadata) {
+    let tag;
+    if (resolvedValueElementMetadata.tags.size === 0) {
+        tag = undefined;
+    }
+    else if (resolvedValueElementMetadata.tags.size === 1) {
+        const [key, value] = resolvedValueElementMetadata.tags.entries().next().value;
+        tag = { key, value };
+    }
+    else {
+        return undefined;
+    }
+    const serviceIdentifier = LazyServiceIdentifier.is(resolvedValueElementMetadata.value)
+        ? resolvedValueElementMetadata.value.unwrap()
+        : resolvedValueElementMetadata.value;
+    if (resolvedValueElementMetadata.kind ===
+        ResolvedValueElementMetadataKind.multipleInjection) {
+        return {
+            chained: resolvedValueElementMetadata.chained,
+            isMultiple: true,
+            name: resolvedValueElementMetadata.name,
+            optional: resolvedValueElementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+    else {
+        return {
+            isMultiple: false,
+            name: resolvedValueElementMetadata.name,
+            optional: resolvedValueElementMetadata.optional,
+            serviceIdentifier,
+            tag,
+        };
+    }
+}
+//# sourceMappingURL=tryBuildGetPlanOptionsFromResolvedValueElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/cacheNonRootPlanServiceNode.js
+
+function cacheNonRootPlanServiceNode(getPlanOptions, operations, planServiceNode, context) {
+    if (getPlanOptions !== undefined &&
+        ((LazyPlanServiceNode.is(planServiceNode) &&
+            !planServiceNode.isExpanded()) ||
+            planServiceNode.isContextFree)) {
+        const planResult = {
+            tree: {
+                root: planServiceNode,
+            },
+        };
+        operations.setPlan(getPlanOptions, planResult);
+    }
+    else {
+        operations.setNonCachedServiceNode(planServiceNode, context);
+    }
+}
+//# sourceMappingURL=cacheNonRootPlanServiceNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/currySubplan.js
+
+
+
+
+
+
+
+
+
+
+const MAX_PLAN_DEPTH = 500;
+class LazyManagedClassMetadataPlanServiceNode extends LazyPlanServiceNode {
+    #params;
+    #buildLazyPlanServiceNodeNodeFromClassElementMetadata;
+    #bindingConstraintsList;
+    #elementMetadata;
+    constructor(params, buildLazyPlanServiceNodeNodeFromClassElementMetadata, bindingConstraintsList, elementMetadata, serviceNode) {
+        super(serviceNode, getServiceFromMaybeLazyServiceIdentifier(elementMetadata.value));
+        this.#buildLazyPlanServiceNodeNodeFromClassElementMetadata =
+            buildLazyPlanServiceNodeNodeFromClassElementMetadata;
+        this.#params = params;
+        this.#bindingConstraintsList = bindingConstraintsList;
+        this.#elementMetadata = elementMetadata;
+    }
+    _buildPlanServiceNode() {
+        return this.#buildLazyPlanServiceNodeNodeFromClassElementMetadata(this.#params, this.#bindingConstraintsList, this.#elementMetadata);
+    }
+}
+class LazyResolvedValueMetadataPlanServiceNode extends LazyPlanServiceNode {
+    #params;
+    #buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata;
+    #bindingConstraintsList;
+    #resolvedValueElementMetadata;
+    constructor(params, buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, bindingConstraintsList, resolvedValueElementMetadata, serviceNode) {
+        super(serviceNode, getServiceFromMaybeLazyServiceIdentifier(resolvedValueElementMetadata.value));
+        this.#params = params;
+        this.#buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata =
+            buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata;
+        this.#bindingConstraintsList = bindingConstraintsList;
+        this.#resolvedValueElementMetadata = resolvedValueElementMetadata;
+    }
+    _buildPlanServiceNode() {
+        return this.#buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata(this.#params, this.#bindingConstraintsList, this.#resolvedValueElementMetadata);
+    }
+}
+function currySubplan(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromClassElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata) {
+    const subplanInstanceBindingNode = currySubplanInstanceBindingNode(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata);
+    const subplanResolvedValueBindingNode = currySubplanResolvedValueBindingNode(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata);
+    return (params, bindingConstraintsList) => {
+        if (isInstanceBindingNode(params.node)) {
+            return subplanInstanceBindingNode(params, params.node, bindingConstraintsList);
+        }
+        else {
+            return subplanResolvedValueBindingNode(params, params.node, bindingConstraintsList);
+        }
+    };
+}
+function currySubplanInstanceBindingNode(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata) {
+    const handlePlanServiceNodeBuildFromClassElementMetadata = curryHandlePlanServiceNodeBuildFromClassElementMetadata(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata);
+    return (params, node, bindingConstraintsList) => {
+        const classMetadata = node.classMetadata;
+        for (const [index, elementMetadata,] of classMetadata.constructorArguments.entries()) {
+            node.constructorParams[index] =
+                handlePlanServiceNodeBuildFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        for (const [propertyKey, elementMetadata] of classMetadata.properties) {
+            const planServiceNode = handlePlanServiceNodeBuildFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+            if (planServiceNode !== undefined) {
+                node.propertyParams.set(propertyKey, planServiceNode);
+            }
+        }
+        return params.node;
+    };
+}
+function currySubplanResolvedValueBindingNode(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata) {
+    const handlePlanServiceNodeBuildFromResolvedValueElementMetadata = curryHandlePlanServiceNodeBuildFromResolvedValueElementMetadata(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata);
+    return (params, node, bindingConstraintsList) => {
+        const resolvedValueMetadata = node.binding.metadata;
+        for (const [index, elementMetadata,] of resolvedValueMetadata.arguments.entries()) {
+            node.params[index] =
+                handlePlanServiceNodeBuildFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        return params.node;
+    };
+}
+function curryHandlePlanServiceNodeBuildFromClassElementMetadata(buildLazyPlanServiceNodeNodeFromClassElementMetadata, buildPlanServiceNodeFromClassElementMetadata) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        if (elementMetadata.kind === ClassElementMetadataKind_ClassElementMetadataKind.unmanaged) {
+            return undefined;
+        }
+        if (bindingConstraintsList.length > MAX_PLAN_DEPTH) {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.planningMaxDepthExceeded, 'Maximum plan depth exceeded. This is likely caused by a circular dependency.');
+        }
+        const getPlanOptions = tryBuildGetPlanOptionsFromManagedClassElementMetadata(elementMetadata);
+        if (getPlanOptions !== undefined) {
+            const planResult = params.operations.getPlan(getPlanOptions);
+            if (planResult !== undefined && planResult.tree.root.isContextFree) {
+                return planResult.tree.root;
+            }
+        }
+        const serviceNode = buildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+        const lazyPlanServiceNode = new LazyManagedClassMetadataPlanServiceNode(params, buildLazyPlanServiceNodeNodeFromClassElementMetadata, bindingConstraintsList, elementMetadata, serviceNode);
+        cacheNonRootPlanServiceNode(getPlanOptions, params.operations, lazyPlanServiceNode, {
+            bindingConstraintsList,
+            chainedBindings: elementMetadata.kind === ClassElementMetadataKind_ClassElementMetadataKind.multipleInjection &&
+                elementMetadata.chained,
+            optionalBindings: elementMetadata.optional,
+        });
+        return lazyPlanServiceNode;
+    };
+}
+function curryHandlePlanServiceNodeBuildFromResolvedValueElementMetadata(buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata) {
+    return (params, bindingConstraintsList, elementMetadata) => {
+        const getPlanOptions = tryBuildGetPlanOptionsFromResolvedValueElementMetadata(elementMetadata);
+        if (getPlanOptions !== undefined) {
+            const planResult = params.operations.getPlan(getPlanOptions);
+            if (planResult !== undefined && planResult.tree.root.isContextFree) {
+                return planResult.tree.root;
+            }
+        }
+        const serviceNode = buildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+        const lazyPlanServiceNode = new LazyResolvedValueMetadataPlanServiceNode(params, buildLazyPlanServiceNodeNodeFromResolvedValueElementMetadata, bindingConstraintsList, elementMetadata, serviceNode);
+        cacheNonRootPlanServiceNode(getPlanOptions, params.operations, lazyPlanServiceNode, {
+            bindingConstraintsList,
+            chainedBindings: elementMetadata.kind ===
+                ResolvedValueElementMetadataKind.multipleInjection &&
+                elementMetadata.chained,
+            optionalBindings: elementMetadata.optional,
+        });
+        return lazyPlanServiceNode;
+    };
+}
+//# sourceMappingURL=currySubplan.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/plan.js
+
+
+
+
+
+
+
+
+class LazyRootPlanServiceNode extends LazyPlanServiceNode {
+    #params;
+    constructor(params, serviceNode) {
+        super(serviceNode, serviceNode.serviceIdentifier);
+        this.#params = params;
+    }
+    _buildPlanServiceNode() {
+        return buildPlanServiceNode(this.#params);
+    }
+}
+const buildPlanServiceNodeFromClassElementMetadata = curryBuildPlanServiceNodeFromClassElementMetadata(circularBuildServiceNodeBindings);
+const buildPlanServiceNodeFromResolvedValueElementMetadata = curryBuildPlanServiceNodeFromResolvedValueElementMetadata(circularBuildServiceNodeBindings);
+const subplan = currySubplan(buildPlanServiceNodeFromClassElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata, buildPlanServiceNodeFromClassElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata);
+const buildServiceNodeBindings = curryBuildServiceNodeBindings(subplan);
+function circularBuildServiceNodeBindings(params, bindingConstraintsList, serviceBindings, parentNode, chainedBindings) {
+    return buildServiceNodeBindings(params, bindingConstraintsList, serviceBindings, parentNode, chainedBindings);
+}
+const buildPlanServiceNode = curryBuildPlanServiceNode(buildServiceNodeBindings);
+function plan(params) {
+    try {
+        const getPlanOptions = buildGetPlanOptionsFromPlanParams(params);
+        const planResultFromCache = params.operations.getPlan(getPlanOptions);
+        if (planResultFromCache !== undefined) {
+            return planResultFromCache;
+        }
+        const serviceNode = buildPlanServiceNode(params);
+        const planResult = {
+            tree: {
+                root: new LazyRootPlanServiceNode(params, serviceNode),
+            },
+        };
+        // Set the plan result in the cache no matter what, even if the plan is context dependent
+        params.operations.setPlan(getPlanOptions, planResult);
+        return planResult;
+    }
+    catch (error) {
+        handlePlanError(params, error);
+    }
+}
+//# sourceMappingURL=plan.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/models/CacheBindingInvalidationKind.js
+var CacheBindingInvalidationKind;
+(function (CacheBindingInvalidationKind) {
+    CacheBindingInvalidationKind["bindingAdded"] = "bindingAdded";
+    CacheBindingInvalidationKind["bindingRemoved"] = "bindingRemoved";
+})(CacheBindingInvalidationKind || (CacheBindingInvalidationKind = {}));
+//# sourceMappingURL=CacheBindingInvalidationKind.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/common/models/WeakList.js
+const DEFAULT_MINIMUM_LENGTH_TO_REALLOCATE = 8;
+const DEFAULT_MODULUS_TO_REALLOCATE_ON_PUSH = 1024;
+const MIN_DEAD_REFS_FOR_REALLOCATION_PERCENTAGE = 0.5;
+/**
+ * A list-like collection that holds weak references to objects.
+ * Automatically cleans up dead references when a threshold is met.
+ *
+ * FinalizationRegistry is not used here due to it's lack of determinism.
+ * FinalizationRegsitry callbacks are not guaranteed to be called after an object is garbage collected.
+ */
+class WeakList {
+    #list;
+    #minimumLengthToReallocate;
+    #modulusToReallocateOnPush;
+    constructor() {
+        this.#list = [];
+        this.#minimumLengthToReallocate = DEFAULT_MINIMUM_LENGTH_TO_REALLOCATE;
+        this.#modulusToReallocateOnPush = DEFAULT_MODULUS_TO_REALLOCATE_ON_PUSH;
+    }
+    *[Symbol.iterator]() {
+        let deadRefCount = 0;
+        for (const weakRef of this.#list) {
+            const value = weakRef.deref();
+            if (value === undefined) {
+                ++deadRefCount;
+            }
+            else {
+                yield value;
+            }
+        }
+        if (this.#list.length >= this.#minimumLengthToReallocate &&
+            this.#shouldReallocate(deadRefCount)) {
+            this.#reallocate(deadRefCount);
+        }
+    }
+    push(value) {
+        const weakRef = new WeakRef(value);
+        this.#list.push(weakRef);
+        if (this.#list.length >= this.#minimumLengthToReallocate &&
+            this.#list.length % this.#modulusToReallocateOnPush === 0) {
+            let deadRefCount = 0;
+            for (const ref of this.#list) {
+                if (ref.deref() === undefined) {
+                    ++deadRefCount;
+                }
+            }
+            if (this.#shouldReallocate(deadRefCount)) {
+                this.#reallocate(deadRefCount);
+            }
+        }
+    }
+    #reallocate(deadRefCount) {
+        const newList = new Array(this.#list.length - deadRefCount);
+        let i = 0;
+        for (const ref of this.#list) {
+            if (ref.deref()) {
+                newList[i++] = ref;
+            }
+        }
+        this.#list = newList;
+    }
+    #shouldReallocate(deadRefCount) {
+        return (deadRefCount >=
+            this.#list.length * MIN_DEAD_REFS_FOR_REALLOCATION_PERCENTAGE);
+    }
+}
+//# sourceMappingURL=WeakList.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/curryLazyBuildPlanServiceNodeFromClassElementMetadata.js
+
+
+
+function curryLazyBuildPlanServiceNodeFromClassElementMetadata(buildServiceNodeBindings) {
+    const buildPlanServiceNodeFromClassElementMetadata = curryBuildPlanServiceNodeFromClassElementMetadata(buildServiceNodeBindings);
+    return (params, bindingConstraintsList, elementMetadata) => {
+        try {
+            return buildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        catch (error) {
+            if (InversifyCoreError_InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_InversifyCoreErrorKind.planning)) {
+                return undefined;
+            }
+            throw error;
+        }
+    };
+}
+//# sourceMappingURL=curryLazyBuildPlanServiceNodeFromClassElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata.js
+
+
+
+function curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata(buildServiceNodeBindings) {
+    const buildPlanServiceNodeFromResolvedValueElementMetadata = curryBuildPlanServiceNodeFromResolvedValueElementMetadata(buildServiceNodeBindings);
+    return (params, bindingConstraintsList, elementMetadata) => {
+        try {
+            return buildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+        }
+        catch (error) {
+            if (InversifyCoreError_InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_InversifyCoreErrorKind.planning)) {
+                return undefined;
+            }
+            throw error;
+        }
+    };
+}
+//# sourceMappingURL=curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/addServiceNodeBindingIfContextFree.js
+
+
+
+
+
+
+
+
+
+
+const addServiceNodeBindingIfContextFree_subplan = currySubplan(buildPlanServiceNodeFromClassElementMetadata, buildPlanServiceNodeFromResolvedValueElementMetadata, circularLazyBuildPlanServiceNodeFromClassElementMetadata, circularLazyBuildPlanServiceNodeFromResolvedValueElementMetadata);
+const addServiceNodeBindingIfContextFree_buildServiceNodeBindings = curryBuildServiceNodeBindings(addServiceNodeBindingIfContextFree_subplan);
+const lazyBuildPlanServiceNodeFromClassElementMetadata = curryLazyBuildPlanServiceNodeFromClassElementMetadata(addServiceNodeBindingIfContextFree_buildServiceNodeBindings);
+const lazyBuildPlanServiceNodeFromResolvedValueElementMetadata = curryLazyBuildPlanServiceNodeFromResolvedValueElementMetadata(addServiceNodeBindingIfContextFree_buildServiceNodeBindings);
+function circularLazyBuildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata) {
+    return lazyBuildPlanServiceNodeFromClassElementMetadata(params, bindingConstraintsList, elementMetadata);
+}
+function circularLazyBuildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata) {
+    return lazyBuildPlanServiceNodeFromResolvedValueElementMetadata(params, bindingConstraintsList, elementMetadata);
+}
+/**
+ * Attach a binding to a service node if the binding is context-free.
+ * @param params The plan parameters.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @param bindingConstraintsList The list of binding constraints.
+ * @param chainedBindings Whether the bindings are chained.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function addServiceNodeBindingIfContextFree(params, serviceNode, binding, bindingConstraintsList, chainedBindings) {
+    if (LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            isContextFreeBinding: true,
+            shouldInvalidateServiceNode: false,
+        };
+    }
+    const bindingConstraints = new BindingConstraintsImplementation(bindingConstraintsList.last);
+    if (!binding.isSatisfiedBy(bindingConstraints) ||
+        bindingConstraintsList.last.elem.getAncestorsCalled) {
+        return {
+            isContextFreeBinding: !bindingConstraintsList.last.elem.getAncestorsCalled,
+            shouldInvalidateServiceNode: false,
+        };
+    }
+    return addServiceNodeSatisfiedBindingIfContextFree(params, serviceNode, binding, bindingConstraintsList, chainedBindings);
+}
+function addServiceNodeSatisfiedBindingIfContextFree(params, serviceNode, binding, bindingConstraintsList, chainedBindings) {
+    let serviceNodeBinding;
+    try {
+        [serviceNodeBinding] = addServiceNodeBindingIfContextFree_buildServiceNodeBindings(params, bindingConstraintsList, [binding], serviceNode, chainedBindings);
+    }
+    catch (error) {
+        if (isStackOverflowError(error) ||
+            InversifyCoreError_InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_InversifyCoreErrorKind.planningMaxDepthExceeded)) {
+            /**
+             * We could potentially detect if we managed to traverse at least one iteration of the circular dependency loop.
+             * If so, the binding is context free if and only if bindingConstraintsList.last.elem.getAncestorsCalled is false.
+             *
+             * Having said that, computing this does not solve an underlying issue with circular dependencies: further cache
+             * refreshes are likely to encounter the same issue again and again. Recovering from stack overflow errors constantly
+             * is not feasible, so we prefer to declare the binding as non context free, asking for a more aggressive cache
+             * invalidation strategy, which is likely to be a cache clear.
+             */
+            return {
+                isContextFreeBinding: false,
+                shouldInvalidateServiceNode: true,
+            };
+        }
+        throw error;
+    }
+    return addServiceNodeBindingNodeIfContextFree(serviceNode, serviceNodeBinding);
+}
+function addServiceNodeBindingNodeIfContextFree(serviceNode, serviceNodeBinding) {
+    if (Array.isArray(serviceNode.bindings)) {
+        serviceNode.bindings.push(serviceNodeBinding);
+    }
+    else {
+        if (serviceNode.bindings === undefined) {
+            serviceNode.bindings = serviceNodeBinding;
+        }
+        else {
+            if (!LazyPlanServiceNode.is(serviceNode)) {
+                throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.planning, 'Unexpected non-lazy plan service node. This is likely a bug in the planning logic. Please, report this issue');
+            }
+            return {
+                isContextFreeBinding: true,
+                shouldInvalidateServiceNode: true,
+            };
+        }
+    }
+    return {
+        isContextFreeBinding: true,
+        shouldInvalidateServiceNode: false,
+    };
+}
+//# sourceMappingURL=addServiceNodeBindingIfContextFree.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/addRootServiceNodeBindingIfContextFree.js
+
+
+
+/**
+ * Attach a binding to the root service node if the binding is context-free.
+ * @param params The plan parameters.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function addRootServiceNodeBindingIfContextFree(params, serviceNode, binding) {
+    if (LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            isContextFreeBinding: true,
+            shouldInvalidateServiceNode: false,
+        };
+    }
+    const bindingConstraintsList = buildPlanBindingConstraintsList(params);
+    const chained = params.rootConstraints.isMultiple && params.rootConstraints.chained;
+    return addServiceNodeBindingIfContextFree(params, serviceNode, binding, bindingConstraintsList, chained);
+}
+//# sourceMappingURL=addRootServiceNodeBindingIfContextFree.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/removeServiceNodeBindingIfContextFree.js
+
+
+
+
+/**
+ * Detach a binding to the root service node if it is context-free.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @param bindingConstraintsList The list of binding constraints.
+ * @param optionalBindings Whether the bindings are optional.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function removeServiceNodeBindingIfContextFree(serviceNode, binding, bindingConstraintsList, optionalBindings) {
+    if (LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            bindingNodeRemoved: undefined,
+            isContextFreeBinding: true,
+        };
+    }
+    const bindingConstraints = new BindingConstraintsImplementation(bindingConstraintsList.last);
+    if (!binding.isSatisfiedBy(bindingConstraints) ||
+        bindingConstraintsList.last.elem.getAncestorsCalled) {
+        return {
+            bindingNodeRemoved: undefined,
+            isContextFreeBinding: !bindingConstraintsList.last.elem.getAncestorsCalled,
+        };
+    }
+    let bindingNodeRemoved;
+    if (Array.isArray(serviceNode.bindings)) {
+        serviceNode.bindings = serviceNode.bindings.filter((bindingNode) => {
+            if (bindingNode.binding === binding) {
+                bindingNodeRemoved = bindingNode;
+                return false;
+            }
+            return true;
+        });
+    }
+    else {
+        if (serviceNode.bindings?.binding === binding) {
+            bindingNodeRemoved = serviceNode.bindings;
+            if (optionalBindings) {
+                serviceNode.bindings = undefined;
+            }
+            else {
+                if (!LazyPlanServiceNode.is(serviceNode)) {
+                    throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.planning, 'Unexpected non-lazy plan service node. This is likely a bug in the planning logic. Please, report this issue');
+                }
+                serviceNode.invalidate();
+            }
+        }
+    }
+    return {
+        bindingNodeRemoved: bindingNodeRemoved,
+        isContextFreeBinding: true,
+    };
+}
+//# sourceMappingURL=removeServiceNodeBindingIfContextFree.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/actions/removeRootServiceNodeBindingIfContextFree.js
+
+
+
+/**
+ * Detach a binding to the root service node if it is context-free.
+ * @param params The plan parameters.
+ * @param serviceNode The service node to attach the binding to.
+ * @param binding The binding to attach.
+ * @returns True if the binding requires ancestor metadata, false otherwise.
+ */
+function removeRootServiceNodeBindingIfContextFree(params, serviceNode, binding) {
+    if (LazyPlanServiceNode.is(serviceNode) && !serviceNode.isExpanded()) {
+        return {
+            bindingNodeRemoved: undefined,
+            isContextFreeBinding: true,
+        };
+    }
+    const bindingConstraintsList = buildPlanBindingConstraintsList(params);
+    return removeServiceNodeBindingIfContextFree(serviceNode, binding, bindingConstraintsList, params.rootConstraints.isOptional ?? false);
+}
+//# sourceMappingURL=removeRootServiceNodeBindingIfContextFree.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/services/PlanResultCacheService.js
+
+
+
+
+
+
+
+
+const CHAINED_MASK = 0x4;
+const IS_MULTIPLE_MASK = 0x2;
+const OPTIONAL_MASK = 0x1;
+const MAP_ARRAY_LENGTH = 0x8;
+/**
+ * Service to cache plans.
+ *
+ * This class is used to cache plans and to notify PlanService subscribers when the cache is cleared.
+ * The cache should be cleared when a new binding is registered or when a binding is unregistered.
+ *
+ * Subscribers are supposed to be plan services from child containers.
+ *
+ * Ancestor binding constraints are the reason to avoid reusing plans from plan children nodes.
+ */
+class PlanResultCacheService {
+    #serviceIdToNonCachedServiceNodeMapMap;
+    #serviceIdToValuePlanMap;
+    #namedServiceIdToValuePlanMap;
+    #namedTaggedServiceIdToValuePlanMap;
+    #taggedServiceIdToValuePlanMap;
+    #subscribers;
+    constructor() {
+        this.#serviceIdToNonCachedServiceNodeMapMap = new Map();
+        this.#serviceIdToValuePlanMap = this.#buildInitializedMapArray();
+        this.#namedServiceIdToValuePlanMap = this.#buildInitializedMapArray();
+        this.#namedTaggedServiceIdToValuePlanMap = this.#buildInitializedMapArray();
+        this.#taggedServiceIdToValuePlanMap = this.#buildInitializedMapArray();
+        this.#subscribers = new WeakList();
+    }
+    clearCache() {
+        for (const map of this.#getMaps()) {
+            map.clear();
+        }
+        for (const subscriber of this.#subscribers) {
+            subscriber.clearCache();
+        }
+    }
+    get(options) {
+        if (options.name === undefined) {
+            if (options.tag === undefined) {
+                return this.#getMapFromMapArray(this.#serviceIdToValuePlanMap, options).get(options.serviceIdentifier);
+            }
+            else {
+                return this.#getMapFromMapArray(this.#taggedServiceIdToValuePlanMap, options)
+                    .get(options.serviceIdentifier)
+                    ?.get(options.tag.key)
+                    ?.get(options.tag.value);
+            }
+        }
+        else {
+            if (options.tag === undefined) {
+                return this.#getMapFromMapArray(this.#namedServiceIdToValuePlanMap, options)
+                    .get(options.serviceIdentifier)
+                    ?.get(options.name);
+            }
+            else {
+                return this.#getMapFromMapArray(this.#namedTaggedServiceIdToValuePlanMap, options)
+                    .get(options.serviceIdentifier)
+                    ?.get(options.name)
+                    ?.get(options.tag.key)
+                    ?.get(options.tag.value);
+            }
+        }
+    }
+    invalidateServiceBinding(invalidation) {
+        this.#invalidateServiceMap(invalidation);
+        this.#invalidateNamedServiceMap(invalidation);
+        this.#invalidateNamedTaggedServiceMap(invalidation);
+        this.#invalidateTaggedServiceMap(invalidation);
+        this.#invalidateNonCachedServiceNodeSetMap(invalidation);
+        for (const subscriber of this.#subscribers) {
+            subscriber.invalidateServiceBinding(invalidation);
+        }
+    }
+    set(options, planResult) {
+        if (options.name === undefined) {
+            if (options.tag === undefined) {
+                this.#getMapFromMapArray(this.#serviceIdToValuePlanMap, options).set(options.serviceIdentifier, planResult);
+            }
+            else {
+                this.#getOrBuildMapValueFromMapMap(this.#getOrBuildMapValueFromMapMap(this.#getMapFromMapArray(this.#taggedServiceIdToValuePlanMap, options), options.serviceIdentifier), options.tag.key).set(options.tag.value, planResult);
+            }
+        }
+        else {
+            if (options.tag === undefined) {
+                this.#getOrBuildMapValueFromMapMap(this.#getMapFromMapArray(this.#namedServiceIdToValuePlanMap, options), options.serviceIdentifier).set(options.name, planResult);
+            }
+            else {
+                this.#getOrBuildMapValueFromMapMap(this.#getOrBuildMapValueFromMapMap(this.#getOrBuildMapValueFromMapMap(this.#getMapFromMapArray(this.#namedTaggedServiceIdToValuePlanMap, options), options.serviceIdentifier), options.name), options.tag.key).set(options.tag.value, planResult);
+            }
+        }
+    }
+    setNonCachedServiceNode(node, context) {
+        let nonCachedMap = this.#serviceIdToNonCachedServiceNodeMapMap.get(node.serviceIdentifier);
+        if (nonCachedMap === undefined) {
+            nonCachedMap = new Map();
+            this.#serviceIdToNonCachedServiceNodeMapMap.set(node.serviceIdentifier, nonCachedMap);
+        }
+        nonCachedMap.set(node, context);
+    }
+    subscribe(subscriber) {
+        this.#subscribers.push(subscriber);
+    }
+    #buildInitializedMapArray() {
+        const mapArray = new Array(MAP_ARRAY_LENGTH);
+        for (let i = 0; i < mapArray.length; ++i) {
+            mapArray[i] = new Map();
+        }
+        return mapArray;
+    }
+    #buildUpdatePlanParams(invalidation, index, name, tag) {
+        const isMultiple = (index & IS_MULTIPLE_MASK) !== 0;
+        let planParamsConstraint;
+        if (isMultiple) {
+            const isChained = (index & IS_MULTIPLE_MASK & CHAINED_MASK) !== 0;
+            planParamsConstraint = {
+                chained: isChained,
+                isMultiple,
+                serviceIdentifier: invalidation.binding.serviceIdentifier,
+            };
+        }
+        else {
+            planParamsConstraint = {
+                isMultiple,
+                serviceIdentifier: invalidation.binding.serviceIdentifier,
+            };
+        }
+        const isOptional = (index & OPTIONAL_MASK) !== 0;
+        if (isOptional) {
+            planParamsConstraint.isOptional = true;
+        }
+        if (name !== undefined) {
+            planParamsConstraint.name = name;
+        }
+        if (tag !== undefined) {
+            planParamsConstraint.tag = tag;
+        }
+        return {
+            autobindOptions: undefined,
+            operations: invalidation.operations,
+            rootConstraints: planParamsConstraint,
+            servicesBranch: [],
+        };
+    }
+    #getOrBuildMapValueFromMapMap(map, key) {
+        let valueMap = map.get(key);
+        if (valueMap === undefined) {
+            valueMap = new Map();
+            map.set(key, valueMap);
+        }
+        return valueMap;
+    }
+    #getMapFromMapArray(mapArray, options) {
+        return mapArray[this.#getMapArrayIndex(options)];
+    }
+    #getMaps() {
+        return [
+            this.#serviceIdToNonCachedServiceNodeMapMap,
+            ...this.#serviceIdToValuePlanMap,
+            ...this.#namedServiceIdToValuePlanMap,
+            ...this.#namedTaggedServiceIdToValuePlanMap,
+            ...this.#taggedServiceIdToValuePlanMap,
+        ];
+    }
+    #getMapArrayIndex(options) {
+        if (options.isMultiple) {
+            return ((options.chained ? CHAINED_MASK : 0) |
+                (options.optional ? OPTIONAL_MASK : 0) |
+                IS_MULTIPLE_MASK);
+        }
+        else {
+            return options.optional ? OPTIONAL_MASK : 0;
+        }
+    }
+    #invalidateNamedServiceMap(invalidation) {
+        for (const [index, map] of this.#namedServiceIdToValuePlanMap.entries()) {
+            const servicePlans = map.get(invalidation.binding.serviceIdentifier);
+            if (servicePlans !== undefined) {
+                for (const [name, servicePlan] of servicePlans.entries()) {
+                    this.#updatePlan(invalidation, servicePlan, index, name, undefined);
+                }
+            }
+        }
+    }
+    #invalidateNamedTaggedServiceMap(invalidation) {
+        for (const [index, map,] of this.#namedTaggedServiceIdToValuePlanMap.entries()) {
+            const servicePlanMapMapMap = map.get(invalidation.binding.serviceIdentifier);
+            if (servicePlanMapMapMap !== undefined) {
+                for (const [name, servicePlanMapMap,] of servicePlanMapMapMap.entries()) {
+                    for (const [tag, servicePlanMap] of servicePlanMapMap.entries()) {
+                        for (const [tagValue, servicePlan] of servicePlanMap.entries()) {
+                            this.#updatePlan(invalidation, servicePlan, index, name, {
+                                key: tag,
+                                value: tagValue,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    #invalidateNonCachePlanBindingNodeDescendents(planBindingNode) {
+        switch (planBindingNode.binding.type) {
+            case bindingTypeValues.ServiceRedirection:
+                for (const redirection of planBindingNode.redirections) {
+                    this.#invalidateNonCachePlanBindingNodeDescendents(redirection);
+                }
+                break;
+            case bindingTypeValues.Instance:
+                for (const constructorParam of planBindingNode
+                    .constructorParams) {
+                    if (constructorParam !== undefined) {
+                        this.#invalidateNonCachePlanServiceNode(constructorParam);
+                    }
+                }
+                for (const propertyParam of planBindingNode.propertyParams.values()) {
+                    this.#invalidateNonCachePlanServiceNode(propertyParam);
+                }
+                break;
+            case bindingTypeValues.ResolvedValue:
+                for (const resolvedValue of planBindingNode.params) {
+                    this.#invalidateNonCachePlanServiceNode(resolvedValue);
+                }
+                break;
+            default:
+        }
+    }
+    #invalidateNonCachePlanServiceNode(planServiceNode) {
+        const serviceNonCachedMap = this.#serviceIdToNonCachedServiceNodeMapMap.get(planServiceNode.serviceIdentifier);
+        if (serviceNonCachedMap === undefined ||
+            !serviceNonCachedMap.has(planServiceNode)) {
+            return;
+        }
+        serviceNonCachedMap.delete(planServiceNode);
+        this.#invalidateNonCachePlanServiceNodeDescendents(planServiceNode);
+    }
+    #invalidateNonCachePlanServiceNodeDescendents(planServiceNode) {
+        if (LazyPlanServiceNode.is(planServiceNode) &&
+            !planServiceNode.isExpanded()) {
+            return;
+        }
+        if (planServiceNode.bindings === undefined) {
+            return;
+        }
+        if (Array.isArray(planServiceNode.bindings)) {
+            for (const binding of planServiceNode.bindings) {
+                this.#invalidateNonCachePlanBindingNodeDescendents(binding);
+            }
+        }
+        else {
+            this.#invalidateNonCachePlanBindingNodeDescendents(planServiceNode.bindings);
+        }
+    }
+    #invalidateNonCachedServiceNodeSetMap(invalidation) {
+        const serviceNonCachedServiceNodeMap = this.#serviceIdToNonCachedServiceNodeMapMap.get(invalidation.binding.serviceIdentifier);
+        if (serviceNonCachedServiceNodeMap !== undefined) {
+            switch (invalidation.kind) {
+                case CacheBindingInvalidationKind.bindingAdded:
+                    for (const [serviceNode, context] of serviceNonCachedServiceNodeMap) {
+                        const result = addServiceNodeBindingIfContextFree({
+                            autobindOptions: undefined,
+                            operations: invalidation.operations,
+                            servicesBranch: [],
+                        }, serviceNode, invalidation.binding, context.bindingConstraintsList, context.chainedBindings);
+                        if (result.isContextFreeBinding) {
+                            if (result.shouldInvalidateServiceNode &&
+                                LazyPlanServiceNode.is(serviceNode)) {
+                                this.#invalidateNonCachePlanServiceNodeDescendents(serviceNode);
+                                serviceNode.invalidate();
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
+                case CacheBindingInvalidationKind.bindingRemoved:
+                    for (const [serviceNode, context] of serviceNonCachedServiceNodeMap) {
+                        const result = removeServiceNodeBindingIfContextFree(serviceNode, invalidation.binding, context.bindingConstraintsList, context.optionalBindings);
+                        if (result.isContextFreeBinding) {
+                            if (result.bindingNodeRemoved !== undefined) {
+                                this.#invalidateNonCachePlanBindingNodeDescendents(result.bindingNodeRemoved);
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+    #invalidateServiceMap(invalidation) {
+        for (const [index, map] of this.#serviceIdToValuePlanMap.entries()) {
+            const servicePlan = map.get(invalidation.binding.serviceIdentifier);
+            this.#updatePlan(invalidation, servicePlan, index, undefined, undefined);
+        }
+    }
+    #invalidateTaggedServiceMap(invalidation) {
+        for (const [index, map] of this.#taggedServiceIdToValuePlanMap.entries()) {
+            const servicePlanMapMap = map.get(invalidation.binding.serviceIdentifier);
+            if (servicePlanMapMap !== undefined) {
+                for (const [tag, servicePlanMap] of servicePlanMapMap.entries()) {
+                    for (const [tagValue, servicePlan] of servicePlanMap.entries()) {
+                        this.#updatePlan(invalidation, servicePlan, index, undefined, {
+                            key: tag,
+                            value: tagValue,
+                        });
+                    }
+                }
+            }
+        }
+    }
+    #updatePlan(invalidation, servicePlan, index, name, tag) {
+        if (servicePlan !== undefined &&
+            LazyPlanServiceNode.is(servicePlan.tree.root)) {
+            const planParams = this.#buildUpdatePlanParams(invalidation, index, name, tag);
+            switch (invalidation.kind) {
+                case CacheBindingInvalidationKind.bindingAdded:
+                    {
+                        const result = addRootServiceNodeBindingIfContextFree(planParams, servicePlan.tree.root, invalidation.binding);
+                        if (result.isContextFreeBinding) {
+                            if (result.shouldInvalidateServiceNode) {
+                                this.#invalidateNonCachePlanServiceNodeDescendents(servicePlan.tree.root);
+                                servicePlan.tree.root.invalidate();
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
+                case CacheBindingInvalidationKind.bindingRemoved:
+                    {
+                        const result = removeRootServiceNodeBindingIfContextFree(planParams, servicePlan.tree.root, invalidation.binding);
+                        if (result.isContextFreeBinding) {
+                            if (result.bindingNodeRemoved !== undefined) {
+                                this.#invalidateNonCachePlanBindingNodeDescendents(result.bindingNodeRemoved);
+                            }
+                        }
+                        else {
+                            this.clearCache();
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+}
+//# sourceMappingURL=PlanResultCacheService.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/planning/calculations/handleResolveError.js
+
+
+
+
+
+
+const INDEX_NOT_FOUND = -1;
+function handleResolveError(params, error) {
+    if (isStackOverflowError(error) ||
+        InversifyCoreError_InversifyCoreError.isErrorOfKind(error, InversifyCoreErrorKind_InversifyCoreErrorKind.planningMaxDepthExceeded)) {
+        const stringifiedCircularDependencies = handleResolveError_stringifyServiceIdentifierTrace(handleResolveError_extractLikelyCircularDependency(params));
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.planning, `Circular dependency found: ${stringifiedCircularDependencies}`, { cause: error });
+    }
+    throw error;
+}
+function handleResolveError_extractLikelyCircularDependency(params) {
+    const root = params.planResult.tree.root;
+    const stack = [];
+    function depthFirstSearch(node) {
+        const existingIndex = stack.indexOf(node);
+        if (existingIndex !== INDEX_NOT_FOUND) {
+            const cycleNodes = [
+                ...stack.slice(existingIndex),
+                node,
+            ];
+            return cycleNodes.map((n) => n.serviceIdentifier);
+        }
+        stack.push(node);
+        try {
+            for (const child of getChildServiceNodes(node)) {
+                const result = depthFirstSearch(child);
+                if (result !== undefined) {
+                    return result;
+                }
+            }
+        }
+        finally {
+            stack.pop();
+        }
+        return undefined;
+    }
+    const result = depthFirstSearch(root);
+    return result ?? [];
+}
+function getChildServiceNodes(serviceNode) {
+    const children = [];
+    const bindings = serviceNode.bindings;
+    if (bindings === undefined) {
+        return children;
+    }
+    const processBindingNode = (bindingNode) => {
+        if (isPlanServiceRedirectionBindingNode(bindingNode)) {
+            for (const redirection of bindingNode.redirections) {
+                processBindingNode(redirection);
+            }
+            return;
+        }
+        switch (bindingNode.binding.type) {
+            case bindingTypeValues.Instance: {
+                const instanceNode = bindingNode;
+                for (const ctorParam of instanceNode.constructorParams) {
+                    if (ctorParam !== undefined) {
+                        children.push(ctorParam);
+                    }
+                }
+                for (const propParam of instanceNode.propertyParams.values()) {
+                    children.push(propParam);
+                }
+                break;
+            }
+            case bindingTypeValues.ResolvedValue: {
+                const resolvedValueNode = bindingNode;
+                for (const param of resolvedValueNode.params) {
+                    children.push(param);
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    };
+    if (Array.isArray(bindings)) {
+        for (const bindingNode of bindings) {
+            processBindingNode(bindingNode);
+        }
+    }
+    else {
+        processBindingNode(bindings);
+    }
+    return children;
+}
+function handleResolveError_stringifyServiceIdentifierTrace(serviceIdentifiers) {
+    const serviceIdentifiersArray = [...serviceIdentifiers];
+    if (serviceIdentifiersArray.length === 0) {
+        return '(No dependency trace)';
+    }
+    return serviceIdentifiersArray.map(stringifyServiceIdentifier).join(' -> ');
+}
+//# sourceMappingURL=handleResolveError.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/calculations/resolveConstantValueBindingCallback.js
+function resolveConstantValueBindingCallback(_params, binding) {
+    return binding.value;
+}
+//# sourceMappingURL=resolveConstantValueBindingCallback.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/cacheResolvedValue.js
+
+function cacheResolvedValue(binding, resolvedValue) {
+    if (isPromise(resolvedValue)) {
+        binding.cache = {
+            isRight: true,
+            value: resolvedValue,
+        };
+        return resolvedValue.then((syncResolvedValue) => cacheSyncResolvedValue(binding, syncResolvedValue));
+    }
+    return cacheSyncResolvedValue(binding, resolvedValue);
+}
+function cacheSyncResolvedValue(binding, resolvedValue) {
+    binding.cache = {
+        isRight: true,
+        value: resolvedValue,
+    };
+    return resolvedValue;
+}
+//# sourceMappingURL=cacheResolvedValue.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveBindingServiceActivations.js
+
+function resolveBindingServiceActivations(params, serviceIdentifier, value) {
+    const activations = params.getActivations(serviceIdentifier);
+    if (activations === undefined) {
+        return value;
+    }
+    if (isPromise(value)) {
+        return resolveBindingActivationsFromIteratorAsync(params, value, activations[Symbol.iterator]());
+    }
+    return resolveBindingActivationsFromIterator(params, value, activations[Symbol.iterator]());
+}
+function resolveBindingActivationsFromIterator(params, value, activationsIterator) {
+    let activatedValue = value;
+    let activationIteratorResult = activationsIterator.next();
+    while (activationIteratorResult.done !== true) {
+        const nextActivatedValue = activationIteratorResult.value(params.context, activatedValue);
+        if (isPromise(nextActivatedValue)) {
+            return resolveBindingActivationsFromIteratorAsync(params, nextActivatedValue, activationsIterator);
+        }
+        else {
+            activatedValue = nextActivatedValue;
+        }
+        activationIteratorResult = activationsIterator.next();
+    }
+    return activatedValue;
+}
+async function resolveBindingActivationsFromIteratorAsync(params, value, activationsIterator) {
+    let activatedValue = await value;
+    let activationIteratorResult = activationsIterator.next();
+    while (activationIteratorResult.done !== true) {
+        activatedValue = await activationIteratorResult.value(params.context, activatedValue);
+        activationIteratorResult = activationsIterator.next();
+    }
+    return activatedValue;
+}
+//# sourceMappingURL=resolveBindingServiceActivations.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveBindingActivations.js
+
+
+function resolveBindingActivations(params, binding, value) {
+    let activationResult = value;
+    if (binding.onActivation !== undefined) {
+        const onActivation = binding.onActivation;
+        if (isPromise(activationResult)) {
+            activationResult = activationResult.then((resolved) => onActivation(params.context, resolved));
+        }
+        else {
+            activationResult = onActivation(params.context, activationResult);
+        }
+    }
+    return resolveBindingServiceActivations(params, binding.serviceIdentifier, activationResult);
+}
+//# sourceMappingURL=resolveBindingActivations.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveSingletonScopedBinding.js
+
+
+function resolveSingletonScopedBinding(resolve) {
+    return (params, binding) => {
+        if (binding.cache.isRight) {
+            return binding.cache.value;
+        }
+        const resolvedValue = resolveBindingActivations(params, binding, resolve(params, binding));
+        return cacheResolvedValue(binding, resolvedValue);
+    };
+}
+//# sourceMappingURL=resolveSingletonScopedBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveConstantValueBinding.js
+
+
+const resolveConstantValueBinding = resolveSingletonScopedBinding(resolveConstantValueBindingCallback);
+//# sourceMappingURL=resolveConstantValueBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/calculations/resolveDynamicValueBindingCallback.js
+function resolveDynamicValueBindingCallback(params, binding) {
+    return binding.value(params.context);
+}
+//# sourceMappingURL=resolveDynamicValueBindingCallback.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/common/calculations/getSelf.js
+function getSelf(self) {
+    return self;
+}
+//# sourceMappingURL=getSelf.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveScoped.js
+
+
+
+function resolveScoped(getBinding, resolve) {
+    return (params, arg) => {
+        const binding = getBinding(arg);
+        switch (binding.scope) {
+            case bindingScopeValues.Singleton: {
+                if (binding.cache.isRight) {
+                    return binding.cache.value;
+                }
+                const resolvedValue = resolveBindingActivations(params, binding, resolve(params, arg));
+                return cacheResolvedValue(binding, resolvedValue);
+            }
+            case bindingScopeValues.Request: {
+                if (params.requestScopeCache.has(binding.id)) {
+                    return params.requestScopeCache.get(binding.id);
+                }
+                const resolvedValue = resolveBindingActivations(params, binding, resolve(params, arg));
+                params.requestScopeCache.set(binding.id, resolvedValue);
+                return resolvedValue;
+            }
+            case bindingScopeValues.Transient:
+                return resolveBindingActivations(params, binding, resolve(params, arg));
+        }
+    };
+}
+//# sourceMappingURL=resolveScoped.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveScopedBinding.js
+
+
+const resolveScopedBinding = (resolve) => resolveScoped(getSelf, resolve);
+//# sourceMappingURL=resolveScopedBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveDynamicValueBinding.js
+
+
+const resolveDynamicValueBinding = resolveScopedBinding(resolveDynamicValueBindingCallback);
+//# sourceMappingURL=resolveDynamicValueBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/calculations/resolveFactoryBindingCallback.js
+function resolveFactoryBindingCallback(params, binding) {
+    return binding.factory(params.context);
+}
+//# sourceMappingURL=resolveFactoryBindingCallback.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveFactoryBinding.js
+
+
+const resolveFactoryBinding = resolveSingletonScopedBinding(resolveFactoryBindingCallback);
+//# sourceMappingURL=resolveFactoryBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveInstanceBindingConstructorParams.js
+
+function resolveInstanceBindingConstructorParams(resolveServiceNode) {
+    return (params, node) => {
+        const constructorResolvedValues = [];
+        for (const constructorParam of node.constructorParams) {
+            if (constructorParam === undefined) {
+                constructorResolvedValues.push(undefined);
+            }
+            else {
+                constructorResolvedValues.push(resolveServiceNode(params, constructorParam));
+            }
+        }
+        return constructorResolvedValues.some(isPromise)
+            ? Promise.all(constructorResolvedValues)
+            : constructorResolvedValues;
+    };
+}
+//# sourceMappingURL=resolveInstanceBindingConstructorParams.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveInstanceBindingNode.js
+
+function resolveInstanceBindingNode(resolveInstanceBindingConstructorParams, resolveInstanceBindingNodeAsyncFromConstructorParams, resolveInstanceBindingNodeFromConstructorParams) {
+    return (params, node) => {
+        const constructorValues = resolveInstanceBindingConstructorParams(params, node);
+        if (isPromise(constructorValues)) {
+            return resolveInstanceBindingNodeAsyncFromConstructorParams(constructorValues, params, node);
+        }
+        return resolveInstanceBindingNodeFromConstructorParams(constructorValues, params, node);
+    };
+}
+//# sourceMappingURL=resolveInstanceBindingNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveInstanceBindingNodeAsyncFromConstructorParams.js
+function resolveInstanceBindingNodeAsyncFromConstructorParams(resolveInstanceBindingNodeFromConstructorParams) {
+    return async (constructorValues, params, node) => {
+        const constructorResolvedValues = await constructorValues;
+        return resolveInstanceBindingNodeFromConstructorParams(constructorResolvedValues, params, node);
+    };
+}
+//# sourceMappingURL=resolveInstanceBindingNodeAsyncFromConstructorParams.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolvePostConstruct.js
+
+
+
+function resolvePostConstruct(instance, binding, postConstructMethodName) {
+    const postConstructResult = invokePostConstruct(instance, binding, postConstructMethodName);
+    if (isPromise(postConstructResult)) {
+        return postConstructResult.then(() => instance);
+    }
+    return instance;
+}
+function invokePostConstruct(instance, binding, postConstructMethodName) {
+    if (postConstructMethodName in instance) {
+        if (typeof instance[postConstructMethodName] === 'function') {
+            let postConstructResult;
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                postConstructResult = instance[postConstructMethodName]();
+            }
+            catch (error) {
+                throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.resolution, `Unexpected error found when calling "${postConstructMethodName.toString()}" @postConstruct decorated method on class "${binding.implementationType.name}"`, {
+                    cause: error,
+                });
+            }
+            if (isPromise(postConstructResult)) {
+                return invokePostConstructAsync(binding, postConstructMethodName, postConstructResult);
+            }
+        }
+        else {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.resolution, `Expecting a "${postConstructMethodName.toString()}" method when resolving "${binding.implementationType.name}" class @postConstruct decorated method, a non function property was found instead.`);
+        }
+    }
+    else {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.resolution, `Expecting a "${postConstructMethodName.toString()}" property when resolving "${binding.implementationType.name}" class @postConstruct decorated method, none found.`);
+    }
+}
+async function invokePostConstructAsync(binding, postConstructMethodName, postConstructResult) {
+    try {
+        await postConstructResult;
+    }
+    catch (error) {
+        throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.resolution, `Unexpected error found when calling "${postConstructMethodName.toString()}" @postConstruct decorated method on class "${binding.implementationType.name}"`, {
+            cause: error,
+        });
+    }
+}
+//# sourceMappingURL=resolvePostConstruct.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveInstanceBindingNodeFromConstructorParams.js
+
+
+function resolveAllPostConstructMethods(instance, binding, postConstructMethodNames) {
+    if (postConstructMethodNames.size === 0) {
+        return instance;
+    }
+    let result = instance;
+    for (const methodName of postConstructMethodNames) {
+        if (isPromise(result)) {
+            result = result.then((resolvedInstance) => resolvePostConstruct(resolvedInstance, binding, methodName));
+        }
+        else {
+            result = resolvePostConstruct(result, binding, methodName);
+        }
+    }
+    return result;
+}
+function resolveInstanceBindingNodeFromConstructorParams(setInstanceProperties) {
+    return (constructorValues, params, node) => {
+        const instance = new node.binding.implementationType(...constructorValues);
+        const propertiesAssignmentResult = setInstanceProperties(params, instance, node);
+        if (isPromise(propertiesAssignmentResult)) {
+            return propertiesAssignmentResult.then(() => resolveAllPostConstructMethods(instance, node.binding, node.classMetadata.lifecycle.postConstructMethodNames));
+        }
+        return resolveAllPostConstructMethods(instance, node.binding, node.classMetadata.lifecycle.postConstructMethodNames);
+    };
+}
+//# sourceMappingURL=resolveInstanceBindingNodeFromConstructorParams.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveResolvedValueBindingNode.js
+
+function resolveResolvedValueBindingNode(resolveResolvedValueBindingParams) {
+    return (params, node) => {
+        const paramValues = resolveResolvedValueBindingParams(params, node);
+        if (isPromise(paramValues)) {
+            return paramValues.then((resolvedParamValues) => node.binding.factory(...resolvedParamValues));
+        }
+        return node.binding.factory(...paramValues);
+    };
+}
+//# sourceMappingURL=resolveResolvedValueBindingNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveResolvedValueBindingParams.js
+
+function resolveResolvedValueBindingParams(resolveServiceNode) {
+    return (params, node) => {
+        const paramsResolvedValues = [];
+        for (const param of node.params) {
+            paramsResolvedValues.push(resolveServiceNode(params, param));
+        }
+        return paramsResolvedValues.some(isPromise)
+            ? Promise.all(paramsResolvedValues)
+            : paramsResolvedValues;
+    };
+}
+//# sourceMappingURL=resolveResolvedValueBindingParams.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/calculations/getInstanceNodeBinding.js
+function getInstanceNodeBinding(node) {
+    return node.binding;
+}
+//# sourceMappingURL=getInstanceNodeBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveScopedInstanceBindingNode.js
+
+
+const resolveScopedInstanceBindingNode = (resolve) => resolveScoped(getInstanceNodeBinding, resolve);
+//# sourceMappingURL=resolveScopedInstanceBindingNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/calculations/getResolvedValueNodeBinding.js
+function getResolvedValueNodeBinding(node) {
+    return node.binding;
+}
+//# sourceMappingURL=getResolvedValueNodeBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveScopedResolvedValueBindingNode.js
+
+
+const resolveScopedResolvedValueBindingNode = (resolve) => resolveScoped(getResolvedValueNodeBinding, resolve);
+//# sourceMappingURL=resolveScopedResolvedValueBindingNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveServiceRedirectionBindingNode.js
+
+function resolveServiceRedirectionBindingNode(resolveBindingNode) {
+    function innerResolveServiceRedirectionBindingNode(params, node) {
+        const resolvedValues = [];
+        for (const redirection of node.redirections) {
+            if (isPlanServiceRedirectionBindingNode(redirection)) {
+                resolvedValues.push(...innerResolveServiceRedirectionBindingNode(params, redirection));
+            }
+            else {
+                resolvedValues.push(resolveBindingNode(params, redirection));
+            }
+        }
+        return resolvedValues;
+    }
+    return innerResolveServiceRedirectionBindingNode;
+}
+//# sourceMappingURL=resolveServiceRedirectionBindingNode.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/setInstanceProperties.js
+
+
+
+
+function setInstanceProperties(resolveServiceNode) {
+    return (params, instance, node) => {
+        const propertyAssignmentPromises = [];
+        for (const [propertyKey, propertyNode] of node.propertyParams) {
+            const metadata = node.classMetadata.properties.get(propertyKey);
+            if (metadata === undefined) {
+                throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.resolution, `Expecting metadata at property "${propertyKey.toString()}", none found`);
+            }
+            if (metadata.kind !== ClassElementMetadataKind_ClassElementMetadataKind.unmanaged &&
+                propertyNode.bindings !== undefined) {
+                instance[propertyKey] = resolveServiceNode(params, propertyNode);
+                if (isPromise(instance[propertyKey])) {
+                    propertyAssignmentPromises.push((async () => {
+                        instance[propertyKey] = await instance[propertyKey];
+                    })());
+                }
+            }
+        }
+        if (propertyAssignmentPromises.length > 0) {
+            return Promise.all(propertyAssignmentPromises).then(() => undefined);
+        }
+    };
+}
+//# sourceMappingURL=setInstanceProperties.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolve.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const resolve_setInstanceProperties = setInstanceProperties(resolveServiceNode);
+const resolve_resolveServiceRedirectionBindingNode = resolveServiceRedirectionBindingNode(resolveBindingNode);
+const resolve_resolveInstanceBindingNode = resolveInstanceBindingNode(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+resolveInstanceBindingConstructorParams(resolveServiceNode), resolveInstanceBindingNodeAsyncFromConstructorParams(resolveInstanceBindingNodeFromConstructorParams(resolve_setInstanceProperties)), resolveInstanceBindingNodeFromConstructorParams(resolve_setInstanceProperties));
+const resolve_resolveResolvedValueBindingNode = resolveResolvedValueBindingNode(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+resolveResolvedValueBindingParams(resolveServiceNode));
+const resolve_resolveScopedInstanceBindingNode = resolveScopedInstanceBindingNode(resolve_resolveInstanceBindingNode);
+const resolve_resolveScopedResolvedValueBindingNode = resolveScopedResolvedValueBindingNode(resolve_resolveResolvedValueBindingNode);
+function resolve(params) {
+    try {
+        const serviceNode = params.planResult.tree.root;
+        return resolveServiceNode(params, serviceNode);
+    }
+    catch (error) {
+        handleResolveError(params, error);
+    }
+}
+function resolveBindingNode(params, planBindingNode) {
+    switch (planBindingNode.binding.type) {
+        case bindingTypeValues.ConstantValue:
+            return resolveConstantValueBinding(params, planBindingNode.binding);
+        case bindingTypeValues.DynamicValue:
+            return resolveDynamicValueBinding(params, planBindingNode.binding);
+        case bindingTypeValues.Factory:
+            return resolveFactoryBinding(params, planBindingNode.binding);
+        case bindingTypeValues.Instance:
+            return resolve_resolveScopedInstanceBindingNode(params, planBindingNode);
+        case bindingTypeValues.ResolvedValue:
+            return resolve_resolveScopedResolvedValueBindingNode(params, planBindingNode);
+    }
+}
+function resolveServiceNode(params, serviceNode) {
+    if (serviceNode.bindings === undefined) {
+        return undefined;
+    }
+    if (Array.isArray(serviceNode.bindings)) {
+        return resolveMultipleBindingServiceNode(params, serviceNode.bindings);
+    }
+    return resolveSingleBindingServiceNode(params, serviceNode.bindings);
+}
+function resolveMultipleBindingServiceNode(params, bindings) {
+    const resolvedValues = [];
+    for (const binding of bindings) {
+        if (isPlanServiceRedirectionBindingNode(binding)) {
+            resolvedValues.push(...resolve_resolveServiceRedirectionBindingNode(params, binding));
+        }
+        else {
+            resolvedValues.push(resolveBindingNode(params, binding));
+        }
+    }
+    if (resolvedValues.some(isPromise)) {
+        return Promise.all(resolvedValues);
+    }
+    return resolvedValues;
+}
+function resolveSingleBindingServiceNode(params, binding) {
+    if (isPlanServiceRedirectionBindingNode(binding)) {
+        const resolvedValues = resolve_resolveServiceRedirectionBindingNode(params, binding);
+        if (resolvedValues.length === 1) {
+            return resolvedValues[0];
+        }
+        else {
+            throw new InversifyCoreError_InversifyCoreError(InversifyCoreErrorKind_InversifyCoreErrorKind.resolution, 'Unexpected multiple resolved values on single injection');
+        }
+    }
+    else {
+        return resolveBindingNode(params, binding);
+    }
+}
+//# sourceMappingURL=resolve.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/binding/calculations/isScopedBinding.js
+function isScopedBinding(binding) {
+    return (binding.scope !==
+        undefined);
+}
+//# sourceMappingURL=isScopedBinding.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveBindingPreDestroy.js
+
+
+const CACHE_KEY_TYPE = 'cache';
+function resolveBindingPreDestroy(params, binding) {
+    if (binding.type === bindingTypeValues.Instance) {
+        const classMetadata = params.getClassMetadata(binding.implementationType);
+        const instance = binding.cache
+            .value;
+        if (isPromise(instance)) {
+            return instance.then((instance) => resolveInstancePreDestroyMethods(classMetadata, instance));
+        }
+        else {
+            return resolveInstancePreDestroyMethods(classMetadata, instance);
+        }
+    }
+}
+function resolveInstancePreDestroyMethod(instance, methodName) {
+    if (typeof instance[methodName] === 'function') {
+        const result = instance[methodName]();
+        return result;
+    }
+}
+function resolveInstancePreDestroyMethods(classMetadata, instance) {
+    const preDestroyMethodNames = classMetadata.lifecycle.preDestroyMethodNames;
+    if (preDestroyMethodNames.size === 0) {
+        return;
+    }
+    let result = undefined;
+    for (const methodName of preDestroyMethodNames) {
+        if (result === undefined) {
+            result = resolveInstancePreDestroyMethod(instance, methodName);
+        }
+        else {
+            result = result.then(() => resolveInstancePreDestroyMethod(instance, methodName));
+        }
+    }
+    return result;
+}
+//# sourceMappingURL=resolveBindingPreDestroy.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveBindingServiceDeactivations.js
+
+function resolveBindingServiceDeactivations(params, serviceIdentifier, value) {
+    const deactivations = params.getDeactivations(serviceIdentifier);
+    if (deactivations === undefined) {
+        return undefined;
+    }
+    if (isPromise(value)) {
+        return resolveBindingDeactivationsFromIteratorAsync(value, deactivations[Symbol.iterator]());
+    }
+    return resolveBindingDeactivationsFromIterator(value, deactivations[Symbol.iterator]());
+}
+function resolveBindingDeactivationsFromIterator(value, deactivationsIterator) {
+    let deactivationIteratorResult = deactivationsIterator.next();
+    while (deactivationIteratorResult.done !== true) {
+        const nextDeactivationValue = deactivationIteratorResult.value(value);
+        if (isPromise(nextDeactivationValue)) {
+            return resolveBindingDeactivationsFromIteratorAsync(value, deactivationsIterator);
+        }
+        deactivationIteratorResult = deactivationsIterator.next();
+    }
+}
+async function resolveBindingDeactivationsFromIteratorAsync(value, deactivationsIterator) {
+    const resolvedValue = await value;
+    let deactivationIteratorResult = deactivationsIterator.next();
+    while (deactivationIteratorResult.done !== true) {
+        await deactivationIteratorResult.value(resolvedValue);
+        deactivationIteratorResult = deactivationsIterator.next();
+    }
+}
+//# sourceMappingURL=resolveBindingServiceDeactivations.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveBindingDeactivations.js
+
+
+
+const resolveBindingDeactivations_CACHE_KEY_TYPE = 'cache';
+function resolveBindingDeactivations(params, binding) {
+    const preDestroyResult = resolveBindingPreDestroy(params, binding);
+    if (preDestroyResult === undefined) {
+        return resolveBindingDeactivationsAfterPreDestroy(params, binding);
+    }
+    return preDestroyResult.then(() => resolveBindingDeactivationsAfterPreDestroy(params, binding));
+}
+function resolveBindingDeactivationsAfterPreDestroy(params, binding) {
+    const bindingCache = binding.cache;
+    if (isPromise(bindingCache.value)) {
+        return bindingCache.value.then((resolvedValue) => resolveBindingDeactivationsAfterPreDestroyFromValue(params, binding, resolvedValue));
+    }
+    return resolveBindingDeactivationsAfterPreDestroyFromValue(params, binding, bindingCache.value);
+}
+function resolveBindingDeactivationsAfterPreDestroyFromValue(params, binding, resolvedValue) {
+    let deactivationResult = undefined;
+    if (binding.onDeactivation !== undefined) {
+        const bindingDeactivation = binding.onDeactivation;
+        deactivationResult = bindingDeactivation(resolvedValue);
+    }
+    if (deactivationResult === undefined) {
+        return resolveBindingServiceDeactivations(params, binding.serviceIdentifier, resolvedValue);
+    }
+    else {
+        return deactivationResult.then(() => resolveBindingServiceDeactivations(params, binding.serviceIdentifier, resolvedValue));
+    }
+}
+//# sourceMappingURL=resolveBindingDeactivations.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveBindingsDeactivations.js
+
+
+
+const resolveBindingsDeactivations_CACHE_KEY_TYPE = 'cache';
+function resolveBindingsDeactivations(params, bindings) {
+    if (bindings === undefined) {
+        return;
+    }
+    const singletonScopedBindings = filterCachedSinglentonScopedBindings(bindings);
+    const deactivationPromiseResults = [];
+    for (const binding of singletonScopedBindings) {
+        const deactivationResult = resolveBindingDeactivations(params, binding);
+        if (deactivationResult !== undefined) {
+            deactivationPromiseResults.push(deactivationResult);
+        }
+    }
+    if (deactivationPromiseResults.length > 0) {
+        return Promise.all(deactivationPromiseResults).then(() => undefined);
+    }
+}
+function filterCachedSinglentonScopedBindings(bindings) {
+    const filteredBindings = [];
+    for (const binding of bindings) {
+        if (isScopedBinding(binding) &&
+            binding.scope === bindingScopeValues.Singleton &&
+            binding.cache.isRight) {
+            filteredBindings.push(binding);
+        }
+    }
+    return filteredBindings;
+}
+//# sourceMappingURL=resolveBindingsDeactivations.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveModuleDeactivations.js
+
+function resolveModuleDeactivations(params, moduleId) {
+    const bindings = params.getBindingsFromModule(moduleId);
+    return resolveBindingsDeactivations(params, bindings);
+}
+//# sourceMappingURL=resolveModuleDeactivations.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/resolution/actions/resolveServiceDeactivations.js
+
+function resolveServiceDeactivations(params, serviceIdentifier) {
+    const bindings = params.getBindings(serviceIdentifier);
+    return resolveBindingsDeactivations(params, bindings);
+}
+//# sourceMappingURL=resolveServiceDeactivations.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/index.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/models/BindingIdentifier.js
+const bindingIdentifierSymbol = Symbol.for('@inversifyjs/container/bindingIdentifier');
+//# sourceMappingURL=BindingIdentifier.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isBindingIdentifier.js
 
-;// CONCATENATED MODULE: ./node_modules/@inversifyjs/prototype-utils/lib/esm/index.js
-function lib_esm_t(t){const o=Object.getPrototypeOf(t.prototype),r=o?.constructor;return r}function esm_o(o,r){for(let n=o;void 0!==n;n=lib_esm_t(n)){const t=r(n);if(void 0!==t)return t}}
+function isBindingIdentifier(value) {
+    return (typeof value === 'object' &&
+        value !== null &&
+        value[bindingIdentifierSymbol] === true);
+}
+//# sourceMappingURL=isBindingIdentifier.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/binding/utils/BindingConstraintUtils.js
+class BindingConstraintUtils {
+    static always = (_bindingConstraints) => {
+        return true;
+    };
+}
+//# sourceMappingURL=BindingConstraintUtils.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/error/models/InversifyContainerError.js
+const InversifyContainerError_isAppErrorSymbol = Symbol.for('@inversifyjs/container/InversifyContainerError');
+class InversifyContainerError extends Error {
+    [InversifyContainerError_isAppErrorSymbol];
+    kind;
+    constructor(kind, message, options) {
+        super(message, options);
+        this[InversifyContainerError_isAppErrorSymbol] = true;
+        this.kind = kind;
+    }
+    static is(value) {
+        return (typeof value === 'object' &&
+            value !== null &&
+            value[InversifyContainerError_isAppErrorSymbol] === true);
+    }
+    static isErrorOfKind(value, kind) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        return InversifyContainerError.is(value) && value.kind === kind;
+    }
+}
+//# sourceMappingURL=InversifyContainerError.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/error/models/InversifyContainerErrorKind.js
+var InversifyContainerErrorKind;
+(function (InversifyContainerErrorKind) {
+    InversifyContainerErrorKind[InversifyContainerErrorKind["invalidOperation"] = 0] = "invalidOperation";
+})(InversifyContainerErrorKind || (InversifyContainerErrorKind = {}));
+//# sourceMappingURL=InversifyContainerErrorKind.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/buildBindingIdentifier.js
+
+function buildBindingIdentifier(binding) {
+    return {
+        [bindingIdentifierSymbol]: true,
+        id: binding.id,
+    };
+}
+//# sourceMappingURL=buildBindingIdentifier.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isAnyAncestorBindingConstraints.js
+function isAnyAncestorBindingConstraints(condition) {
+    return (constraints) => {
+        for (let ancestorMetadata = constraints.getAncestor(); ancestorMetadata !== undefined; ancestorMetadata = ancestorMetadata.getAncestor()) {
+            if (condition(ancestorMetadata)) {
+                return true;
+            }
+        }
+        return false;
+    };
+}
+//# sourceMappingURL=isAnyAncestorBindingConstraints.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isBindingConstraintsWithName.js
+function isBindingConstraintsWithName(name) {
+    return (constraints) => constraints.name === name;
+}
+//# sourceMappingURL=isBindingConstraintsWithName.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isAnyAncestorBindingConstraintsWithName.js
+
+
+function isAnyAncestorBindingConstraintsWithName(name) {
+    return isAnyAncestorBindingConstraints(isBindingConstraintsWithName(name));
+}
+//# sourceMappingURL=isAnyAncestorBindingConstraintsWithName.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isBindingConstraintsWithServiceId.js
+function isBindingConstraintsWithServiceId(serviceId) {
+    return (constraints) => constraints.serviceIdentifier === serviceId;
+}
+//# sourceMappingURL=isBindingConstraintsWithServiceId.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isAnyAncestorBindingConstraintsWithServiceId.js
+
+
+function isAnyAncestorBindingConstraintsWithServiceId(serviceId) {
+    return isAnyAncestorBindingConstraints(isBindingConstraintsWithServiceId(serviceId));
+}
+//# sourceMappingURL=isAnyAncestorBindingConstraintsWithServiceId.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isBindingConstraintsWithTag.js
+function isBindingConstraintsWithTag(tag, value) {
+    return (constraints) => constraints.tags.has(tag) && constraints.tags.get(tag) === value;
+}
+//# sourceMappingURL=isBindingConstraintsWithTag.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isAnyAncestorBindingConstraintsWithTag.js
+
+
+function isAnyAncestorBindingConstraintsWithTag(tag, value) {
+    return isAnyAncestorBindingConstraints(isBindingConstraintsWithTag(tag, value));
+}
+//# sourceMappingURL=isAnyAncestorBindingConstraintsWithTag.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isBindingConstraintsWithNoNameNorTags.js
+function isBindingConstraintsWithNoNameNorTags(constraints) {
+    return constraints.name === undefined && constraints.tags.size === 0;
+}
+//# sourceMappingURL=isBindingConstraintsWithNoNameNorTags.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isMultipleResolvedValueMetadataInjectOptions.js
+function isMultipleResolvedValueMetadataInjectOptions(options) {
+    return (options
+        .isMultiple === true);
+}
+//# sourceMappingURL=isMultipleResolvedValueMetadataInjectOptions.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNoAncestorBindingConstraints.js
+
+function isNoAncestorBindingConstraints(condition) {
+    const isAnyAncestorBindingConstraintsConstraint = isAnyAncestorBindingConstraints(condition);
+    return (constraints) => {
+        return !isAnyAncestorBindingConstraintsConstraint(constraints);
+    };
+}
+//# sourceMappingURL=isNoAncestorBindingConstraints.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNoAncestorBindingConstraintsWithName.js
+
+
+function isNoAncestorBindingConstraintsWithName(name) {
+    return isNoAncestorBindingConstraints(isBindingConstraintsWithName(name));
+}
+//# sourceMappingURL=isNoAncestorBindingConstraintsWithName.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNoAncestorBindingConstraintsWithServiceId.js
+
+
+function isNoAncestorBindingConstraintsWithServiceId(serviceId) {
+    return isNoAncestorBindingConstraints(isBindingConstraintsWithServiceId(serviceId));
+}
+//# sourceMappingURL=isNoAncestorBindingConstraintsWithServiceId.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNoAncestorBindingConstraintsWithTag.js
+
+
+function isNoAncestorBindingConstraintsWithTag(tag, value) {
+    return isNoAncestorBindingConstraints(isBindingConstraintsWithTag(tag, value));
+}
+//# sourceMappingURL=isNoAncestorBindingConstraintsWithTag.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNotParentBindingConstraints.js
+function isNotParentBindingConstraints(condition) {
+    return (constraints) => {
+        const ancestorMetadata = constraints.getAncestor();
+        return ancestorMetadata === undefined || !condition(ancestorMetadata);
+    };
+}
+//# sourceMappingURL=isNotParentBindingConstraints.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNotParentBindingConstraintsWithName.js
+
+
+function isNotParentBindingConstraintsWithName(name) {
+    return isNotParentBindingConstraints(isBindingConstraintsWithName(name));
+}
+//# sourceMappingURL=isNotParentBindingConstraintsWithName.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNotParentBindingConstraintsWithServiceId.js
+
+
+function isNotParentBindingConstraintsWithServiceId(serviceId) {
+    return isNotParentBindingConstraints(isBindingConstraintsWithServiceId(serviceId));
+}
+//# sourceMappingURL=isNotParentBindingConstraintsWithServiceId.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isNotParentBindingConstraintsWithTag.js
+
+
+function isNotParentBindingConstraintsWithTag(tag, value) {
+    return isNotParentBindingConstraints(isBindingConstraintsWithTag(tag, value));
+}
+//# sourceMappingURL=isNotParentBindingConstraintsWithTag.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isParentBindingConstraints.js
+function isParentBindingConstraints(condition) {
+    return (constraints) => {
+        const ancestorMetadata = constraints.getAncestor();
+        return ancestorMetadata !== undefined && condition(ancestorMetadata);
+    };
+}
+//# sourceMappingURL=isParentBindingConstraints.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isParentBindingConstraintsWithName.js
+
+
+function isParentBindingConstraintsWithName(name) {
+    return isParentBindingConstraints(isBindingConstraintsWithName(name));
+}
+//# sourceMappingURL=isParentBindingConstraintsWithName.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isParentBindingConstraintsWithServiceId.js
+
+
+function isParentBindingConstraintsWithServiceId(serviceId) {
+    return isParentBindingConstraints(isBindingConstraintsWithServiceId(serviceId));
+}
+//# sourceMappingURL=isParentBindingConstraintsWithServiceId.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isParentBindingConstraintsWithTag.js
+
+
+function isParentBindingConstraintsWithTag(tag, value) {
+    return isParentBindingConstraints(isBindingConstraintsWithTag(tag, value));
+}
+//# sourceMappingURL=isParentBindingConstraintsWithTag.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/calculations/isResolvedValueMetadataInjectOptions.js
+
+function isResolvedValueMetadataInjectOptions(options) {
+    return typeof options === 'object' && !LazyServiceIdentifier.is(options);
+}
+//# sourceMappingURL=isResolvedValueMetadataInjectOptions.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/binding/models/BindingFluentSyntaxImplementation.js
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class BindInFluentSyntaxImplementation {
+    #binding;
+    constructor(binding) {
+        this.#binding = binding;
+    }
+    getIdentifier() {
+        return buildBindingIdentifier(this.#binding);
+    }
+    inRequestScope() {
+        this.#binding.scope = bindingScopeValues.Request;
+        return new BindWhenOnFluentSyntaxImplementation(this.#binding);
+    }
+    inSingletonScope() {
+        this.#binding.scope = bindingScopeValues.Singleton;
+        return new BindWhenOnFluentSyntaxImplementation(this.#binding);
+    }
+    inTransientScope() {
+        this.#binding.scope = bindingScopeValues.Transient;
+        return new BindWhenOnFluentSyntaxImplementation(this.#binding);
+    }
+}
+class BindToFluentSyntaxImplementation {
+    #callback;
+    #containerModuleId;
+    #defaultScope;
+    #serviceIdentifier;
+    constructor(callback, containerModuleId, defaultScope, serviceIdentifier) {
+        this.#callback = callback;
+        this.#containerModuleId = containerModuleId;
+        this.#defaultScope = defaultScope;
+        this.#serviceIdentifier = serviceIdentifier;
+    }
+    to(type) {
+        const classMetadata = getClassMetadata(type);
+        const binding = {
+            cache: {
+                isRight: false,
+                value: undefined,
+            },
+            id: getBindingId(),
+            implementationType: type,
+            isSatisfiedBy: BindingConstraintUtils.always,
+            moduleId: this.#containerModuleId,
+            onActivation: undefined,
+            onDeactivation: undefined,
+            scope: classMetadata.scope ?? this.#defaultScope,
+            serviceIdentifier: this.#serviceIdentifier,
+            type: bindingTypeValues.Instance,
+        };
+        this.#callback(binding);
+        return new BindInWhenOnFluentSyntaxImplementation(binding);
+    }
+    toSelf() {
+        if (typeof this.#serviceIdentifier !== 'function') {
+            throw new Error('"toSelf" function can only be applied when a newable function is used as service identifier');
+        }
+        return this.to(this.#serviceIdentifier);
+    }
+    toConstantValue(value) {
+        const binding = {
+            cache: {
+                isRight: false,
+                value: undefined,
+            },
+            id: getBindingId(),
+            isSatisfiedBy: BindingConstraintUtils.always,
+            moduleId: this.#containerModuleId,
+            onActivation: undefined,
+            onDeactivation: undefined,
+            scope: bindingScopeValues.Singleton,
+            serviceIdentifier: this.#serviceIdentifier,
+            type: bindingTypeValues.ConstantValue,
+            value: value,
+        };
+        this.#callback(binding);
+        return new BindWhenOnFluentSyntaxImplementation(binding);
+    }
+    toDynamicValue(builder) {
+        const binding = {
+            cache: {
+                isRight: false,
+                value: undefined,
+            },
+            id: getBindingId(),
+            isSatisfiedBy: BindingConstraintUtils.always,
+            moduleId: this.#containerModuleId,
+            onActivation: undefined,
+            onDeactivation: undefined,
+            scope: this.#defaultScope,
+            serviceIdentifier: this.#serviceIdentifier,
+            type: bindingTypeValues.DynamicValue,
+            value: builder,
+        };
+        this.#callback(binding);
+        return new BindInWhenOnFluentSyntaxImplementation(binding);
+    }
+    toResolvedValue(factory, injectOptions) {
+        const binding = {
+            cache: {
+                isRight: false,
+                value: undefined,
+            },
+            factory,
+            id: getBindingId(),
+            isSatisfiedBy: BindingConstraintUtils.always,
+            metadata: this.#buildResolvedValueMetadata(injectOptions),
+            moduleId: this.#containerModuleId,
+            onActivation: undefined,
+            onDeactivation: undefined,
+            scope: this.#defaultScope,
+            serviceIdentifier: this.#serviceIdentifier,
+            type: bindingTypeValues.ResolvedValue,
+        };
+        this.#callback(binding);
+        return new BindInWhenOnFluentSyntaxImplementation(binding);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    toFactory(builder) {
+        const binding = {
+            cache: {
+                isRight: false,
+                value: undefined,
+            },
+            factory: builder,
+            id: getBindingId(),
+            isSatisfiedBy: BindingConstraintUtils.always,
+            moduleId: this.#containerModuleId,
+            onActivation: undefined,
+            onDeactivation: undefined,
+            scope: bindingScopeValues.Singleton,
+            serviceIdentifier: this.#serviceIdentifier,
+            type: bindingTypeValues.Factory,
+        };
+        this.#callback(binding);
+        return new BindWhenOnFluentSyntaxImplementation(binding);
+    }
+    toService(service) {
+        const binding = {
+            id: getBindingId(),
+            isSatisfiedBy: BindingConstraintUtils.always,
+            moduleId: this.#containerModuleId,
+            serviceIdentifier: this.#serviceIdentifier,
+            targetServiceIdentifier: service,
+            type: bindingTypeValues.ServiceRedirection,
+        };
+        this.#callback(binding);
+    }
+    #buildResolvedValueMetadata(options) {
+        const resolvedValueMetadata = {
+            arguments: (options ?? []).map((injectOption) => {
+                if (isResolvedValueMetadataInjectOptions(injectOption)) {
+                    if (isMultipleResolvedValueMetadataInjectOptions(injectOption)) {
+                        return {
+                            chained: injectOption.chained ?? false,
+                            kind: ResolvedValueElementMetadataKind.multipleInjection,
+                            name: injectOption.name,
+                            optional: injectOption.optional ?? false,
+                            tags: new Map((injectOption.tags ?? []).map((tag) => [
+                                tag.key,
+                                tag.value,
+                            ])),
+                            value: injectOption.serviceIdentifier,
+                        };
+                    }
+                    else {
+                        return {
+                            kind: ResolvedValueElementMetadataKind.singleInjection,
+                            name: injectOption.name,
+                            optional: injectOption.optional ?? false,
+                            tags: new Map((injectOption.tags ?? []).map((tag) => [
+                                tag.key,
+                                tag.value,
+                            ])),
+                            value: injectOption.serviceIdentifier,
+                        };
+                    }
+                }
+                else {
+                    return {
+                        kind: ResolvedValueElementMetadataKind.singleInjection,
+                        name: undefined,
+                        optional: false,
+                        tags: new Map(),
+                        value: injectOption,
+                    };
+                }
+            }),
+        };
+        return resolvedValueMetadata;
+    }
+}
+class BindOnFluentSyntaxImplementation {
+    #binding;
+    constructor(binding) {
+        this.#binding = binding;
+    }
+    getIdentifier() {
+        return buildBindingIdentifier(this.#binding);
+    }
+    onActivation(activation) {
+        this.#binding.onActivation = activation;
+        return new BindWhenFluentSyntaxImplementation(this.#binding);
+    }
+    onDeactivation(deactivation) {
+        this.#binding.onDeactivation = deactivation;
+        if (this.#binding.scope !== bindingScopeValues.Singleton) {
+            throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, `Binding for service "${stringifyServiceIdentifier(this.#binding.serviceIdentifier)}" has a deactivation function, but its scope is not singleton. Deactivation functions can only be used with singleton bindings.`);
+        }
+        return new BindWhenFluentSyntaxImplementation(this.#binding);
+    }
+}
+class BindWhenFluentSyntaxImplementation {
+    #binding;
+    constructor(binding) {
+        this.#binding = binding;
+    }
+    getIdentifier() {
+        return buildBindingIdentifier(this.#binding);
+    }
+    when(constraint) {
+        this.#binding.isSatisfiedBy = constraint;
+        return new BindOnFluentSyntaxImplementation(this.#binding);
+    }
+    whenAnyAncestor(constraint) {
+        return this.when(isAnyAncestorBindingConstraints(constraint));
+    }
+    whenAnyAncestorIs(serviceIdentifier) {
+        return this.when(isAnyAncestorBindingConstraintsWithServiceId(serviceIdentifier));
+    }
+    whenAnyAncestorNamed(name) {
+        return this.when(isAnyAncestorBindingConstraintsWithName(name));
+    }
+    whenAnyAncestorTagged(tag, tagValue) {
+        return this.when(isAnyAncestorBindingConstraintsWithTag(tag, tagValue));
+    }
+    whenDefault() {
+        return this.when(isBindingConstraintsWithNoNameNorTags);
+    }
+    whenNamed(name) {
+        return this.when(isBindingConstraintsWithName(name));
+    }
+    whenNoParent(constraint) {
+        return this.when(isNotParentBindingConstraints(constraint));
+    }
+    whenNoParentIs(serviceIdentifier) {
+        return this.when(isNotParentBindingConstraintsWithServiceId(serviceIdentifier));
+    }
+    whenNoParentNamed(name) {
+        return this.when(isNotParentBindingConstraintsWithName(name));
+    }
+    whenNoParentTagged(tag, tagValue) {
+        return this.when(isNotParentBindingConstraintsWithTag(tag, tagValue));
+    }
+    whenParent(constraint) {
+        return this.when(isParentBindingConstraints(constraint));
+    }
+    whenParentIs(serviceIdentifier) {
+        return this.when(isParentBindingConstraintsWithServiceId(serviceIdentifier));
+    }
+    whenParentNamed(name) {
+        return this.when(isParentBindingConstraintsWithName(name));
+    }
+    whenParentTagged(tag, tagValue) {
+        return this.when(isParentBindingConstraintsWithTag(tag, tagValue));
+    }
+    whenTagged(tag, tagValue) {
+        return this.when(isBindingConstraintsWithTag(tag, tagValue));
+    }
+    whenNoAncestor(constraint) {
+        return this.when(isNoAncestorBindingConstraints(constraint));
+    }
+    whenNoAncestorIs(serviceIdentifier) {
+        return this.when(isNoAncestorBindingConstraintsWithServiceId(serviceIdentifier));
+    }
+    whenNoAncestorNamed(name) {
+        return this.when(isNoAncestorBindingConstraintsWithName(name));
+    }
+    whenNoAncestorTagged(tag, tagValue) {
+        return this.when(isNoAncestorBindingConstraintsWithTag(tag, tagValue));
+    }
+}
+class BindWhenOnFluentSyntaxImplementation extends BindWhenFluentSyntaxImplementation {
+    #bindOnFluentSyntax;
+    constructor(binding) {
+        super(binding);
+        this.#bindOnFluentSyntax = new BindOnFluentSyntaxImplementation(binding);
+    }
+    onActivation(activation) {
+        return this.#bindOnFluentSyntax.onActivation(activation);
+    }
+    onDeactivation(deactivation) {
+        return this.#bindOnFluentSyntax.onDeactivation(deactivation);
+    }
+}
+class BindInWhenOnFluentSyntaxImplementation extends BindWhenOnFluentSyntaxImplementation {
+    #bindInFluentSyntax;
+    constructor(binding) {
+        super(binding);
+        this.#bindInFluentSyntax = new BindInFluentSyntaxImplementation(binding);
+    }
+    inRequestScope() {
+        return this.#bindInFluentSyntax.inRequestScope();
+    }
+    inSingletonScope() {
+        return this.#bindInFluentSyntax.inSingletonScope();
+    }
+    inTransientScope() {
+        return this.#bindInFluentSyntax.inTransientScope();
+    }
+}
+//# sourceMappingURL=BindingFluentSyntaxImplementation.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/common/actions/getFirstIteratorResult.js
+function getFirstIteratorResult(iterator) {
+    if (iterator === undefined) {
+        return undefined;
+    }
+    const firstIteratorResult = iterator.next();
+    if (firstIteratorResult.done === true) {
+        return undefined;
+    }
+    return firstIteratorResult.value;
+}
+//# sourceMappingURL=getFirstIteratorResult.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/common/calculations/getFirstIterableResult.js
+
+function getFirstIterableResult(iterable) {
+    return getFirstIteratorResult(iterable?.[Symbol.iterator]());
+}
+//# sourceMappingURL=getFirstIterableResult.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/BindingManager.js
+
+
+
+
+
+
+
+class BindingManager {
+    #deactivationParams;
+    #defaultScope;
+    #planResultCacheManager;
+    #serviceReferenceManager;
+    constructor(deactivationParams, defaultScope, planResultCacheManager, serviceReferenceManager) {
+        this.#deactivationParams = deactivationParams;
+        this.#defaultScope = defaultScope;
+        this.#planResultCacheManager = planResultCacheManager;
+        this.#serviceReferenceManager = serviceReferenceManager;
+    }
+    bind(serviceIdentifier) {
+        return new BindToFluentSyntaxImplementation((binding) => {
+            this.#setBinding(binding);
+        }, undefined, this.#defaultScope, serviceIdentifier);
+    }
+    isBound(serviceIdentifier, options) {
+        const bindings = this.#serviceReferenceManager.bindingService.get(serviceIdentifier);
+        return this.#isAnyValidBinding(serviceIdentifier, bindings, options);
+    }
+    isCurrentBound(serviceIdentifier, options) {
+        const bindings = this.#serviceReferenceManager.bindingService.getNonParentBindings(serviceIdentifier);
+        return this.#isAnyValidBinding(serviceIdentifier, bindings, options);
+    }
+    async rebindAsync(serviceIdentifier) {
+        await this.unbindAsync(serviceIdentifier);
+        return this.bind(serviceIdentifier);
+    }
+    rebind(serviceIdentifier) {
+        this.unbind(serviceIdentifier);
+        return this.bind(serviceIdentifier);
+    }
+    async unbindAsync(identifier) {
+        await this.#unbindAsync(identifier);
+    }
+    async unbindAllAsync() {
+        await this.#unbindAll();
+    }
+    unbindAll() {
+        const result = this.#unbindAll();
+        if (result !== undefined) {
+            throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, 'Unexpected asynchronous deactivation when unbinding all services. Consider using Container.unbindAllAsync() instead.');
+        }
+    }
+    unbind(identifier) {
+        const result = this.#unbindAsync(identifier);
+        if (result !== undefined) {
+            this.#throwUnexpectedAsyncUnbindOperation(identifier);
+        }
+    }
+    #setBinding(binding) {
+        this.#serviceReferenceManager.bindingService.set(binding);
+        this.#planResultCacheManager.invalidateService({
+            binding: binding,
+            kind: CacheBindingInvalidationKind.bindingAdded,
+        });
+    }
+    #throwUnexpectedAsyncUnbindOperation(identifier) {
+        let errorMessage;
+        if (isBindingIdentifier(identifier)) {
+            const bindingsById = this.#serviceReferenceManager.bindingService.getById(identifier.id);
+            const bindingServiceIdentifier = getFirstIterableResult(bindingsById)?.serviceIdentifier;
+            if (bindingServiceIdentifier === undefined) {
+                errorMessage =
+                    'Unexpected asynchronous deactivation when unbinding binding identifier. Consider using Container.unbindAsync() instead.';
+            }
+            else {
+                errorMessage = `Unexpected asynchronous deactivation when unbinding "${stringifyServiceIdentifier(bindingServiceIdentifier)}" binding. Consider using Container.unbindAsync() instead.`;
+            }
+        }
+        else {
+            errorMessage = `Unexpected asynchronous deactivation when unbinding "${stringifyServiceIdentifier(identifier)}" service. Consider using Container.unbindAsync() instead.`;
+        }
+        throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, errorMessage);
+    }
+    #unbindAsync(identifier) {
+        if (isBindingIdentifier(identifier)) {
+            return this.#unbindBindingIdentifier(identifier);
+        }
+        return this.#unbindServiceIdentifier(identifier);
+    }
+    #unbindBindingIdentifier(identifier) {
+        const bindingsIterable = this.#serviceReferenceManager.bindingService.getById(identifier.id);
+        const bindings = bindingsIterable === undefined ? undefined : [...bindingsIterable];
+        const result = resolveBindingsDeactivations(this.#deactivationParams, bindingsIterable);
+        if (result === undefined) {
+            this.#clearAfterUnbindBindingIdentifier(bindings, identifier);
+        }
+        else {
+            return result.then(() => {
+                this.#clearAfterUnbindBindingIdentifier(bindings, identifier);
+            });
+        }
+    }
+    #clearAfterUnbindBindingIdentifier(bindings, identifier) {
+        this.#serviceReferenceManager.bindingService.removeById(identifier.id);
+        if (bindings !== undefined) {
+            for (const binding of bindings) {
+                this.#planResultCacheManager.invalidateService({
+                    binding,
+                    kind: CacheBindingInvalidationKind.bindingRemoved,
+                });
+            }
+        }
+    }
+    #unbindAll() {
+        const nonParentBoundServiceIds = [
+            ...this.#serviceReferenceManager.bindingService.getNonParentBoundServices(),
+        ];
+        const deactivationResults = nonParentBoundServiceIds.map((serviceId) => resolveServiceDeactivations(this.#deactivationParams, serviceId));
+        const hasAsyncDeactivations = deactivationResults.some((result) => isPromise(result));
+        if (hasAsyncDeactivations) {
+            // eslint-disable-next-line @typescript-eslint/await-thenable
+            return Promise.all(deactivationResults).then(() => {
+                this.#clearAfterUnbindAll(nonParentBoundServiceIds);
+            });
+        }
+        this.#clearAfterUnbindAll(nonParentBoundServiceIds);
+    }
+    #clearAfterUnbindAll(serviceIds) {
+        /*
+         * Removing service related objects here so unbindAll is deterministic.
+         *
+         * Removing service related objects as soon as resolveModuleDeactivations takes
+         * effect leads to module deactivations not triggering previously deleted
+         * deactivations, introducing non determinism depending in the order in which
+         * services are deactivated.
+         */
+        for (const serviceId of serviceIds) {
+            this.#serviceReferenceManager.activationService.removeAllByServiceId(serviceId);
+            this.#serviceReferenceManager.bindingService.removeAllByServiceId(serviceId);
+            this.#serviceReferenceManager.deactivationService.removeAllByServiceId(serviceId);
+        }
+        this.#serviceReferenceManager.planResultCacheService.clearCache();
+    }
+    #unbindServiceIdentifier(identifier) {
+        const bindingsIterable = this.#serviceReferenceManager.bindingService.get(identifier);
+        const bindings = bindingsIterable === undefined ? undefined : [...bindingsIterable];
+        const result = resolveBindingsDeactivations(this.#deactivationParams, bindingsIterable);
+        if (result === undefined) {
+            this.#clearAfterUnbindServiceIdentifier(identifier, bindings);
+        }
+        else {
+            return result.then(() => {
+                this.#clearAfterUnbindServiceIdentifier(identifier, bindings);
+            });
+        }
+    }
+    #clearAfterUnbindServiceIdentifier(identifier, bindings) {
+        this.#serviceReferenceManager.activationService.removeAllByServiceId(identifier);
+        this.#serviceReferenceManager.bindingService.removeAllByServiceId(identifier);
+        this.#serviceReferenceManager.deactivationService.removeAllByServiceId(identifier);
+        if (bindings !== undefined) {
+            for (const binding of bindings) {
+                this.#planResultCacheManager.invalidateService({
+                    binding,
+                    kind: CacheBindingInvalidationKind.bindingRemoved,
+                });
+            }
+        }
+    }
+    #isAnyValidBinding(serviceIdentifier, bindings, options) {
+        if (bindings === undefined) {
+            return false;
+        }
+        const bindingConstraints = {
+            getAncestor: () => undefined,
+            name: options?.name,
+            serviceIdentifier,
+            tags: new Map(),
+        };
+        if (options?.tag !== undefined) {
+            bindingConstraints.tags.set(options.tag.key, options.tag.value);
+        }
+        for (const binding of bindings) {
+            if (binding.isSatisfiedBy(bindingConstraints)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+//# sourceMappingURL=BindingManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/ContainerModuleManager.js
+
+
+
+
+class ContainerModuleManager {
+    #bindingManager;
+    #deactivationParams;
+    #defaultScope;
+    #planResultCacheManager;
+    #serviceReferenceManager;
+    constructor(bindingManager, deactivationParams, defaultScope, planResultCacheManager, serviceReferenceManager) {
+        this.#bindingManager = bindingManager;
+        this.#deactivationParams = deactivationParams;
+        this.#defaultScope = defaultScope;
+        this.#planResultCacheManager = planResultCacheManager;
+        this.#serviceReferenceManager = serviceReferenceManager;
+    }
+    async loadAsync(...modules) {
+        // eslint-disable-next-line @typescript-eslint/await-thenable
+        await Promise.all(this.#load(...modules));
+    }
+    load(...modules) {
+        const results = this.#load(...modules);
+        for (const result of results) {
+            if (result !== undefined) {
+                throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, 'Unexpected asynchronous module load. Consider using container.loadAsync() instead.');
+            }
+        }
+    }
+    async unloadAsync(...modules) {
+        // eslint-disable-next-line @typescript-eslint/await-thenable
+        await Promise.all(this.#unload(...modules));
+        /*
+         * Removing module related objects here so unload is deterministic.
+         *
+         * Removing modules as soon as resolveModuleDeactivations takes effect leads to
+         * module deactivations not triggering previously deleted deactivations,
+         * introducing non determinism depending in the order in which modules are
+         * deactivated.
+         */
+        this.#clearAfterUnloadModules(modules);
+    }
+    unload(...modules) {
+        const results = this.#unload(...modules);
+        for (const result of results) {
+            if (result !== undefined) {
+                throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, 'Unexpected asynchronous module unload. Consider using container.unloadAsync() instead.');
+            }
+        }
+        /*
+         * Removing module related objects here so unload is deterministic.
+         *
+         * Removing modules as soon as resolveModuleDeactivations takes effect leads to
+         * module deactivations not triggering previously deleted deactivations,
+         * introducing non determinism depending in the order in which modules are
+         * deactivated.
+         */
+        this.#clearAfterUnloadModules(modules);
+    }
+    #buildContainerModuleLoadOptions(moduleId) {
+        return {
+            bind: (serviceIdentifier) => {
+                return new BindToFluentSyntaxImplementation((binding) => {
+                    this.#setBinding(binding);
+                }, moduleId, this.#defaultScope, serviceIdentifier);
+            },
+            isBound: this.#bindingManager.isBound.bind(this.#bindingManager),
+            onActivation: (serviceIdentifier, activation) => {
+                this.#serviceReferenceManager.activationService.add(activation, {
+                    moduleId,
+                    serviceId: serviceIdentifier,
+                });
+            },
+            onDeactivation: (serviceIdentifier, deactivation) => {
+                this.#serviceReferenceManager.deactivationService.add(deactivation, {
+                    moduleId,
+                    serviceId: serviceIdentifier,
+                });
+            },
+            rebind: this.#bindingManager.rebind.bind(this.#bindingManager),
+            rebindAsync: this.#bindingManager.rebindAsync.bind(this.#bindingManager),
+            unbind: this.#bindingManager.unbind.bind(this.#bindingManager),
+            unbindAsync: this.#bindingManager.unbindAsync.bind(this.#bindingManager),
+        };
+    }
+    #clearAfterUnloadModules(modules) {
+        for (const module of modules) {
+            this.#serviceReferenceManager.activationService.removeAllByModuleId(module.id);
+            this.#serviceReferenceManager.bindingService.removeAllByModuleId(module.id);
+            this.#serviceReferenceManager.deactivationService.removeAllByModuleId(module.id);
+        }
+        this.#serviceReferenceManager.planResultCacheService.clearCache();
+    }
+    #load(...modules) {
+        return modules.map((module) => module.load(this.#buildContainerModuleLoadOptions(module.id)));
+    }
+    #setBinding(binding) {
+        this.#serviceReferenceManager.bindingService.set(binding);
+        this.#planResultCacheManager.invalidateService({
+            binding: binding,
+            kind: CacheBindingInvalidationKind.bindingAdded,
+        });
+    }
+    #unload(...modules) {
+        return modules.map((module) => resolveModuleDeactivations(this.#deactivationParams, module.id));
+    }
+}
+//# sourceMappingURL=ContainerModuleManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/actions/resetDeactivationParams.js
+function resetDeactivationParams(serviceReferenceManager, deactivationParams) {
+    deactivationParams.getBindings =
+        serviceReferenceManager.bindingService.get.bind(serviceReferenceManager.bindingService);
+    deactivationParams.getBindingsFromModule =
+        serviceReferenceManager.bindingService.getByModuleId.bind(serviceReferenceManager.bindingService);
+    deactivationParams.getDeactivations =
+        serviceReferenceManager.deactivationService.get.bind(serviceReferenceManager.deactivationService);
+}
+//# sourceMappingURL=resetDeactivationParams.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/calculations/buildDeactivationParams.js
+
+function buildDeactivationParams(serviceReferenceManager) {
+    return {
+        getBindings: serviceReferenceManager.bindingService.get.bind(serviceReferenceManager.bindingService),
+        getBindingsFromModule: serviceReferenceManager.bindingService.getByModuleId.bind(serviceReferenceManager.bindingService),
+        getClassMetadata: getClassMetadata,
+        getDeactivations: serviceReferenceManager.deactivationService.get.bind(serviceReferenceManager.deactivationService),
+    };
+}
+//# sourceMappingURL=buildDeactivationParams.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/DeactivationParamsManager.js
+
+
+class DeactivationParamsManager {
+    deactivationParams;
+    constructor(serviceReferenceManager) {
+        this.deactivationParams = buildDeactivationParams(serviceReferenceManager);
+        serviceReferenceManager.onReset(() => {
+            resetDeactivationParams(serviceReferenceManager, this.deactivationParams);
+        });
+    }
+}
+//# sourceMappingURL=DeactivationParamsManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/PlanParamsOperationsManager.js
+
+class PlanParamsOperationsManager {
+    planParamsOperations;
+    #serviceReferenceManager;
+    constructor(serviceReferenceManager) {
+        this.#serviceReferenceManager = serviceReferenceManager;
+        this.planParamsOperations = {
+            getBindings: this.#serviceReferenceManager.bindingService.get.bind(this.#serviceReferenceManager.bindingService),
+            getBindingsChained: this.#serviceReferenceManager.bindingService.getChained.bind(this.#serviceReferenceManager.bindingService),
+            getClassMetadata: getClassMetadata,
+            getPlan: this.#serviceReferenceManager.planResultCacheService.get.bind(this.#serviceReferenceManager.planResultCacheService),
+            setBinding: this.#setBinding.bind(this),
+            setNonCachedServiceNode: this.#serviceReferenceManager.planResultCacheService.setNonCachedServiceNode.bind(this.#serviceReferenceManager.planResultCacheService),
+            setPlan: this.#serviceReferenceManager.planResultCacheService.set.bind(this.#serviceReferenceManager.planResultCacheService),
+        };
+        this.#serviceReferenceManager.onReset(() => {
+            this.#resetComputedProperties();
+        });
+    }
+    #resetComputedProperties() {
+        this.planParamsOperations.getBindings =
+            this.#serviceReferenceManager.bindingService.get.bind(this.#serviceReferenceManager.bindingService);
+        this.planParamsOperations.getBindingsChained =
+            this.#serviceReferenceManager.bindingService.getChained.bind(this.#serviceReferenceManager.bindingService);
+        this.planParamsOperations.setBinding = this.#setBinding.bind(this);
+    }
+    #setBinding(binding) {
+        this.#serviceReferenceManager.bindingService.set(binding);
+        this.#serviceReferenceManager.planResultCacheService.invalidateServiceBinding({
+            binding: binding,
+            kind: CacheBindingInvalidationKind.bindingAdded,
+            operations: this.planParamsOperations,
+        });
+    }
+}
+//# sourceMappingURL=PlanParamsOperationsManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/PlanResultCacheManager.js
+class PlanResultCacheManager {
+    #planParamsOperationsManager;
+    #serviceReferenceManager;
+    constructor(planParamsOperationsManager, serviceReferenceManager) {
+        this.#planParamsOperationsManager = planParamsOperationsManager;
+        this.#serviceReferenceManager = serviceReferenceManager;
+    }
+    invalidateService(invalidation) {
+        this.#serviceReferenceManager.planResultCacheService.invalidateServiceBinding({
+            ...invalidation,
+            operations: this.#planParamsOperationsManager.planParamsOperations,
+        });
+    }
+}
+//# sourceMappingURL=PlanResultCacheManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/plugin/lib/plugin/models/Plugin.js
+const isPlugin = Symbol.for('@inversifyjs/plugin/isPlugin');
+class Plugin {
+    [isPlugin] = true;
+    _container;
+    _context;
+    constructor(container, context) {
+        this._container = container;
+        this._context = context;
+    }
+}
+//# sourceMappingURL=Plugin.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/plugin/lib/index.js
+
+
 //# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/PluginManager.js
 
-;// CONCATENATED MODULE: ./node_modules/@inversifyjs/core/lib/esm/index.js
-const esm_a="@inversifyjs/container/bindingId";function esm_c(){const i=c(Object,esm_a)??0;return i===Number.MAX_SAFE_INTEGER?a(Object,esm_a,Number.MIN_SAFE_INTEGER):esm_i(Object,esm_a,()=>i,e=>e+1),i}const esm_d={Request:"Request",Singleton:"Singleton",Transient:"Transient"},esm_u={ConstantValue:"ConstantValue",DynamicValue:"DynamicValue",Factory:"Factory",Instance:"Instance",Provider:"Provider",ResolvedValue:"ResolvedValue",ServiceRedirection:"ServiceRedirection"};function*l(...e){for(const t of e)yield*t}class p{#e;#t;#n;constructor(e){this.#e=new Map,this.#t={};for(const t of Reflect.ownKeys(e))this.#t[t]=new Map;this.#n=e}add(e,t){this.#i(e).push(t);for(const n of Reflect.ownKeys(t))this.#o(n,t[n]).push(e)}clone(){const e=this.#r(),t=this.#s(),n=Reflect.ownKeys(this.#n),i=this._buildNewInstance(this.#n);this.#a(this.#e,i.#e,e,t);for(const t of n)this.#c(this.#t[t],i.#t[t],e);return i}get(e,t){return this.#t[e].get(t)}getAllKeys(e){return this.#t[e].keys()}removeByRelation(e,t){const n=this.get(e,t);if(void 0===n)return;const i=new Set(n);for(const n of i){const i=this.#e.get(n);if(void 0===i)throw new Error("Expecting model relation, none found");for(const o of i)o[e]===t&&this.#d(n,o);this.#e.delete(n)}}_buildNewInstance(e){return new p(e)}_cloneModel(e){return e}_cloneRelation(e){return e}#r(){const e=new Map;for(const t of this.#e.keys()){const n=this._cloneModel(t);e.set(t,n)}return e}#s(){const e=new Map;for(const t of this.#e.values())for(const n of t){const t=this._cloneRelation(n);e.set(n,t)}return e}#i(e){let t=this.#e.get(e);return void 0===t&&(t=[],this.#e.set(e,t)),t}#o(e,t){let n=this.#t[e].get(t);return void 0===n&&(n=[],this.#t[e].set(t,n)),n}#u(e,t){const n=t.get(e);if(void 0===n)throw new Error("Expecting model to be cloned, none found");return n}#l(e,t){const n=t.get(e);if(void 0===n)throw new Error("Expecting relation to be cloned, none found");return n}#c(e,t,n){for(const[i,o]of e){const e=new Array;for(const t of o)e.push(this.#u(t,n));t.set(i,e)}}#a(e,t,n,i){for(const[o,r]of e){const e=new Array;for(const t of r)e.push(this.#l(t,i));t.set(this.#u(o,n),e)}}#d(e,t){for(const n of Reflect.ownKeys(t))this.#p(e,n,t[n])}#p(e,t,n){const i=this.#t[t].get(n);if(void 0!==i){const o=i.indexOf(e);-1!==o&&i.splice(o,1),0===i.length&&this.#t[t].delete(n)}}}var esm_f;!function(e){e.moduleId="moduleId",e.serviceId="serviceId"}(esm_f||(esm_f={}));class v{#f;#v;constructor(e,t){this.#f=t??new p({moduleId:{isOptional:!0},serviceId:{isOptional:!1}}),this.#v=e}static build(e){return new v(e)}add(e,t){this.#f.add(e,t)}clone(){return new v(this.#v,this.#f.clone())}get(e){const t=[],n=this.#f.get(esm_f.serviceId,e);void 0!==n&&t.push(n);const i=this.#v()?.get(e);if(void 0!==i&&t.push(i),0!==t.length)return l(...t)}removeAllByModuleId(e){this.#f.removeByRelation(esm_f.moduleId,e)}removeAllByServiceId(e){this.#f.removeByRelation(esm_f.serviceId,e)}}const h="@inversifyjs/core/classMetadataReflectKey";function g(){return{constructorArguments:[],lifecycle:{postConstructMethodNames:new Set,preDestroyMethodNames:new Set},properties:new Map,scope:void 0}}const m="@inversifyjs/core/pendingClassMetadataCountReflectKey";const y=Symbol.for("@inversifyjs/core/InversifyCoreError");class esm_M extends Error{[y];kind;constructor(e,t,n){super(t,n),this[y]=!0,this.kind=e}static is(e){return"object"==typeof e&&null!==e&&!0===e[y]}static isErrorOfKind(e,t){return esm_M.is(e)&&e.kind===t}}var I,b,w,C,S;function N(t){const n=c(t,h)??g();if(!function(t){const n=c(t,m);return void 0!==n&&0!==n}(t))return function(e,t){const n=[];if(t.length<e.length)throw new esm_M(I.missingInjectionDecorator,`Found unexpected missing metadata on type "${e.name}". "${e.name}" constructor requires at least ${e.length.toString()} arguments, found ${t.length.toString()} instead.\nAre you using @inject, @multiInject or @unmanaged decorators in every non optional constructor argument?\n\nIf you're using typescript and want to rely on auto injection, set "emitDecoratorMetadata" compiler option to true`);for(let e=0;e<t.length;++e)void 0===t[e]&&n.push(e);if(n.length>0)throw new esm_M(I.missingInjectionDecorator,`Found unexpected missing metadata on type "${e.name}" at constructor indexes "${n.join('", "')}".\n\nAre you using @inject, @multiInject or @unmanaged decorators at those indexes?\n\nIf you're using typescript and want to rely on auto injection, set "emitDecoratorMetadata" compiler option to true`)}(t,n.constructorArguments),n;!function(e,t){const n=[];for(let i=0;i<t.constructorArguments.length;++i){const o=t.constructorArguments[i];void 0!==o&&o.kind!==b.unknown||n.push(`  - Missing or incomplete metadata for type "${e.name}" at constructor argument with index ${i.toString()}.\nEvery constructor parameter must be decorated either with @inject, @multiInject or @unmanaged decorator.`)}for(const[i,o]of t.properties)o.kind===b.unknown&&n.push(`  - Missing or incomplete metadata for type "${e.name}" at property "${i.toString()}".\nThis property must be decorated either with @inject or @multiInject decorator.`);if(0===n.length)throw new esm_M(I.unknown,`Unexpected class metadata for type "${e.name}" with uncompletion traces.\nThis might be caused by one of the following reasons:\n\n1. A third party library is targeting inversify reflection metadata.\n2. A bug is causing the issue. Consider submiting an issue to fix it.`);throw new esm_M(I.missingInjectionDecorator,`Invalid class metadata at type ${e.name}:\n\n${n.join("\n\n")}`)}(t,n)}function P(e,t){const n=N(t).scope??e.scope;return{cache:{isRight:!1,value:void 0},id:esm_c(),implementationType:t,isSatisfiedBy:()=>!0,moduleId:void 0,onActivation:void 0,onDeactivation:void 0,scope:n,serviceIdentifier:t,type:esm_u.Instance}}function A(e){return e.isRight?{isRight:!0,value:e.value}:e}function x(e){switch(e.type){case esm_u.ConstantValue:case esm_u.DynamicValue:return function(e){return{cache:A(e.cache),id:e.id,isSatisfiedBy:e.isSatisfiedBy,moduleId:e.moduleId,onActivation:e.onActivation,onDeactivation:e.onDeactivation,scope:e.scope,serviceIdentifier:e.serviceIdentifier,type:e.type,value:e.value}}(e);case esm_u.Factory:return function(e){return{cache:A(e.cache),factory:e.factory,id:e.id,isSatisfiedBy:e.isSatisfiedBy,moduleId:e.moduleId,onActivation:e.onActivation,onDeactivation:e.onDeactivation,scope:e.scope,serviceIdentifier:e.serviceIdentifier,type:e.type}}(e);case esm_u.Instance:return function(e){return{cache:A(e.cache),id:e.id,implementationType:e.implementationType,isSatisfiedBy:e.isSatisfiedBy,moduleId:e.moduleId,onActivation:e.onActivation,onDeactivation:e.onDeactivation,scope:e.scope,serviceIdentifier:e.serviceIdentifier,type:e.type}}(e);case esm_u.Provider:return function(e){return{cache:A(e.cache),id:e.id,isSatisfiedBy:e.isSatisfiedBy,moduleId:e.moduleId,onActivation:e.onActivation,onDeactivation:e.onDeactivation,provider:e.provider,scope:e.scope,serviceIdentifier:e.serviceIdentifier,type:e.type}}(e);case esm_u.ResolvedValue:return function(e){return{cache:A(e.cache),factory:e.factory,id:e.id,isSatisfiedBy:e.isSatisfiedBy,metadata:e.metadata,moduleId:e.moduleId,onActivation:e.onActivation,onDeactivation:e.onDeactivation,scope:e.scope,serviceIdentifier:e.serviceIdentifier,type:e.type}}(e);case esm_u.ServiceRedirection:return function(e){return{id:e.id,isSatisfiedBy:e.isSatisfiedBy,moduleId:e.moduleId,serviceIdentifier:e.serviceIdentifier,targetServiceIdentifier:e.targetServiceIdentifier,type:e.type}}(e)}}!function(e){e[e.injectionDecoratorConflict=0]="injectionDecoratorConflict",e[e.missingInjectionDecorator=1]="missingInjectionDecorator",e[e.planning=2]="planning",e[e.resolution=3]="resolution",e[e.unknown=4]="unknown"}(I||(I={})),function(e){e[e.unknown=32]="unknown"}(b||(b={})),function(e){e.id="id",e.moduleId="moduleId",e.serviceId="serviceId"}(w||(w={}));class R extends p{_buildNewInstance(e){return new R(e)}_cloneModel(e){return x(e)}}class T{#h;#g;#v;constructor(e,t,n){this.#g=n??new R({id:{isOptional:!1},moduleId:{isOptional:!0},serviceId:{isOptional:!1}}),this.#v=e,this.#h=t}static build(e,t){return new T(e,t)}clone(){return new T(this.#v,this.#h,this.#g.clone())}get(e){const t=this.getNonParentBindings(e)??this.#v()?.get(e);if(void 0!==t)return t;const n=this.#m(e);return void 0===n?n:[n]}*getChained(e){const t=this.getNonParentBindings(e);void 0!==t&&(yield*t);const n=this.#v();if(void 0===n){if(void 0===t){const t=this.#m(e);void 0!==t&&(yield t)}}else yield*n.getChained(e)}getBoundServices(){const e=new Set(this.#g.getAllKeys(w.serviceId)),t=this.#v();if(void 0!==t)for(const n of t.getBoundServices())e.add(n);return e}getById(e){return this.#g.get(w.id,e)??this.#v()?.getById(e)}getByModuleId(e){return this.#g.get(w.moduleId,e)??this.#v()?.getByModuleId(e)}getNonParentBindings(e){return this.#g.get(w.serviceId,e)}getNonParentBoundServices(){return this.#g.getAllKeys(w.serviceId)}removeById(e){this.#g.removeByRelation(w.id,e)}removeAllByModuleId(e){this.#g.removeByRelation(w.moduleId,e)}removeAllByServiceId(e){this.#g.removeByRelation(w.serviceId,e)}set(e){const t={[w.id]:e.id,[w.serviceId]:e.serviceIdentifier};void 0!==e.moduleId&&(t[w.moduleId]=e.moduleId),this.#g.add(e,t)}#m(e){if(void 0===this.#h||"function"!=typeof e)return;const t=P(this.#h,e);return this.set(t),t}}!function(e){e.moduleId="moduleId",e.serviceId="serviceId"}(C||(C={}));class j{#y;#v;constructor(e,t){this.#y=t??new p({moduleId:{isOptional:!0},serviceId:{isOptional:!1}}),this.#v=e}static build(e){return new j(e)}add(e,t){this.#y.add(e,t)}clone(){return new j(this.#v,this.#y.clone())}get(e){const t=[],n=this.#y.get(C.serviceId,e);void 0!==n&&t.push(n);const i=this.#v()?.get(e);if(void 0!==i&&t.push(i),0!==t.length)return l(...t)}removeAllByModuleId(e){this.#y.removeByRelation(C.moduleId,e)}removeAllByServiceId(e){this.#y.removeByRelation(C.serviceId,e)}}function B(e,t,n,i){const o=Array.isArray(e)?e:[e];if(void 0!==n)if("number"!=typeof n)if(void 0!==i)for(const e of o)e(t,n,i);else Reflect.decorate(o,t.prototype,n);else for(const e of o)e(t,void 0,n);else Reflect.decorate(o,t)}function F(){return 0}function k(e){return t=>{void 0!==t&&t.kind===b.unknown&&esm_i(e,m,F,e=>e-1)}}function $(e,t){return(...n)=>i=>{if(void 0===i)return e(...n);if(i.kind===S.unmanaged)throw new esm_M(I.injectionDecoratorConflict,"Unexpected injection found. Multiple @inject, @multiInject or @unmanaged decorators found");return t(i,...n)}}function D(e){if(e.kind!==b.unknown&&!0!==e.isFromTypescriptParamType)throw new esm_M(I.injectionDecoratorConflict,"Unexpected injection found. Multiple @inject, @multiInject or @unmanaged decorators found")}!function(e){e[e.multipleInjection=0]="multipleInjection",e[e.singleInjection=1]="singleInjection",e[e.unmanaged=2]="unmanaged"}(S||(S={}));const V=$(function(e,t,n){return e===S.multipleInjection?{chained:n?.chained??!1,kind:e,name:void 0,optional:!1,tags:new Map,value:t}:{kind:e,name:void 0,optional:!1,tags:new Map,value:t}},function(e,t,n,i){return D(e),t===S.multipleInjection?{...e,chained:i?.chained??!1,kind:t,value:n}:{...e,kind:t,value:n}});function O(e,t){return n=>{const i=n.properties.get(t);return n.properties.set(t,e(i)),n}}var E;function _(e,t,n,i){if(esm_M.isErrorOfKind(i,I.injectionDecoratorConflict)){const o=function(e,t,n){if(void 0===n){if(void 0===t)throw new esm_M(I.unknown,"Unexpected undefined property and index values");return{kind:E.property,property:t,targetClass:e.constructor}}return"number"==typeof n?{index:n,kind:E.parameter,targetClass:e}:{kind:E.method,method:t,targetClass:e}}(e,t,n);throw new esm_M(I.injectionDecoratorConflict,`Unexpected injection error.\n\nCause:\n\n${i.message}\n\nDetails\n\n${function(e){switch(e.kind){case E.method:return`[class: "${e.targetClass.name}", method: "${e.method.toString()}"]`;case E.parameter:return`[class: "${e.targetClass.name}", index: "${e.index.toString()}"]`;case E.property:return`[class: "${e.targetClass.name}", property: "${e.property.toString()}"]`}}(o)}`,{cause:i})}throw i}function z(e,t){return(i,o,r)=>{try{void 0===r?function(e,t){const i=L(e,t);return(e,t)=>{esm_i(e.constructor,h,g,O(i(e),t))}}(e,t)(i,o):"number"==typeof r?function(e,t){const i=L(e,t);return(e,t,o)=>{if(!function(e,t){return"function"==typeof e&&void 0===t}(e,t))throw new esm_M(I.injectionDecoratorConflict,`Found an @inject decorator in a non constructor parameter.\nFound @inject decorator at method "${t?.toString()??""}" at class "${e.constructor.name}"`);esm_i(e,h,g,function(e,t){return n=>{const i=n.constructorArguments[t];return n.constructorArguments[t]=e(i),n}}(i(e),o))}}(e,t)(i,o,r):function(e,t){const i=L(e,t);return(e,t,o)=>{if(!function(e){return void 0!==e.set}(o))throw new esm_M(I.injectionDecoratorConflict,`Found an @inject decorator in a non setter property method.\nFound @inject decorator at method "${t.toString()}" at class "${e.constructor.name}"`);esm_i(e.constructor,h,g,O(i(e),t))}}(e,t)(i,o,r)}catch(e){_(i,o,r,e)}}}function L(e,t){return n=>{const i=t(n);return t=>(i(t),e(t))}}function U(e){return z(V(S.singleInjection,e),k)}!function(e){e[e.method=0]="method",e[e.parameter=1]="parameter",e[e.property=2]="property"}(E||(E={}));const K="@inversifyjs/core/classIsInjectableFlagReflectKey";const q=[Array,BigInt,Boolean,Function,Number,Object,String];function G(t){const i=c(t,"design:paramtypes");void 0!==i&&esm_i(t,h,g,function(e){return t=>(e.forEach((e,n)=>{var i;void 0!==t.constructorArguments[n]||(i=e,q.includes(i))||(t.constructorArguments[n]=function(e){return{isFromTypescriptParamType:!0,kind:S.singleInjection,name:void 0,optional:!1,tags:new Map,value:e}}(e))}),t)}(i))}function W(i){return o=>{!function(n){if(void 0!==c(n,K))throw new esm_M(I.injectionDecoratorConflict,`Cannot apply @injectable decorator multiple times at class "${n.name}"`);a(n,K,!0)}(o),G(o),void 0!==i&&esm_i(o,h,g,e=>({...e,scope:i}))}}function X(e,t,n){let i;return e.extendConstructorArguments??!0?(i=[...t.constructorArguments],n.constructorArguments.map((e,t)=>{i[t]=e})):i=n.constructorArguments,i}function H(e,t,n){return e?new Set([...t,...n]):n}function J(e,t,n){const i=e.lifecycle?.extendPostConstructMethods??!0,o=H(e.lifecycle?.extendPreDestroyMethods??!0,t.lifecycle.preDestroyMethodNames,n.lifecycle.preDestroyMethodNames);return{postConstructMethodNames:H(i,t.lifecycle.postConstructMethodNames,n.lifecycle.postConstructMethodNames),preDestroyMethodNames:o}}function Q(e,t,n){let i;return i=e.extendProperties??!0?new Map(l(t.properties,n.properties)):n.properties,i}function Y(e){return t=>{const i=N(e.type);esm_i(t,h,g,function(e,t){const n=n=>({constructorArguments:X(e,t,n),lifecycle:J(e,t,n),properties:Q(e,t,n),scope:n.scope});return n}(e,i))}}function Z(e){return t=>{const n=lib_esm_t(t);if(void 0===n)throw new esm_M(I.injectionDecoratorConflict,`Expected base type for type "${t.name}", none found.`);Y({...e,type:n})(t)}}function ee(e){return t=>{const n=[];let o=i(t);for(;void 0!==o&&o!==Object;){const e=o;n.push(e),o=i(e)}n.reverse();for(const i of n)Y({...e,type:i})(t)}}function te(e,t){return z(V(S.multipleInjection,e,t),k)}function ne(e){return t=>{void 0===t&&n(e,m,F,e=>e+1)}}function ie(e){return t=>{const n=t??{kind:b.unknown,name:void 0,optional:!1,tags:new Map};if(n.kind===S.unmanaged)throw new esm_M(I.injectionDecoratorConflict,"Unexpected injection found. Found @unmanaged injection with additional @named, @optional, @tagged or @targetName injections");return e(n)}}function oe(e){const t=ie(function(e){return t=>{if(void 0!==t.name)throw new esm_M(I.injectionDecoratorConflict,"Unexpected duplicated named decorator");return t.name=e,t}}(e));return z(t,ne)}function re(e){if(e.optional)throw new esm_M(I.injectionDecoratorConflict,"Unexpected duplicated optional decorator");return e.optional=!0,e}function se(){return z(ie(re),ne)}function ae(){return(e,t,i)=>{try{n(e.constructor,h,g,(o=t,e=>{if(e.lifecycle.postConstructMethodNames.has(o))throw new esm_M(I.injectionDecoratorConflict,`Unexpected duplicated postConstruct method ${o.toString()}`);return e.lifecycle.postConstructMethodNames.add(o),e}))}catch(n){_(e,t,void 0,n)}var o}}function ce(){return(e,t,i)=>{try{n(e.constructor,h,g,(o=t,e=>{if(e.lifecycle.preDestroyMethodNames.has(o))throw new esm_M(I.injectionDecoratorConflict,`Unexpected duplicated preDestroy method ${o.toString()}`);return e.lifecycle.preDestroyMethodNames.add(o),e}))}catch(n){_(e,t,void 0,n)}var o}}function de(e,t){const n=ie(function(e,t){return n=>{if(n.tags.has(e))throw new esm_M(I.injectionDecoratorConflict,"Unexpected duplicated tag decorator with existing tag");return n.tags.set(e,t),n}}(e,t));return z(n,ne)}function ue(){return{kind:S.unmanaged}}const le=$(ue,function(e){if(D(e),function(e){return void 0!==e.name||e.optional||e.tags.size>0}(e))throw new esm_M(I.injectionDecoratorConflict,"Unexpected injection found. Found @unmanaged injection with additional @named, @optional, @tagged or @targetName injections");return ue()});function pe(){return z(le(),k)}var fe;!function(e){e[e.multipleInjection=0]="multipleInjection",e[e.singleInjection=1]="singleInjection"}(fe||(fe={}));const ve=/stack space|call stack|too much recursion/i,he=/too much recursion/;function ge(e){try{return e instanceof Error&&(e instanceof RangeError&&ve.test(e.message)||"InternalError"===e.name&&he.test(e.message))}catch(e){return e instanceof SyntaxError&&e.message.includes("Stack overflow")}}function me(e,t){if(ge(t)){const n=function(e){const t=[...e];if(0===t.length)return"(No dependency trace)";return t.map(esm_t).join(" -> ")}(function(e){const t=new Set;for(const n of e.servicesBranch){if(t.has(n))return[...t,n];t.add(n)}return[...t]}(e));throw new esm_M(I.planning,`Circular dependency found: ${n}`,{cause:t})}throw t}const ye=Symbol.for("@inversifyjs/core/LazyPlanServiceNode");class Me{[ye];_serviceIdentifier;_serviceNode;constructor(e,t){this[ye]=!0,this._serviceNode=e,this._serviceIdentifier=t}get bindings(){return this._getNode().bindings}get isContextFree(){return this._getNode().isContextFree}get serviceIdentifier(){return this._serviceIdentifier}set bindings(e){this._getNode().bindings=e}set isContextFree(e){this._getNode().isContextFree=e}static is(e){return"object"==typeof e&&null!==e&&!0===e[ye]}invalidate(){this._serviceNode=void 0}isExpanded(){return void 0!==this._serviceNode}_getNode(){return void 0===this._serviceNode&&(this._serviceNode=this._buildPlanServiceNode()),this._serviceNode}}class Ie{#M;constructor(e){this.#M=e}get name(){return this.#M.elem.name}get serviceIdentifier(){return this.#M.elem.serviceIdentifier}get tags(){return this.#M.elem.tags}getAncestor(){if(this.#M.elem.getAncestorsCalled=!0,void 0!==this.#M.previous)return new Ie(this.#M.previous)}}function be(e,t,n){const i=n?.customServiceIdentifier??t.serviceIdentifier,o=(!0===n?.chained?[...e.operations.getBindingsChained(i)]:[...e.operations.getBindings(i)??[]]).filter(e=>e.isSatisfiedBy(t));if(0===o.length&&void 0!==e.autobindOptions&&"function"==typeof i){const n=P(e.autobindOptions,i);e.operations.setBinding(n),n.isSatisfiedBy(t)&&o.push(n)}return o}class we{last;constructor(e){this.last=e}concat(e){return new we({elem:e,previous:this.last})}[Symbol.iterator](){let e=this.last;return{next:()=>{if(void 0===e)return{done:!0,value:void 0};const t=e.elem;return e=e.previous,{done:!1,value:t}}}}}function Ce(e){const t=new Map;return void 0!==e.rootConstraints.tag&&t.set(e.rootConstraints.tag.key,e.rootConstraints.tag.value),new we({elem:{getAncestorsCalled:!1,name:e.rootConstraints.name,serviceIdentifier:e.rootConstraints.serviceIdentifier,tags:t},previous:void 0})}function Se(e){return void 0!==e.redirections}function Ne(e,t,n,i){const r=n.elem.serviceIdentifier,s=n.previous?.elem.serviceIdentifier;Array.isArray(e)?function(e,t,n,i,r,s){if(0!==e.length){const t=s[s.length-1]??n,a=`Ambiguous bindings found for service: "${esm_t(t)}".${Re(s)}\n\nRegistered bindings:\n\n${e.map(e=>function(e){switch(e.type){case esm_u.Instance:return`[ type: "${e.type}", serviceIdentifier: "${esm_t(e.serviceIdentifier)}", scope: "${e.scope}", implementationType: "${e.implementationType.name}" ]`;case esm_u.ServiceRedirection:return`[ type: "${e.type}", serviceIdentifier: "${esm_t(e.serviceIdentifier)}", redirection: "${esm_t(e.targetServiceIdentifier)}" ]`;default:return`[ type: "${e.type}", serviceIdentifier: "${esm_t(e.serviceIdentifier)}", scope: "${e.scope}" ]`}}(e.binding)).join("\n")}\n\nTrying to resolve bindings for "${Ae(n,i)}".${xe(r)}`;throw new esm_M(I.planning,a)}t||Pe(n,i,r,s)}(e,t,r,s,n.elem,i):function(e,t,n,i,o,r){void 0!==e||t||Pe(n,i,o,r)}(e,t,r,s,n.elem,i)}function Pe(e,t,n,i){const r=i[i.length-1]??e,s=`No bindings found for service: "${esm_t(r)}".\n\nTrying to resolve bindings for "${Ae(e,t)}".${Re(i)}${xe(n)}`;throw new esm_M(I.planning,s)}function Ae(e,t){return void 0===t?`${esm_t(e)} (Root service)`:esm_t(t)}function xe(e){const t=0===e.tags.size?"":`\n- tags:\n  - ${[...e.tags.keys()].map(e=>e.toString()).join("\n  - ")}`;return`\n\nBinding constraints:\n- service identifier: ${esm_t(e.serviceIdentifier)}\n- name: ${e.name?.toString()??"-"}${t}`}function Re(e){return 0===e.length?"":`\n\n- service redirections:\n  - ${e.map(e=>esm_t(e)).join("\n  - ")}`}function Te(e,t,n,i){if(1===e.redirections.length){const[o]=e.redirections;return void(Se(o)&&Te(o,t,n,[...i,o.binding.targetServiceIdentifier]))}Ne(e.redirections,t,n,i)}function je(e,t,n){if(Array.isArray(e.bindings)&&1===e.bindings.length){const[i]=e.bindings;return void(Se(i)&&Te(i,t,n,[i.binding.targetServiceIdentifier]))}Ne(e.bindings,t,n,[])}function Be(e){return r.is(e)?e.unwrap():e}function Fe(e){return(t,n,i)=>{const o=Be(i.value),r=n.concat({getAncestorsCalled:!1,name:i.name,serviceIdentifier:o,tags:i.tags}),s=new Ie(r.last),a=i.kind===S.multipleInjection&&i.chained,c=be(t,s,{chained:a}),d=[],u={bindings:d,isContextFree:!0,serviceIdentifier:o};if(d.push(...e(t,r,c,u,a)),u.isContextFree=!r.last.elem.getAncestorsCalled,i.kind===S.singleInjection){je(u,i.optional,r.last);const[e]=d;u.bindings=e}return u}}function ke(e){return(t,n,i)=>{const o=Be(i.value),r=n.concat({getAncestorsCalled:!1,name:i.name,serviceIdentifier:o,tags:i.tags}),s=new Ie(r.last),a=i.kind===fe.multipleInjection&&i.chained,c=be(t,s,{chained:a}),d=[],u={bindings:d,isContextFree:!0,serviceIdentifier:o};if(d.push(...e(t,r,c,u,a)),u.isContextFree=!r.last.elem.getAncestorsCalled,i.kind===fe.singleInjection){je(u,i.optional,r.last);const[e]=d;u.bindings=e}return u}}function $e(e){const t=function(e){return(t,n,i)=>{const o={binding:n,classMetadata:t.operations.getClassMetadata(n.implementationType),constructorParams:[],propertyParams:new Map},r={autobindOptions:t.autobindOptions,node:o,operations:t.operations,servicesBranch:t.servicesBranch};return e(r,i)}}(e),n=function(e){return(t,n,i)=>{const o={binding:n,params:[]},r={autobindOptions:t.autobindOptions,node:o,operations:t.operations,servicesBranch:t.servicesBranch};return e(r,i)}}(e),i=(e,i,r,s,a)=>{const c=Se(s)?s.binding.targetServiceIdentifier:s.serviceIdentifier;e.servicesBranch.push(c);const d=[];for(const s of r)switch(s.type){case esm_u.Instance:d.push(t(e,s,i));break;case esm_u.ResolvedValue:d.push(n(e,s,i));break;case esm_u.ServiceRedirection:{const t=o(e,i,s,a);d.push(t);break}default:d.push({binding:s})}return e.servicesBranch.pop(),d},o=function(e){return(t,n,i,o)=>{const r={binding:i,redirections:[]},s=be(t,new Ie(n.last),{chained:o,customServiceIdentifier:i.targetServiceIdentifier});return r.redirections.push(...e(t,n,s,r,o)),r}}(i);return i}function De(e,t,n,i){if(void 0!==e&&(Me.is(n)&&!n.isExpanded()||n.isContextFree)){const i={tree:{root:n}};t.setPlan(e,i)}else t.setNonCachedServiceNode(n,i)}class Ve extends Me{#I;#b;#w;#C;constructor(e,t,n,i,o){super(o,Be(i.value)),this.#b=t,this.#I=e,this.#w=n,this.#C=i}_buildPlanServiceNode(){return this.#b(this.#I,this.#w,this.#C)}}class Oe extends Me{#I;#S;#w;#N;constructor(e,t,n,i,o){super(o,Be(i.value)),this.#I=e,this.#S=t,this.#w=n,this.#N=i}_buildPlanServiceNode(){return this.#S(this.#I,this.#w,this.#N)}}function Ee(e,t,n,i){const o=function(e,t){const n=function(e,t){return(n,i,o)=>{if(o.kind===S.unmanaged)return;const s=function(e){let t;if(0===e.tags.size)t=void 0;else{if(1!==e.tags.size)return;{const[n,i]=e.tags.entries().next().value;t={key:n,value:i}}}const n=r.is(e.value)?e.value.unwrap():e.value;return e.kind===S.multipleInjection?{chained:e.chained,isMultiple:!0,name:e.name,optional:e.optional,serviceIdentifier:n,tag:t}:{isMultiple:!1,name:e.name,optional:e.optional,serviceIdentifier:n,tag:t}}(o);if(void 0!==s){const e=n.operations.getPlan(s);if(void 0!==e&&e.tree.root.isContextFree)return e.tree.root}const a=t(n,i,o),c=new Ve(n,e,i,o,a);return De(s,n.operations,c,{bindingConstraintsList:i,chainedBindings:o.kind===S.multipleInjection&&o.chained,optionalBindings:o.optional}),c}}(e,t);return(e,t,i)=>{const o=t.classMetadata;for(const[r,s]of o.constructorArguments.entries())t.constructorParams[r]=n(e,i,s);for(const[r,s]of o.properties){const o=n(e,i,s);void 0!==o&&t.propertyParams.set(r,o)}return e.node}}(e,n),s=function(e,t){const n=function(e,t){return(n,i,o)=>{const s=function(e){let t;if(0===e.tags.size)t=void 0;else{if(1!==e.tags.size)return;{const[n,i]=e.tags.entries().next().value;t={key:n,value:i}}}const n=r.is(e.value)?e.value.unwrap():e.value;return e.kind===fe.multipleInjection?{chained:e.chained,isMultiple:!0,name:e.name,optional:e.optional,serviceIdentifier:n,tag:t}:{isMultiple:!1,name:e.name,optional:e.optional,serviceIdentifier:n,tag:t}}(o);if(void 0!==s){const e=n.operations.getPlan(s);if(void 0!==e&&e.tree.root.isContextFree)return e.tree.root}const a=t(n,i,o),c=new Oe(n,e,i,o,a);return De(s,n.operations,c,{bindingConstraintsList:i,chainedBindings:o.kind===fe.multipleInjection&&o.chained,optionalBindings:o.optional}),c}}(e,t);return(e,t,i)=>{const o=t.binding.metadata;for(const[r,s]of o.arguments.entries())t.params[r]=n(e,i,s);return e.node}}(t,i);return(e,t)=>e.node.binding.type===esm_u.Instance?o(e,e.node,t):s(e,e.node,t)}class _e extends Me{#I;constructor(e,t){super(t,t.serviceIdentifier),this.#I=e}_buildPlanServiceNode(){return qe(this.#I)}}const ze=Fe(Ke),Le=ke(Ke),Ue=$e(Ee(ze,Le,ze,Le));function Ke(e,t,n,i,o){return Ue(e,t,n,i,o)}const qe=function(e){return t=>{const n=Ce(t),i=new Ie(n.last),o=t.rootConstraints.isMultiple&&t.rootConstraints.chained,r=be(t,i,{chained:o}),s=[],a={bindings:s,isContextFree:!0,serviceIdentifier:t.rootConstraints.serviceIdentifier};if(s.push(...e(t,n,r,a,o)),a.isContextFree=!n.last.elem.getAncestorsCalled,!t.rootConstraints.isMultiple){je(a,t.rootConstraints.isOptional??!1,n.last);const[e]=s;a.bindings=e}return a}}(Ue);function Ge(e){try{const t=function(e){return e.rootConstraints.isMultiple?{chained:e.rootConstraints.chained,isMultiple:!0,name:e.rootConstraints.name,optional:e.rootConstraints.isOptional??!1,serviceIdentifier:e.rootConstraints.serviceIdentifier,tag:e.rootConstraints.tag}:{isMultiple:!1,name:e.rootConstraints.name,optional:e.rootConstraints.isOptional??!1,serviceIdentifier:e.rootConstraints.serviceIdentifier,tag:e.rootConstraints.tag}}(e),n=e.operations.getPlan(t);if(void 0!==n)return n;const i=qe(e),o={tree:{root:new _e(e,i)}};return e.operations.setPlan(t,o),o}catch(t){me(e,t)}}var We;!function(e){e.bindingAdded="bindingAdded",e.bindingRemoved="bindingRemoved"}(We||(We={}));class Xe{#P;#A;#x;constructor(){this.#P=[],this.#A=8,this.#x=1024}*[Symbol.iterator](){let e=0;for(const t of this.#P){const n=t.deref();void 0===n?++e:yield n}this.#P.length>=this.#A&&this.#R(e)&&this.#T(e)}push(e){const t=new WeakRef(e);if(this.#P.push(t),this.#P.length>=this.#A&&this.#P.length%this.#x===0){let e=0;for(const t of this.#P)void 0===t.deref()&&++e;this.#R(e)&&this.#T(e)}}#T(e){const t=new Array(this.#P.length-e);let n=0;for(const e of this.#P)e.deref()&&(t[n++]=e);this.#P=t}#R(e){return e>=.5*this.#P.length}}const He=$e(Ee(ze,Le,function(e,t,n){return Je(e,t,n)},function(e,t,n){return Qe(e,t,n)})),Je=function(e){const t=Fe(e);return(e,n,i)=>{try{return t(e,n,i)}catch(e){if(esm_M.isErrorOfKind(e,I.planning))return;throw e}}}(He),Qe=function(e){const t=ke(e);return(e,n,i)=>{try{return t(e,n,i)}catch(e){if(esm_M.isErrorOfKind(e,I.planning))return;throw e}}}(He);function Ye(e,t,n,i,o){if(Me.is(t)&&!t.isExpanded())return{isContextFreeBinding:!0,shouldInvalidateServiceNode:!1};const r=new Ie(i.last);return!n.isSatisfiedBy(r)||i.last.elem.getAncestorsCalled?{isContextFreeBinding:!i.last.elem.getAncestorsCalled,shouldInvalidateServiceNode:!1}:function(e,t,n,i,o){let r;try{[r]=He(e,i,[n],t,o)}catch(e){if(ge(e))return{isContextFreeBinding:!1,shouldInvalidateServiceNode:!0};throw e}return function(e,t){if(Array.isArray(e.bindings))e.bindings.push(t);else{if(void 0!==e.bindings){if(!Me.is(e))throw new esm_M(I.planning,"Unexpected non-lazy plan service node. This is likely a bug in the planning logic. Please, report this issue");return{isContextFreeBinding:!0,shouldInvalidateServiceNode:!0}}e.bindings=t}return{isContextFreeBinding:!0,shouldInvalidateServiceNode:!1}}(t,r)}(e,t,n,i,o)}function Ze(e,t,n,i){if(Me.is(e)&&!e.isExpanded())return{bindingNodeRemoved:void 0,isContextFreeBinding:!0};const o=new Ie(n.last);if(!t.isSatisfiedBy(o)||n.last.elem.getAncestorsCalled)return{bindingNodeRemoved:void 0,isContextFreeBinding:!n.last.elem.getAncestorsCalled};let r;if(Array.isArray(e.bindings))e.bindings=e.bindings.filter(e=>e.binding!==t||(r=e,!1));else if(e.bindings?.binding===t)if(r=e.bindings,i)e.bindings=void 0;else{if(!Me.is(e))throw new esm_M(I.planning,"Unexpected non-lazy plan service node. This is likely a bug in the planning logic. Please, report this issue");e.invalidate()}return{bindingNodeRemoved:r,isContextFreeBinding:!0}}class et{#j;#B;#F;#k;#$;#D;constructor(){this.#j=new Map,this.#B=this.#V(),this.#F=this.#V(),this.#k=this.#V(),this.#$=this.#V(),this.#D=new Xe}clearCache(){for(const e of this.#O())e.clear();for(const e of this.#D)e.clearCache()}get(e){return void 0===e.name?void 0===e.tag?this.#E(this.#B,e).get(e.serviceIdentifier):this.#E(this.#$,e).get(e.serviceIdentifier)?.get(e.tag.key)?.get(e.tag.value):void 0===e.tag?this.#E(this.#F,e).get(e.serviceIdentifier)?.get(e.name):this.#E(this.#k,e).get(e.serviceIdentifier)?.get(e.name)?.get(e.tag.key)?.get(e.tag.value)}invalidateServiceBinding(e){this.#_(e),this.#z(e),this.#L(e),this.#U(e),this.#K(e);for(const t of this.#D)t.invalidateServiceBinding(e)}set(e,t){void 0===e.name?void 0===e.tag?this.#E(this.#B,e).set(e.serviceIdentifier,t):this.#q(this.#q(this.#E(this.#$,e),e.serviceIdentifier),e.tag.key).set(e.tag.value,t):void 0===e.tag?this.#q(this.#E(this.#F,e),e.serviceIdentifier).set(e.name,t):this.#q(this.#q(this.#q(this.#E(this.#k,e),e.serviceIdentifier),e.name),e.tag.key).set(e.tag.value,t)}setNonCachedServiceNode(e,t){let n=this.#j.get(e.serviceIdentifier);void 0===n&&(n=new Map,this.#j.set(e.serviceIdentifier,n)),n.set(e,t)}subscribe(e){this.#D.push(e)}#V(){const e=new Array(8);for(let t=0;t<e.length;++t)e[t]=new Map;return e}#G(e,t,n,i){const o=!!(2&t);let r;if(o){r={chained:!!(0&t),isMultiple:o,serviceIdentifier:e.binding.serviceIdentifier}}else r={isMultiple:o,serviceIdentifier:e.binding.serviceIdentifier};return!!(1&t)&&(r.isOptional=!0),void 0!==n&&(r.name=n),void 0!==i&&(r.tag=i),{autobindOptions:void 0,operations:e.operations,rootConstraints:r,servicesBranch:[]}}#q(e,t){let n=e.get(t);return void 0===n&&(n=new Map,e.set(t,n)),n}#E(e,t){return e[this.#W(t)]}#O(){return[this.#j,...this.#B,...this.#F,...this.#k,...this.#$]}#W(e){return e.isMultiple?(e.chained?4:0)|(e.optional?1:0)|2:e.optional?1:0}#z(e){for(const[t,n]of this.#F.entries()){const i=n.get(e.binding.serviceIdentifier);if(void 0!==i)for(const[n,o]of i.entries())this.#X(e,o,t,n,void 0)}}#L(e){for(const[t,n]of this.#k.entries()){const i=n.get(e.binding.serviceIdentifier);if(void 0!==i)for(const[n,o]of i.entries())for(const[i,r]of o.entries())for(const[o,s]of r.entries())this.#X(e,s,t,n,{key:i,value:o})}}#H(e){switch(e.binding.type){case esm_u.ServiceRedirection:for(const t of e.redirections)this.#H(t);break;case esm_u.Instance:for(const t of e.constructorParams)void 0!==t&&this.#J(t);for(const t of e.propertyParams.values())this.#J(t);break;case esm_u.ResolvedValue:for(const t of e.params)this.#J(t)}}#J(e){const t=this.#j.get(e.serviceIdentifier);void 0!==t&&t.has(e)&&(t.delete(e),this.#Q(e))}#Q(e){if((!Me.is(e)||e.isExpanded())&&void 0!==e.bindings)if(Array.isArray(e.bindings))for(const t of e.bindings)this.#H(t);else this.#H(e.bindings)}#K(e){const t=this.#j.get(e.binding.serviceIdentifier);if(void 0!==t)switch(e.kind){case We.bindingAdded:for(const[n,i]of t){const t=Ye({autobindOptions:void 0,operations:e.operations,servicesBranch:[]},n,e.binding,i.bindingConstraintsList,i.chainedBindings);t.isContextFreeBinding?t.shouldInvalidateServiceNode&&Me.is(n)&&(this.#Q(n),n.invalidate()):this.clearCache()}break;case We.bindingRemoved:for(const[n,i]of t){const t=Ze(n,e.binding,i.bindingConstraintsList,i.optionalBindings);t.isContextFreeBinding?void 0!==t.bindingNodeRemoved&&this.#H(t.bindingNodeRemoved):this.clearCache()}}}#_(e){for(const[t,n]of this.#B.entries()){const i=n.get(e.binding.serviceIdentifier);this.#X(e,i,t,void 0,void 0)}}#U(e){for(const[t,n]of this.#$.entries()){const i=n.get(e.binding.serviceIdentifier);if(void 0!==i)for(const[n,o]of i.entries())for(const[i,r]of o.entries())this.#X(e,r,t,void 0,{key:n,value:i})}}#X(e,t,n,i,o){if(void 0!==t&&Me.is(t.tree.root)){const c=this.#G(e,n,i,o);switch(e.kind){case We.bindingAdded:{const n=(r=c,s=t.tree.root,a=e.binding,Me.is(s)&&!s.isExpanded()?{isContextFreeBinding:!0,shouldInvalidateServiceNode:!1}:Ye(r,s,a,Ce(r),r.rootConstraints.isMultiple&&r.rootConstraints.chained));n.isContextFreeBinding?n.shouldInvalidateServiceNode&&(this.#Q(t.tree.root),t.tree.root.invalidate()):this.clearCache()}break;case We.bindingRemoved:{const n=function(e,t,n){return Me.is(t)&&!t.isExpanded()?{bindingNodeRemoved:void 0,isContextFreeBinding:!0}:Ze(t,n,Ce(e),e.rootConstraints.isOptional??!1)}(c,t.tree.root,e.binding);n.isContextFreeBinding?void 0!==n.bindingNodeRemoved&&this.#H(n.bindingNodeRemoved):this.clearCache()}}}var r,s,a}}function tt(e,t){if(ge(t)){const n=function(e){const t=[...e];if(0===t.length)return"(No dependency trace)";return t.map(esm_t).join(" -> ")}(function(e){const t=e.planResult.tree.root,n=[];function i(e){const t=n.indexOf(e);if(-1!==t){return[...n.slice(t),e].map(e=>e.serviceIdentifier)}n.push(e);try{for(const t of function(e){const t=[],n=e.bindings;if(void 0===n)return t;const i=e=>{if(Se(e))for(const t of e.redirections)i(t);else switch(e.binding.type){case esm_u.Instance:{const n=e;for(const e of n.constructorParams)void 0!==e&&t.push(e);for(const e of n.propertyParams.values())t.push(e);break}case esm_u.ResolvedValue:{const n=e;for(const e of n.params)t.push(e);break}}};if(Array.isArray(n))for(const e of n)i(e);else i(n);return t}(e)){const e=i(t);if(void 0!==e)return e}}finally{n.pop()}}return i(t)??[]}(e));throw new esm_M(I.planning,`Circular dependency found: ${n}`,{cause:t})}throw t}function nt(e,t){return esm_e(t)?(e.cache={isRight:!0,value:t},t.then(t=>it(e,t))):it(e,t)}function it(e,t){return e.cache={isRight:!0,value:t},t}function ot(e,t,n){const i=e.getActivations(t);return void 0===i?n:esm_e(n)?rt(e,n,i[Symbol.iterator]()):function(e,t,n){let i=t,o=n.next();for(;!0!==o.done;){const t=o.value(e.context,i);if(esm_e(t))return rt(e,t,n);i=t,o=n.next()}return i}(e,n,i[Symbol.iterator]())}async function rt(e,t,n){let i=await t,o=n.next();for(;!0!==o.done;)i=await o.value(e.context,i),o=n.next();return i}function st(e,t,n){let i=n;if(void 0!==t.onActivation){const n=t.onActivation;i=esm_e(i)?i.then(t=>n(e.context,t)):n(e.context,i)}return ot(e,t.serviceIdentifier,i)}function at(e){return(t,n)=>{if(n.cache.isRight)return n.cache.value;return nt(n,st(t,n,e(t,n)))}}const ct=at(function(e,t){return t.value});function dt(e){return e}function ut(e,t){return(n,i)=>{const o=e(i);switch(o.scope){case esm_d.Singleton:if(o.cache.isRight)return o.cache.value;return nt(o,st(n,o,t(n,i)));case esm_d.Request:{if(n.requestScopeCache.has(o.id))return n.requestScopeCache.get(o.id);const e=st(n,o,t(n,i));return n.requestScopeCache.set(o.id,e),e}case esm_d.Transient:return st(n,o,t(n,i))}}}const lt=(e=>ut(dt,e))(function(e,t){return t.value(e.context)});const pt=at(function(e,t){return t.factory(e.context)});function ft(e,t,n){const i=function(e,t,n){if(!(n in e))throw new esm_M(I.resolution,`Expecting a "${n.toString()}" property when resolving "${t.implementationType.name}" class @postConstruct decorated method, none found.`);if("function"!=typeof e[n])throw new esm_M(I.resolution,`Expecting a "${n.toString()}" method when resolving "${t.implementationType.name}" class @postConstruct decorated method, a non function property was found instead.`);{let i;try{i=e[n]()}catch(e){throw new esm_M(I.resolution,`Unexpected error found when calling "${n.toString()}" @postConstruct decorated method on class "${t.implementationType.name}"`,{cause:e})}if(esm_e(i))return async function(e,t,n){try{await n}catch(n){throw new esm_M(I.resolution,`Unexpected error found when calling "${t.toString()}" @postConstruct decorated method on class "${e.implementationType.name}"`,{cause:n})}}(t,n,i)}}(e,t,n);return esm_e(i)?i.then(()=>e):e}function vt(e,t,n){if(0===n.size)return e;let i=e;for(const e of n)i=esm_e(i)?i.then(n=>ft(n,t,e)):ft(i,t,e);return i}function ht(e){return(t,n,i)=>{const o=new i.binding.implementationType(...t),r=e(n,o,i);return esm_e(r)?r.then(()=>vt(o,i.binding,i.classMetadata.lifecycle.postConstructMethodNames)):vt(o,i.binding,i.classMetadata.lifecycle.postConstructMethodNames)}}const gt=at(function(e,t){return t.provider(e.context)});function mt(e){return e.binding}function yt(e){return e.binding}const Mt=function(e){return(t,n,i)=>{const o=[];for(const[r,a]of i.propertyParams){const c=i.classMetadata.properties.get(r);if(void 0===c)throw new esm_M(I.resolution,`Expecting metadata at property "${r.toString()}", none found`);c.kind!==S.unmanaged&&void 0!==a.bindings&&(n[r]=e(t,a),esm_e(n[r])&&o.push((async()=>{n[r]=await n[r]})()))}if(o.length>0)return Promise.all(o).then(()=>{})}}(At),It=function(e){return function t(n,i){const o=[];for(const r of i.redirections)Se(r)?o.push(...t(n,r)):o.push(e(n,r));return o}}(Pt),bt=function(e,t,n){return(i,o)=>{const r=e(i,o);return esm_e(r)?t(r,i,o):n(r,i,o)}}(function(e){return(t,n)=>{const i=[];for(const o of n.constructorParams)void 0===o?i.push(void 0):i.push(e(t,o));return i.some(esm_e)?Promise.all(i):i}}(At),function(e){return async(t,n,i)=>{const o=await t;return e(o,n,i)}}(ht(Mt)),ht(Mt)),wt=function(e){return(t,n)=>{const i=e(t,n);return esm_e(i)?i.then(e=>n.binding.factory(...e)):n.binding.factory(...i)}}(function(e){return(t,n)=>{const i=[];for(const o of n.params)i.push(e(t,o));return i.some(esm_e)?Promise.all(i):i}}(At)),Ct=(e=>ut(mt,e))(bt),St=(e=>ut(yt,e))(wt);function Nt(e){try{return At(e,e.planResult.tree.root)}catch(t){tt(e,t)}}function Pt(e,t){switch(t.binding.type){case esm_u.ConstantValue:return ct(e,t.binding);case esm_u.DynamicValue:return lt(e,t.binding);case esm_u.Factory:return pt(e,t.binding);case esm_u.Instance:return Ct(e,t);case esm_u.Provider:return gt(e,t.binding);case esm_u.ResolvedValue:return St(e,t)}}function At(e,t){if(void 0!==t.bindings)return Array.isArray(t.bindings)?function(e,t){const n=[];for(const i of t)Se(i)?n.push(...It(e,i)):n.push(Pt(e,i));if(n.some(esm_e))return Promise.all(n);return n}(e,t.bindings):function(e,t){if(Se(t)){const n=It(e,t);if(1===n.length)return n[0];throw new esm_M(I.resolution,"Unexpected multiple resolved values on single injection")}return Pt(e,t)}(e,t.bindings)}function xt(e){return void 0!==e.scope}function Rt(e,t){if("function"==typeof e[t]){return e[t]()}}function Tt(e,t){const n=e.lifecycle.preDestroyMethodNames;if(0===n.size)return;let i;for(const e of n)i=void 0===i?Rt(t,e):i.then(()=>Rt(t,e));return i}function jt(e,t,n){const i=e.getDeactivations(t);if(void 0!==i)return esm_e(n)?Bt(n,i[Symbol.iterator]()):function(e,t){let n=t.next();for(;!0!==n.done;){const i=n.value(e);if(esm_e(i))return Bt(e,t);n=t.next()}}(n,i[Symbol.iterator]())}async function Bt(e,t){const n=await e;let i=t.next();for(;!0!==i.done;)await i.value(n),i=t.next()}function Ft(e,t){const n=function(e,t){if(t.type===esm_u.Instance){const n=e.getClassMetadata(t.implementationType),i=t.cache.value;return esm_e(i)?i.then(e=>Tt(n,e)):Tt(n,i)}}(e,t);return void 0===n?kt(e,t):n.then(()=>kt(e,t))}function kt(e,t){const n=t.cache;return esm_e(n.value)?n.value.then(n=>$t(e,t,n)):$t(e,t,n.value)}function $t(e,t,n){let i;if(void 0!==t.onDeactivation){i=(0,t.onDeactivation)(n)}return void 0===i?jt(e,t.serviceIdentifier,n):i.then(()=>jt(e,t.serviceIdentifier,n))}function Dt(e,t){if(void 0===t)return;const n=function(e){const t=[];for(const n of e)xt(n)&&n.scope===esm_d.Singleton&&n.cache.isRight&&t.push(n);return t}(t),i=[];for(const t of n){const n=Ft(e,t);void 0!==n&&i.push(n)}return i.length>0?Promise.all(i).then(()=>{}):void 0}function Vt(e,t){const n=e.getBindingsFromModule(t);return Dt(e,n)}function Ot(e,t){const n=e.getBindings(t);return Dt(e,n)}
+
+
+class PluginManager {
+    #pluginApi;
+    #pluginContext;
+    #serviceResolutionManager;
+    #serviceReferenceManager;
+    constructor(container, serviceReferenceManager, serviceResolutionManager) {
+        this.#serviceReferenceManager = serviceReferenceManager;
+        this.#serviceResolutionManager = serviceResolutionManager;
+        this.#pluginApi = this.#buildPluginApi(container);
+        this.#pluginContext = this.#buildPluginContext();
+    }
+    register(container, pluginConstructor) {
+        const pluginInstance = new pluginConstructor(container, this.#pluginContext);
+        this.#assertIsPlugin(pluginInstance);
+        pluginInstance.load(this.#pluginApi);
+    }
+    #assertIsPlugin(value) {
+        if (value[isPlugin] !== true) {
+            throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, 'Invalid plugin. The plugin must extend the Plugin class');
+        }
+    }
+    #buildPluginApi(container) {
+        return {
+            define: (name, 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            method) => {
+                if (Object.prototype.hasOwnProperty.call(container, name)) {
+                    throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, `Container already has a method named "${String(name)}"`);
+                }
+                container[name] =
+                    method;
+            },
+            onPlan: this.#serviceResolutionManager.onPlan.bind(this.#serviceResolutionManager),
+        };
+    }
+    #buildPluginContext() {
+        const serviceReferenceManager = this.#serviceReferenceManager;
+        return {
+            get activationService() {
+                return serviceReferenceManager.activationService;
+            },
+            get bindingService() {
+                return serviceReferenceManager.bindingService;
+            },
+            get deactivationService() {
+                return serviceReferenceManager.deactivationService;
+            },
+            get planResultCacheService() {
+                return serviceReferenceManager.planResultCacheService;
+            },
+        };
+    }
+}
+//# sourceMappingURL=PluginManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/ServiceReferenceManager.js
+/**
+ * Manages references to core services used throughout the Container
+ * This class allows for proper synchronization of services during snapshot/restore operations
+ */
+class ServiceReferenceManager {
+    activationService;
+    bindingService;
+    deactivationService;
+    planResultCacheService;
+    #onResetComputedPropertiesListeners;
+    constructor(activationService, bindingService, deactivationService, planResultCacheService) {
+        this.activationService = activationService;
+        this.bindingService = bindingService;
+        this.deactivationService = deactivationService;
+        this.planResultCacheService = planResultCacheService;
+        this.#onResetComputedPropertiesListeners = [];
+    }
+    reset(activationService, bindingService, deactivationService) {
+        this.activationService = activationService;
+        this.bindingService = bindingService;
+        this.deactivationService = deactivationService;
+        this.planResultCacheService.clearCache();
+        for (const listener of this.#onResetComputedPropertiesListeners) {
+            listener();
+        }
+    }
+    onReset(listener) {
+        this.#onResetComputedPropertiesListeners.push(listener);
+    }
+}
+//# sourceMappingURL=ServiceReferenceManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/ServiceResolutionManager.js
+
+
+
+
+class ServiceResolutionManager {
+    #autobind;
+    #defaultScope;
+    #getActivationsResolutionParam;
+    #resolutionContext;
+    #onPlanHandlers;
+    #planParamsOperationsManager;
+    #serviceReferenceManager;
+    constructor(planParamsOperationsManager, serviceReferenceManager, autobind, defaultScope) {
+        this.#planParamsOperationsManager = planParamsOperationsManager;
+        this.#serviceReferenceManager = serviceReferenceManager;
+        this.#resolutionContext = this.#buildResolutionContext();
+        this.#autobind = autobind;
+        this.#defaultScope = defaultScope;
+        this.#getActivationsResolutionParam = (serviceIdentifier) => this.#serviceReferenceManager.activationService.get(serviceIdentifier);
+        this.#onPlanHandlers = [];
+        this.#serviceReferenceManager.onReset(() => {
+            this.#resetComputedProperties();
+        });
+    }
+    get(serviceIdentifier, options) {
+        const planResult = this.#buildPlanResult(false, serviceIdentifier, options);
+        const resolvedValue = this.#getFromPlanResult(planResult);
+        if (isPromise(resolvedValue)) {
+            throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, `Unexpected asynchronous service when resolving service "${stringifyServiceIdentifier(serviceIdentifier)}"`);
+        }
+        return resolvedValue;
+    }
+    getAll(serviceIdentifier, options) {
+        const planResult = this.#buildPlanResult(true, serviceIdentifier, options);
+        const resolvedValue = this.#getFromPlanResult(planResult);
+        if (isPromise(resolvedValue)) {
+            throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, `Unexpected asynchronous service when resolving service "${stringifyServiceIdentifier(serviceIdentifier)}"`);
+        }
+        return resolvedValue;
+    }
+    async getAllAsync(serviceIdentifier, options) {
+        const planResult = this.#buildPlanResult(true, serviceIdentifier, options);
+        return this.#getFromPlanResult(planResult);
+    }
+    async getAsync(serviceIdentifier, options) {
+        const planResult = this.#buildPlanResult(false, serviceIdentifier, options);
+        return this.#getFromPlanResult(planResult);
+    }
+    onPlan(handler) {
+        this.#onPlanHandlers.push(handler);
+    }
+    #resetComputedProperties() {
+        this.#resolutionContext = this.#buildResolutionContext();
+    }
+    #buildGetPlanOptions(isMultiple, serviceIdentifier, options) {
+        const name = options?.name;
+        const optional = options?.optional ?? false;
+        const tag = options?.tag;
+        if (isMultiple) {
+            return {
+                chained: options?.chained ?? false,
+                isMultiple,
+                name,
+                optional,
+                serviceIdentifier,
+                tag,
+            };
+        }
+        else {
+            return {
+                isMultiple,
+                name,
+                optional,
+                serviceIdentifier,
+                tag,
+            };
+        }
+    }
+    #buildPlanParams(serviceIdentifier, isMultiple, options) {
+        const planParams = {
+            autobindOptions: (options?.autobind ?? this.#autobind)
+                ? {
+                    scope: this.#defaultScope,
+                }
+                : undefined,
+            operations: this.#planParamsOperationsManager.planParamsOperations,
+            rootConstraints: this.#buildPlanParamsConstraints(serviceIdentifier, isMultiple, options),
+            servicesBranch: [],
+        };
+        this.#handlePlanParamsRootConstraints(planParams, options);
+        return planParams;
+    }
+    #buildPlanParamsConstraints(serviceIdentifier, isMultiple, options) {
+        if (isMultiple) {
+            return {
+                chained: options?.chained ?? false,
+                isMultiple,
+                serviceIdentifier,
+            };
+        }
+        else {
+            return {
+                isMultiple,
+                serviceIdentifier,
+            };
+        }
+    }
+    #buildPlanResult(isMultiple, serviceIdentifier, options) {
+        const getPlanOptions = this.#buildGetPlanOptions(isMultiple, serviceIdentifier, options);
+        const planResultFromCache = this.#serviceReferenceManager.planResultCacheService.get(getPlanOptions);
+        if (planResultFromCache !== undefined) {
+            return planResultFromCache;
+        }
+        const planResult = plan(this.#buildPlanParams(serviceIdentifier, isMultiple, options));
+        for (const handler of this.#onPlanHandlers) {
+            handler(getPlanOptions, planResult);
+        }
+        return planResult;
+    }
+    #buildResolutionContext() {
+        return {
+            get: this.get.bind(this),
+            getAll: this.getAll.bind(this),
+            getAllAsync: this.getAllAsync.bind(this),
+            getAsync: this.getAsync.bind(this),
+        };
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+    #getFromPlanResult(planResult) {
+        return resolve({
+            context: this.#resolutionContext,
+            getActivations: this.#getActivationsResolutionParam,
+            planResult,
+            requestScopeCache: new Map(),
+        });
+    }
+    #handlePlanParamsRootConstraints(planParams, options) {
+        if (options === undefined) {
+            return;
+        }
+        if (options.name !== undefined) {
+            planParams.rootConstraints.name = options.name;
+        }
+        if (options.optional === true) {
+            planParams.rootConstraints.isOptional = true;
+        }
+        if (options.tag !== undefined) {
+            planParams.rootConstraints.tag = {
+                key: options.tag.key,
+                value: options.tag.value,
+            };
+        }
+        if (planParams.rootConstraints.isMultiple) {
+            planParams.rootConstraints.chained =
+                options?.chained ?? false;
+        }
+    }
+}
+//# sourceMappingURL=ServiceResolutionManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/SnapshotManager.js
+
+
+class SnapshotManager {
+    #serviceReferenceManager;
+    #snapshots;
+    constructor(serviceReferenceManager) {
+        this.#serviceReferenceManager = serviceReferenceManager;
+        this.#snapshots = [];
+    }
+    restore() {
+        const snapshot = this.#snapshots.pop();
+        if (snapshot === undefined) {
+            throw new InversifyContainerError(InversifyContainerErrorKind.invalidOperation, 'No snapshot available to restore');
+        }
+        this.#serviceReferenceManager.reset(snapshot.activationService, snapshot.bindingService, snapshot.deactivationService);
+    }
+    snapshot() {
+        this.#snapshots.push({
+            activationService: this.#serviceReferenceManager.activationService.clone(),
+            bindingService: this.#serviceReferenceManager.bindingService.clone(),
+            deactivationService: this.#serviceReferenceManager.deactivationService.clone(),
+        });
+    }
+}
+//# sourceMappingURL=SnapshotManager.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/container/services/Container.js
+
+
+
+
+
+
+
+
+
+
+const DEFAULT_DEFAULT_SCOPE = bindingScopeValues.Transient;
+class Container {
+    #bindingManager;
+    #containerModuleManager;
+    #pluginManager;
+    #serviceReferenceManager;
+    #serviceResolutionManager;
+    #snapshotManager;
+    constructor(options) {
+        const autobind = options?.autobind ?? false;
+        const defaultScope = options?.defaultScope ?? DEFAULT_DEFAULT_SCOPE;
+        this.#serviceReferenceManager = this.#buildServiceReferenceManager(options, autobind, defaultScope);
+        const planParamsOperationsManager = new PlanParamsOperationsManager(this.#serviceReferenceManager);
+        const planResultCacheManager = new PlanResultCacheManager(planParamsOperationsManager, this.#serviceReferenceManager);
+        const deactivationParamsManager = new DeactivationParamsManager(this.#serviceReferenceManager);
+        this.#bindingManager = new BindingManager(deactivationParamsManager.deactivationParams, defaultScope, planResultCacheManager, this.#serviceReferenceManager);
+        this.#containerModuleManager = new ContainerModuleManager(this.#bindingManager, deactivationParamsManager.deactivationParams, defaultScope, planResultCacheManager, this.#serviceReferenceManager);
+        this.#serviceResolutionManager = new ServiceResolutionManager(planParamsOperationsManager, this.#serviceReferenceManager, autobind, defaultScope);
+        this.#pluginManager = new PluginManager(this, this.#serviceReferenceManager, this.#serviceResolutionManager);
+        this.#snapshotManager = new SnapshotManager(this.#serviceReferenceManager);
+    }
+    bind(serviceIdentifier) {
+        return this.#bindingManager.bind(serviceIdentifier);
+    }
+    get(serviceIdentifier, options) {
+        return this.#serviceResolutionManager.get(serviceIdentifier, options);
+    }
+    getAll(serviceIdentifier, options) {
+        return this.#serviceResolutionManager.getAll(serviceIdentifier, options);
+    }
+    async getAllAsync(serviceIdentifier, options) {
+        return this.#serviceResolutionManager.getAllAsync(serviceIdentifier, options);
+    }
+    async getAsync(serviceIdentifier, options) {
+        return this.#serviceResolutionManager.getAsync(serviceIdentifier, options);
+    }
+    isBound(serviceIdentifier, options) {
+        return this.#bindingManager.isBound(serviceIdentifier, options);
+    }
+    isCurrentBound(serviceIdentifier, options) {
+        return this.#bindingManager.isCurrentBound(serviceIdentifier, options);
+    }
+    async loadAsync(...modules) {
+        return this.#containerModuleManager.loadAsync(...modules);
+    }
+    load(...modules) {
+        this.#containerModuleManager.load(...modules);
+    }
+    onActivation(serviceIdentifier, activation) {
+        this.#serviceReferenceManager.activationService.add(activation, {
+            serviceId: serviceIdentifier,
+        });
+    }
+    onDeactivation(serviceIdentifier, deactivation) {
+        this.#serviceReferenceManager.deactivationService.add(deactivation, {
+            serviceId: serviceIdentifier,
+        });
+    }
+    register(pluginConstructor) {
+        this.#pluginManager.register(this, pluginConstructor);
+    }
+    restore() {
+        this.#snapshotManager.restore();
+    }
+    async rebindAsync(serviceIdentifier) {
+        return this.#bindingManager.rebindAsync(serviceIdentifier);
+    }
+    rebind(serviceIdentifier) {
+        return this.#bindingManager.rebind(serviceIdentifier);
+    }
+    snapshot() {
+        this.#snapshotManager.snapshot();
+    }
+    async unbindAsync(identifier) {
+        await this.#bindingManager.unbindAsync(identifier);
+    }
+    async unbindAllAsync() {
+        await this.#bindingManager.unbindAllAsync();
+    }
+    unbindAll() {
+        this.#bindingManager.unbindAll();
+    }
+    unbind(identifier) {
+        this.#bindingManager.unbind(identifier);
+    }
+    async unloadAsync(...modules) {
+        return this.#containerModuleManager.unloadAsync(...modules);
+    }
+    unload(...modules) {
+        this.#containerModuleManager.unload(...modules);
+    }
+    #buildAutobindOptions(autobind, defaultScope) {
+        if (autobind) {
+            return { scope: defaultScope };
+        }
+        return undefined;
+    }
+    #buildServiceReferenceManager(options, autobind, defaultScope) {
+        const autobindOptions = this.#buildAutobindOptions(autobind, defaultScope);
+        if (options?.parent === undefined) {
+            return new ServiceReferenceManager(ActivationsService.build(() => undefined), BindingService.build(() => undefined, autobindOptions), DeactivationsService.build(() => undefined), new PlanResultCacheService());
+        }
+        const planResultCacheService = new PlanResultCacheService();
+        const parent = options.parent;
+        parent.#serviceReferenceManager.planResultCacheService.subscribe(planResultCacheService);
+        return new ServiceReferenceManager(ActivationsService.build(() => parent.#serviceReferenceManager.activationService), BindingService.build(() => parent.#serviceReferenceManager.bindingService, autobindOptions), DeactivationsService.build(() => parent.#serviceReferenceManager.deactivationService), planResultCacheService);
+    }
+}
+//# sourceMappingURL=Container.js.map
+;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/index.js
+
+
+
+
+
+
 //# sourceMappingURL=index.js.map
+;// CONCATENATED MODULE: ./node_modules/inversify/lib/index.js
 
-;// CONCATENATED MODULE: ./node_modules/@inversifyjs/plugin/lib/esm/index.js
-const plugin_lib_esm_t=Symbol.for("@inversifyjs/plugin/isPlugin");class plugin_lib_esm_n{[plugin_lib_esm_t]=!0;_container;_context;constructor(t,n){this._container=t,this._context=n}}
-//# sourceMappingURL=index.js.map
 
-;// CONCATENATED MODULE: ./node_modules/@inversifyjs/container/lib/esm/index.js
-const esm_m="@inversifyjs/container/bindingId";class esm_w{#e;#n;constructor(t){this.#e=function(){const t=e(Object,esm_m)??0;return t===Number.MAX_SAFE_INTEGER?n(Object,esm_m,Number.MIN_SAFE_INTEGER):i(Object,esm_m,()=>t,e=>e+1),t}(),this.#n=t}get id(){return this.#e}load(e){return this.#n(e)}}const esm_A=Symbol.for("@inversifyjs/container/bindingIdentifier");function esm_I(e){return"object"==typeof e&&null!==e&&!0===e[esm_A]}class esm_P{static always=e=>!0}const esm_C=Symbol.for("@inversifyjs/container/InversifyContainerError");class esm_B extends Error{[esm_C];kind;constructor(e,n,i){super(n,i),this[esm_C]=!0,this.kind=e}static is(e){return"object"==typeof e&&null!==e&&!0===e[esm_C]}static isErrorOfKind(e,n){return esm_B.is(e)&&e.kind===n}}var esm_O;function esm_x(e){return{[esm_A]:!0,id:e.id}}function esm_k(e){return n=>{for(let i=n.getAncestor();void 0!==i;i=i.getAncestor())if(e(i))return!0;return!1}}function esm_N(e){return n=>n.name===e}function esm_U(e){return n=>n.serviceIdentifier===e}function esm_F(e,n){return i=>i.tags.has(e)&&i.tags.get(e)===n}function esm_D(e){return void 0===e.name&&0===e.tags.size}function esm_j(e){const n=esm_k(e);return e=>!n(e)}function esm_T(e){return n=>{const i=n.getAncestor();return void 0===i||!e(i)}}function esm_V(e){return n=>{const i=n.getAncestor();return void 0!==i&&e(i)}}!function(e){e[e.invalidOperation=0]="invalidOperation"}(esm_O||(esm_O={}));class esm_E{#i;constructor(e){this.#i=e}getIdentifier(){return esm_x(this.#i)}inRequestScope(){return this.#i.scope=esm_d.Request,new esm_G(this.#i)}inSingletonScope(){return this.#i.scope=esm_d.Singleton,new esm_G(this.#i)}inTransientScope(){return this.#i.scope=esm_d.Transient,new esm_G(this.#i)}}class esm_L{#t;#r;#a;#s;constructor(e,n,i,t){this.#t=e,this.#r=n,this.#a=i,this.#s=t}to(e){const n=N(e),i={cache:{isRight:!1,value:void 0},id:esm_c(),implementationType:e,isSatisfiedBy:esm_P.always,moduleId:this.#r,onActivation:void 0,onDeactivation:void 0,scope:n.scope??this.#a,serviceIdentifier:this.#s,type:esm_u.Instance};return this.#t(i),new esm_H(i)}toSelf(){if("function"!=typeof this.#s)throw new Error('"toSelf" function can only be applied when a newable function is used as service identifier');return this.to(this.#s)}toConstantValue(e){const n={cache:{isRight:!1,value:void 0},id:esm_c(),isSatisfiedBy:esm_P.always,moduleId:this.#r,onActivation:void 0,onDeactivation:void 0,scope:esm_d.Singleton,serviceIdentifier:this.#s,type:esm_u.ConstantValue,value:e};return this.#t(n),new esm_G(n)}toDynamicValue(e){const n={cache:{isRight:!1,value:void 0},id:esm_c(),isSatisfiedBy:esm_P.always,moduleId:this.#r,onActivation:void 0,onDeactivation:void 0,scope:this.#a,serviceIdentifier:this.#s,type:esm_u.DynamicValue,value:e};return this.#t(n),new esm_H(n)}toResolvedValue(e,n){const i={cache:{isRight:!1,value:void 0},factory:e,id:esm_c(),isSatisfiedBy:esm_P.always,metadata:this.#o(n),moduleId:this.#r,onActivation:void 0,onDeactivation:void 0,scope:this.#a,serviceIdentifier:this.#s,type:esm_u.ResolvedValue};return this.#t(i),new esm_H(i)}toFactory(e){const n={cache:{isRight:!1,value:void 0},factory:e,id:esm_c(),isSatisfiedBy:esm_P.always,moduleId:this.#r,onActivation:void 0,onDeactivation:void 0,scope:esm_d.Singleton,serviceIdentifier:this.#s,type:esm_u.Factory};return this.#t(n),new esm_G(n)}toProvider(e){const n={cache:{isRight:!1,value:void 0},id:esm_c(),isSatisfiedBy:esm_P.always,moduleId:this.#r,onActivation:void 0,onDeactivation:void 0,provider:e,scope:esm_d.Singleton,serviceIdentifier:this.#s,type:esm_u.Provider};return this.#t(n),new esm_G(n)}toService(e){const n={id:esm_c(),isSatisfiedBy:esm_P.always,moduleId:this.#r,serviceIdentifier:this.#s,targetServiceIdentifier:e,type:esm_u.ServiceRedirection};this.#t(n)}#o(e){return{arguments:(e??[]).map(e=>function(e){return"object"==typeof e&&!r.is(e)}(e)?function(e){return!0===e.isMultiple}(e)?{chained:e.chained??!1,kind:fe.multipleInjection,name:e.name,optional:e.optional??!1,tags:new Map((e.tags??[]).map(e=>[e.key,e.value])),value:e.serviceIdentifier}:{kind:fe.singleInjection,name:e.name,optional:e.optional??!1,tags:new Map((e.tags??[]).map(e=>[e.key,e.value])),value:e.serviceIdentifier}:{kind:fe.singleInjection,name:void 0,optional:!1,tags:new Map,value:e})}}}class esm_${#i;constructor(e){this.#i=e}getIdentifier(){return esm_x(this.#i)}onActivation(e){return this.#i.onActivation=e,new esm_q(this.#i)}onDeactivation(e){if(this.#i.onDeactivation=e,this.#i.scope!==esm_d.Singleton)throw new esm_B(esm_O.invalidOperation,`Binding for service "${esm_t(this.#i.serviceIdentifier)}" has a deactivation function, but its scope is not singleton. Deactivation functions can only be used with singleton bindings.`);return new esm_q(this.#i)}}class esm_q{#i;constructor(e){this.#i=e}getIdentifier(){return esm_x(this.#i)}when(e){return this.#i.isSatisfiedBy=e,new esm_$(this.#i)}whenAnyAncestor(e){return this.when(esm_k(e))}whenAnyAncestorIs(e){return this.when(esm_k(esm_U(e)))}whenAnyAncestorNamed(e){return this.when(function(e){return esm_k(esm_N(e))}(e))}whenAnyAncestorTagged(e,n){return this.when(function(e,n){return esm_k(esm_F(e,n))}(e,n))}whenDefault(){return this.when(esm_D)}whenNamed(e){return this.when(esm_N(e))}whenNoParent(e){return this.when(esm_T(e))}whenNoParentIs(e){return this.when(esm_T(esm_U(e)))}whenNoParentNamed(e){return this.when(function(e){return esm_T(esm_N(e))}(e))}whenNoParentTagged(e,n){return this.when(function(e,n){return esm_T(esm_F(e,n))}(e,n))}whenParent(e){return this.when(esm_V(e))}whenParentIs(e){return this.when(esm_V(esm_U(e)))}whenParentNamed(e){return this.when(function(e){return esm_V(esm_N(e))}(e))}whenParentTagged(e,n){return this.when(function(e,n){return esm_V(esm_F(e,n))}(e,n))}whenTagged(e,n){return this.when(esm_F(e,n))}whenNoAncestor(e){return this.when(esm_j(e))}whenNoAncestorIs(e){return this.when(esm_j(esm_U(e)))}whenNoAncestorNamed(e){return this.when(function(e){return esm_j(esm_N(e))}(e))}whenNoAncestorTagged(e,n){return this.when(function(e,n){return esm_j(esm_F(e,n))}(e,n))}}class esm_G extends esm_q{#c;constructor(e){super(e),this.#c=new esm_$(e)}onActivation(e){return this.#c.onActivation(e)}onDeactivation(e){return this.#c.onDeactivation(e)}}class esm_H extends esm_G{#d;constructor(e){super(e),this.#d=new esm_E(e)}inRequestScope(){return this.#d.inRequestScope()}inSingletonScope(){return this.#d.inSingletonScope()}inTransientScope(){return this.#d.inTransientScope()}}class esm_{#l;#a;#u;#h;constructor(e,n,i,t){this.#l=e,this.#a=n,this.#u=i,this.#h=t}bind(e){return new esm_L(e=>{this.#v(e)},void 0,this.#a,e)}isBound(e,n){const i=this.#h.bindingService.get(e);return this.#g(e,i,n)}isCurrentBound(e,n){const i=this.#h.bindingService.getNonParentBindings(e);return this.#g(e,i,n)}async rebind(e){return await this.unbind(e),this.bind(e)}rebindSync(e){return this.unbindSync(e),this.bind(e)}async unbind(e){await this.#b(e)}async unbindAll(){await this.#f()}unbindAllSync(){if(void 0!==this.#f())throw new esm_B(esm_O.invalidOperation,"Unexpected asynchronous deactivation when unbinding all services. Consider using Container.unbindAll() instead.")}unbindSync(e){void 0!==this.#b(e)&&this.#p(e)}#v(e){this.#h.bindingService.set(e),this.#u.invalidateService({binding:e,kind:We.bindingAdded})}#p(e){let n;if(esm_I(e)){const t=this.#h.bindingService.getById(e.id),r=(i=t,function(e){if(void 0===e)return;const n=e.next();return!0!==n.done?n.value:void 0}(i?.[Symbol.iterator]()))?.serviceIdentifier;n=void 0===r?"Unexpected asynchronous deactivation when unbinding binding identifier. Consider using Container.unbind() instead.":`Unexpected asynchronous deactivation when unbinding "${esm_t(r)}" binding. Consider using Container.unbind() instead.`}else n=`Unexpected asynchronous deactivation when unbinding "${esm_t(e)}" service. Consider using Container.unbind() instead.`;var i;throw new esm_B(esm_O.invalidOperation,n)}#b(e){return esm_I(e)?this.#S(e):this.#M(e)}#S(e){const n=this.#h.bindingService.getById(e.id),i=void 0===n?void 0:[...n],t=Dt(this.#l,n);if(void 0!==t)return t.then(()=>{this.#R(i,e)});this.#R(i,e)}#R(e,n){if(this.#h.bindingService.removeById(n.id),void 0!==e)for(const n of e)this.#u.invalidateService({binding:n,kind:We.bindingRemoved})}#f(){const e=[...this.#h.bindingService.getNonParentBoundServices()],n=e.map(e=>Ot(this.#l,e));if(n.some(e=>esm_e(e)))return Promise.all(n).then(()=>{this.#y(e)});this.#y(e)}#y(e){for(const n of e)this.#h.activationService.removeAllByServiceId(n),this.#h.bindingService.removeAllByServiceId(n),this.#h.deactivationService.removeAllByServiceId(n);this.#h.planResultCacheService.clearCache()}#M(e){const n=this.#h.bindingService.get(e),i=void 0===n?void 0:[...n],t=Dt(this.#l,n);if(void 0!==t)return t.then(()=>{this.#m(e,i)});this.#m(e,i)}#m(e,n){if(this.#h.activationService.removeAllByServiceId(e),this.#h.bindingService.removeAllByServiceId(e),this.#h.deactivationService.removeAllByServiceId(e),void 0!==n)for(const e of n)this.#u.invalidateService({binding:e,kind:We.bindingRemoved})}#g(e,n,i){if(void 0===n)return!1;const t={getAncestor:()=>{},name:i?.name,serviceIdentifier:e,tags:new Map};void 0!==i?.tag&&t.tags.set(i.tag.key,i.tag.value);for(const e of n)if(e.isSatisfiedBy(t))return!0;return!1}}class esm_z{#w;#l;#a;#u;#h;constructor(e,n,i,t,r){this.#w=e,this.#l=n,this.#a=i,this.#u=t,this.#h=r}async load(...e){await Promise.all(this.#n(...e))}loadSync(...e){const n=this.#n(...e);for(const e of n)if(void 0!==e)throw new esm_B(esm_O.invalidOperation,"Unexpected asynchronous module load. Consider using Container.load() instead.")}async unload(...e){await Promise.all(this.#A(...e)),this.#I(e)}unloadSync(...e){const n=this.#A(...e);for(const e of n)if(void 0!==e)throw new esm_B(esm_O.invalidOperation,"Unexpected asynchronous module unload. Consider using Container.unload() instead.");this.#I(e)}#P(e){return{bind:n=>new esm_L(e=>{this.#v(e)},e,this.#a,n),isBound:this.#w.isBound.bind(this.#w),onActivation:(n,i)=>{this.#h.activationService.add(i,{moduleId:e,serviceId:n})},onDeactivation:(n,i)=>{this.#h.deactivationService.add(i,{moduleId:e,serviceId:n})},rebind:this.#w.rebind.bind(this.#w),rebindSync:this.#w.rebindSync.bind(this.#w),unbind:this.#w.unbind.bind(this.#w),unbindSync:this.#w.unbindSync.bind(this.#w)}}#I(e){for(const n of e)this.#h.activationService.removeAllByModuleId(n.id),this.#h.bindingService.removeAllByModuleId(n.id),this.#h.deactivationService.removeAllByModuleId(n.id);this.#h.planResultCacheService.clearCache()}#n(...e){return e.map(e=>e.load(this.#P(e.id)))}#v(e){this.#h.bindingService.set(e),this.#u.invalidateService({binding:e,kind:We.bindingAdded})}#A(...e){return e.map(e=>Vt(this.#l,e.id))}}class esm_K{deactivationParams;constructor(e){this.deactivationParams=function(e){return{getBindings:e.bindingService.get.bind(e.bindingService),getBindingsFromModule:e.bindingService.getByModuleId.bind(e.bindingService),getClassMetadata:N,getDeactivations:e.deactivationService.get.bind(e.deactivationService)}}(e),e.onReset(()=>{!function(e,n){n.getBindings=e.bindingService.get.bind(e.bindingService),n.getBindingsFromModule=e.bindingService.getByModuleId.bind(e.bindingService),n.getDeactivations=e.deactivationService.get.bind(e.deactivationService)}(e,this.deactivationParams)})}}class esm_X{planParamsOperations;#h;constructor(e){this.#h=e,this.planParamsOperations={getBindings:this.#h.bindingService.get.bind(this.#h.bindingService),getBindingsChained:this.#h.bindingService.getChained.bind(this.#h.bindingService),getClassMetadata:N,getPlan:this.#h.planResultCacheService.get.bind(this.#h.planResultCacheService),setBinding:this.#v.bind(this),setNonCachedServiceNode:this.#h.planResultCacheService.setNonCachedServiceNode.bind(this.#h.planResultCacheService),setPlan:this.#h.planResultCacheService.set.bind(this.#h.planResultCacheService)},this.#h.onReset(()=>{this.#C()})}#C(){this.planParamsOperations.getBindings=this.#h.bindingService.get.bind(this.#h.bindingService),this.planParamsOperations.getBindingsChained=this.#h.bindingService.getChained.bind(this.#h.bindingService),this.planParamsOperations.setBinding=this.#v.bind(this)}#v(e){this.#h.bindingService.set(e),this.#h.planResultCacheService.invalidateServiceBinding({binding:e,kind:We.bindingAdded,operations:this.planParamsOperations})}}class esm_J{#B;#h;constructor(e,n){this.#B=e,this.#h=n}invalidateService(e){this.#h.planResultCacheService.invalidateServiceBinding({...e,operations:this.#B.planParamsOperations})}}class esm_Q{#O;#x;#k;#h;constructor(e,n,i){this.#h=n,this.#k=i,this.#O=this.#N(e),this.#x=this.#U()}register(e,n){const i=new n(e,this.#x);if(!0!==i[plugin_lib_esm_t])throw new esm_B(esm_O.invalidOperation,"Invalid plugin. The plugin must extend the Plugin class");i.load(this.#O)}#N(e){return{define:(n,i)=>{if(Object.prototype.hasOwnProperty.call(e,n))throw new esm_B(esm_O.invalidOperation,`Container already has a method named "${String(n)}"`);e[n]=i},onPlan:this.#k.onPlan.bind(this.#k)}}#U(){const e=this.#h;return{get activationService(){return e.activationService},get bindingService(){return e.bindingService},get deactivationService(){return e.deactivationService},get planResultCacheService(){return e.planResultCacheService}}}}class esm_W{activationService;bindingService;deactivationService;planResultCacheService;#F;constructor(e,n,i,t){this.activationService=e,this.bindingService=n,this.deactivationService=i,this.planResultCacheService=t,this.#F=[]}reset(e,n,i){this.activationService=e,this.bindingService=n,this.deactivationService=i,this.planResultCacheService.clearCache();for(const e of this.#F)e()}onReset(e){this.#F.push(e)}}class esm_Y{#D;#a;#j;#T;#V;#B;#h;constructor(e,n,i,t){this.#B=e,this.#h=n,this.#T=this.#E(),this.#D=i,this.#a=t,this.#j=e=>this.#h.activationService.get(e),this.#V=[],this.#h.onReset(()=>{this.#C()})}get(e,n){const i=this.#L(!1,e,n),t=this.#$(i);if(esm_e(t))throw new esm_B(esm_O.invalidOperation,`Unexpected asynchronous service when resolving service "${esm_t(e)}"`);return t}getAll(e,n){const i=this.#L(!0,e,n),t=this.#$(i);if(esm_e(t))throw new esm_B(esm_O.invalidOperation,`Unexpected asynchronous service when resolving service "${esm_t(e)}"`);return t}async getAllAsync(e,n){const i=this.#L(!0,e,n);return this.#$(i)}async getAsync(e,n){const i=this.#L(!1,e,n);return this.#$(i)}onPlan(e){this.#V.push(e)}#C(){this.#T=this.#E()}#q(e,n,i){const t=i?.name,r=i?.optional??!1,a=i?.tag;return e?{chained:i?.chained??!1,isMultiple:e,name:t,optional:r,serviceIdentifier:n,tag:a}:{isMultiple:e,name:t,optional:r,serviceIdentifier:n,tag:a}}#G(e,n,i){const t={autobindOptions:i?.autobind??this.#D?{scope:this.#a}:void 0,operations:this.#B.planParamsOperations,rootConstraints:this.#H(e,n,i),servicesBranch:[]};return this.#_(t,i),t}#H(e,n,i){return n?{chained:i?.chained??!1,isMultiple:n,serviceIdentifier:e}:{isMultiple:n,serviceIdentifier:e}}#L(e,n,i){const t=this.#q(e,n,i),r=this.#h.planResultCacheService.get(t);if(void 0!==r)return r;const a=Ge(this.#G(n,e,i));for(const e of this.#V)e(t,a);return a}#E(){return{get:this.get.bind(this),getAll:this.getAll.bind(this),getAllAsync:this.getAllAsync.bind(this),getAsync:this.getAsync.bind(this)}}#$(e){return Nt({context:this.#T,getActivations:this.#j,planResult:e,requestScopeCache:new Map})}#_(e,n){void 0!==n&&(void 0!==n.name&&(e.rootConstraints.name=n.name),!0===n.optional&&(e.rootConstraints.isOptional=!0),void 0!==n.tag&&(e.rootConstraints.tag={key:n.tag.key,value:n.tag.value}),e.rootConstraints.isMultiple&&(e.rootConstraints.chained=n?.chained??!1))}}class esm_Z{#h;#z;constructor(e){this.#h=e,this.#z=[]}restore(){const e=this.#z.pop();if(void 0===e)throw new esm_B(esm_O.invalidOperation,"No snapshot available to restore");this.#h.reset(e.activationService,e.bindingService,e.deactivationService)}snapshot(){this.#z.push({activationService:this.#h.activationService.clone(),bindingService:this.#h.bindingService.clone(),deactivationService:this.#h.deactivationService.clone()})}}const esm_ee=esm_d.Transient;class esm_ne{#w;#K;#X;#h;#k;#J;constructor(e){const n=e?.autobind??!1,i=e?.defaultScope??esm_ee;this.#h=this.#Q(e,n,i);const t=new esm_X(this.#h),r=new esm_J(t,this.#h),a=new esm_K(this.#h);this.#w=new esm_(a.deactivationParams,i,r,this.#h),this.#K=new esm_z(this.#w,a.deactivationParams,i,r,this.#h),this.#k=new esm_Y(t,this.#h,n,i),this.#X=new esm_Q(this,this.#h,this.#k),this.#J=new esm_Z(this.#h)}bind(e){return this.#w.bind(e)}get(e,n){return this.#k.get(e,n)}getAll(e,n){return this.#k.getAll(e,n)}async getAllAsync(e,n){return this.#k.getAllAsync(e,n)}async getAsync(e,n){return this.#k.getAsync(e,n)}isBound(e,n){return this.#w.isBound(e,n)}isCurrentBound(e,n){return this.#w.isCurrentBound(e,n)}async load(...e){return this.#K.load(...e)}loadSync(...e){this.#K.loadSync(...e)}onActivation(e,n){this.#h.activationService.add(n,{serviceId:e})}onDeactivation(e,n){this.#h.deactivationService.add(n,{serviceId:e})}register(e){this.#X.register(this,e)}restore(){this.#J.restore()}async rebind(e){return this.#w.rebind(e)}rebindSync(e){return this.#w.rebindSync(e)}snapshot(){this.#J.snapshot()}async unbind(e){await this.#w.unbind(e)}async unbindAll(){await this.#w.unbindAll()}unbindAllSync(){this.#w.unbindAllSync()}unbindSync(e){this.#w.unbindSync(e)}async unload(...e){return this.#K.unload(...e)}unloadSync(...e){this.#K.unloadSync(...e)}#W(e,n){if(e)return{scope:n}}#Q(e,n,i){const t=this.#W(n,i);if(void 0===e?.parent)return new esm_W(v.build(()=>{}),T.build(()=>{},t),j.build(()=>{}),new et);const r=new et,a=e.parent;return a.#h.planResultCacheService.subscribe(r),new esm_W(v.build(()=>a.#h.activationService),T.build(()=>a.#h.bindingService,t),j.build(()=>a.#h.deactivationService),r)}}
-//# sourceMappingURL=index.js.map
-
-;// CONCATENATED MODULE: ./node_modules/inversify/lib/esm/index.js
 
 //# sourceMappingURL=index.js.map
-
 ;// CONCATENATED MODULE: ./src/services/core.service.ts
 
 const CORE_SERVICE_IDENTIFIER = Symbol("CoreService");
@@ -33373,8 +38579,8 @@ let InputService = class InputService {
     }
 };
 InputService = __decorate([
-    W(),
-    __param(0, U(CORE_SERVICE_IDENTIFIER)),
+    injectable(),
+    __param(0, inject(CORE_SERVICE_IDENTIFIER)),
     __metadata("design:paramtypes", [Object])
 ], InputService);
 
@@ -33410,8 +38616,8 @@ let LoggerService = class LoggerService {
     }
 };
 LoggerService = logger_service_decorate([
-    W(),
-    logger_service_param(0, U(CORE_SERVICE_IDENTIFIER)),
+    injectable(),
+    logger_service_param(0, inject(CORE_SERVICE_IDENTIFIER)),
     logger_service_metadata("design:paramtypes", [Object])
 ], LoggerService);
 
@@ -37665,9 +42871,6 @@ var github_service_decorate = (undefined && undefined.__decorate) || function (d
 var github_service_metadata = (undefined && undefined.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var github_service_param = (undefined && undefined.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 
 
 
@@ -37717,8 +42920,7 @@ let GitHubService = class GitHubService {
     }
 };
 GitHubService = github_service_decorate([
-    W(),
-    github_service_param(0, U(InputService)),
+    injectable(),
     github_service_metadata("design:paramtypes", [InputService])
 ], GitHubService);
 
@@ -37732,9 +42934,6 @@ var meetup_issue_service_decorate = (undefined && undefined.__decorate) || funct
 };
 var meetup_issue_service_metadata = (undefined && undefined.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var meetup_issue_service_param = (undefined && undefined.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
 };
 
 
@@ -37804,8 +43003,7 @@ let MeetupIssueService = class MeetupIssueService {
     }
 };
 MeetupIssueService = meetup_issue_service_decorate([
-    W(),
-    meetup_issue_service_param(0, U(GitHubService)),
+    injectable(),
     meetup_issue_service_metadata("design:paramtypes", [GitHubService])
 ], MeetupIssueService);
 
@@ -37981,9 +43179,8 @@ let LinterService = class LinterService {
     }
 };
 LinterService = linter_service_decorate([
-    W(),
-    linter_service_param(0, te(LINTER_ADAPTER_IDENTIFIER)),
-    linter_service_param(1, U(MeetupIssueService)),
+    injectable(),
+    linter_service_param(0, multiInject(LINTER_ADAPTER_IDENTIFIER)),
     linter_service_metadata("design:paramtypes", [Array, MeetupIssueService])
 ], LinterService);
 
@@ -42216,7 +47413,7 @@ const be_error = () => {
         }
     };
 };
-/* harmony default export */ function locales_be() {
+/* harmony default export */ function be() {
     return {
         localeError: be_error(),
     };
@@ -42787,7 +47984,7 @@ const de_error = () => {
         }
     };
 };
-/* harmony default export */ function locales_de() {
+/* harmony default export */ function de() {
     return {
         localeError: de_error(),
     };
@@ -43808,7 +49005,7 @@ const he_error = () => {
         }
     };
 };
-/* harmony default export */ function locales_he() {
+/* harmony default export */ function he() {
     return {
         localeError: he_error(),
     };
@@ -44396,7 +49593,7 @@ const it_error = () => {
         }
     };
 };
-/* harmony default export */ function locales_it() {
+/* harmony default export */ function it() {
     return {
         localeError: it_error(),
     };
@@ -45056,7 +50253,7 @@ const lt_error = () => {
         }
     };
 };
-/* harmony default export */ function locales_lt() {
+/* harmony default export */ function lt() {
     return {
         localeError: lt_error(),
     };
@@ -45946,7 +51143,7 @@ const pt_error = () => {
         }
     };
 };
-/* harmony default export */ function locales_pt() {
+/* harmony default export */ function pt() {
     return {
         localeError: pt_error(),
     };
@@ -49948,10 +55145,10 @@ const ZodType = /*@__PURE__*/ $constructor("ZodType", (inst, def) => {
     inst.superRefine = (refinement) => inst.check(superRefine(refinement));
     inst.overwrite = (fn) => inst.check(_overwrite(fn));
     // wrappers
-    inst.optional = () => optional(inst);
+    inst.optional = () => schemas_optional(inst);
     inst.exactOptional = () => exactOptional(inst);
     inst.nullable = () => nullable(inst);
-    inst.nullish = () => optional(nullable(inst));
+    inst.nullish = () => schemas_optional(nullable(inst));
     inst.nonoptional = (params) => nonoptional(inst, params);
     inst.array = () => array(inst);
     inst.or = (arg) => union([inst, arg]);
@@ -50778,7 +55975,7 @@ const ZodOptional = /*@__PURE__*/ $constructor("ZodOptional", (inst, def) => {
     inst._zod.processJSONSchema = (ctx, json, params) => optionalProcessor(inst, ctx, json, params);
     inst.unwrap = () => inst._zod.def.innerType;
 });
-function optional(innerType) {
+function schemas_optional(innerType) {
     return new ZodOptional({
         type: "optional",
         innerType: innerType,
@@ -50810,7 +56007,7 @@ function nullable(innerType) {
 }
 // nullish
 function schemas_nullish(innerType) {
-    return optional(nullable(innerType));
+    return schemas_optional(nullable(innerType));
 }
 const ZodDefault = /*@__PURE__*/ $constructor("ZodDefault", (inst, def) => {
     $ZodDefault.init(inst, def);
@@ -51088,7 +56285,7 @@ var ZodFirstPartyTypeKind;
 
 
 // Local z object to avoid circular dependency with ../index.js
-const from_json_schema_z = {
+const z = {
     ...classic_schemas_namespaceObject,
     ...classic_checks_namespaceObject,
     iso: iso_namespaceObject,
@@ -51203,7 +56400,7 @@ function convertBaseSchema(schema, ctx) {
     if (schema.not !== undefined) {
         // Special case: { not: {} } represents never
         if (typeof schema.not === "object" && Object.keys(schema.not).length === 0) {
-            return from_json_schema_z.never();
+            return z.never();
         }
         throw new Error("not is not supported in Zod (except { not: {} } for never)");
     }
@@ -51227,7 +56424,7 @@ function convertBaseSchema(schema, ctx) {
         }
         if (ctx.processing.has(refPath)) {
             // Circular reference - use lazy
-            return from_json_schema_z.lazy(() => {
+            return z.lazy(() => {
                 if (!ctx.refs.has(refPath)) {
                     throw new Error(`Circular reference not resolved: ${refPath}`);
                 }
@@ -51249,28 +56446,28 @@ function convertBaseSchema(schema, ctx) {
             schema.nullable === true &&
             enumValues.length === 1 &&
             enumValues[0] === null) {
-            return from_json_schema_z.null();
+            return z.null();
         }
         if (enumValues.length === 0) {
-            return from_json_schema_z.never();
+            return z.never();
         }
         if (enumValues.length === 1) {
-            return from_json_schema_z.literal(enumValues[0]);
+            return z.literal(enumValues[0]);
         }
         // Check if all values are strings
         if (enumValues.every((v) => typeof v === "string")) {
-            return from_json_schema_z.enum(enumValues);
+            return z.enum(enumValues);
         }
         // Mixed types - use union of literals
-        const literalSchemas = enumValues.map((v) => from_json_schema_z.literal(v));
+        const literalSchemas = enumValues.map((v) => z.literal(v));
         if (literalSchemas.length < 2) {
             return literalSchemas[0];
         }
-        return from_json_schema_z.union([literalSchemas[0], literalSchemas[1], ...literalSchemas.slice(2)]);
+        return z.union([literalSchemas[0], literalSchemas[1], ...literalSchemas.slice(2)]);
     }
     // Handle const
     if (schema.const !== undefined) {
-        return from_json_schema_z.literal(schema.const);
+        return z.literal(schema.const);
     }
     // Handle type
     const type = schema.type;
@@ -51281,93 +56478,93 @@ function convertBaseSchema(schema, ctx) {
             return convertBaseSchema(typeSchema, ctx);
         });
         if (typeSchemas.length === 0) {
-            return from_json_schema_z.never();
+            return z.never();
         }
         if (typeSchemas.length === 1) {
             return typeSchemas[0];
         }
-        return from_json_schema_z.union(typeSchemas);
+        return z.union(typeSchemas);
     }
     if (!type) {
         // No type specified - empty schema (any)
-        return from_json_schema_z.any();
+        return z.any();
     }
     let zodSchema;
     switch (type) {
         case "string": {
-            let stringSchema = from_json_schema_z.string();
+            let stringSchema = z.string();
             // Apply format using .check() with Zod format functions
             if (schema.format) {
                 const format = schema.format;
                 // Map common formats to Zod check functions
                 if (format === "email") {
-                    stringSchema = stringSchema.check(from_json_schema_z.email());
+                    stringSchema = stringSchema.check(z.email());
                 }
                 else if (format === "uri" || format === "uri-reference") {
-                    stringSchema = stringSchema.check(from_json_schema_z.url());
+                    stringSchema = stringSchema.check(z.url());
                 }
                 else if (format === "uuid" || format === "guid") {
-                    stringSchema = stringSchema.check(from_json_schema_z.uuid());
+                    stringSchema = stringSchema.check(z.uuid());
                 }
                 else if (format === "date-time") {
-                    stringSchema = stringSchema.check(from_json_schema_z.iso.datetime());
+                    stringSchema = stringSchema.check(z.iso.datetime());
                 }
                 else if (format === "date") {
-                    stringSchema = stringSchema.check(from_json_schema_z.iso.date());
+                    stringSchema = stringSchema.check(z.iso.date());
                 }
                 else if (format === "time") {
-                    stringSchema = stringSchema.check(from_json_schema_z.iso.time());
+                    stringSchema = stringSchema.check(z.iso.time());
                 }
                 else if (format === "duration") {
-                    stringSchema = stringSchema.check(from_json_schema_z.iso.duration());
+                    stringSchema = stringSchema.check(z.iso.duration());
                 }
                 else if (format === "ipv4") {
-                    stringSchema = stringSchema.check(from_json_schema_z.ipv4());
+                    stringSchema = stringSchema.check(z.ipv4());
                 }
                 else if (format === "ipv6") {
-                    stringSchema = stringSchema.check(from_json_schema_z.ipv6());
+                    stringSchema = stringSchema.check(z.ipv6());
                 }
                 else if (format === "mac") {
-                    stringSchema = stringSchema.check(from_json_schema_z.mac());
+                    stringSchema = stringSchema.check(z.mac());
                 }
                 else if (format === "cidr") {
-                    stringSchema = stringSchema.check(from_json_schema_z.cidrv4());
+                    stringSchema = stringSchema.check(z.cidrv4());
                 }
                 else if (format === "cidr-v6") {
-                    stringSchema = stringSchema.check(from_json_schema_z.cidrv6());
+                    stringSchema = stringSchema.check(z.cidrv6());
                 }
                 else if (format === "base64") {
-                    stringSchema = stringSchema.check(from_json_schema_z.base64());
+                    stringSchema = stringSchema.check(z.base64());
                 }
                 else if (format === "base64url") {
-                    stringSchema = stringSchema.check(from_json_schema_z.base64url());
+                    stringSchema = stringSchema.check(z.base64url());
                 }
                 else if (format === "e164") {
-                    stringSchema = stringSchema.check(from_json_schema_z.e164());
+                    stringSchema = stringSchema.check(z.e164());
                 }
                 else if (format === "jwt") {
-                    stringSchema = stringSchema.check(from_json_schema_z.jwt());
+                    stringSchema = stringSchema.check(z.jwt());
                 }
                 else if (format === "emoji") {
-                    stringSchema = stringSchema.check(from_json_schema_z.emoji());
+                    stringSchema = stringSchema.check(z.emoji());
                 }
                 else if (format === "nanoid") {
-                    stringSchema = stringSchema.check(from_json_schema_z.nanoid());
+                    stringSchema = stringSchema.check(z.nanoid());
                 }
                 else if (format === "cuid") {
-                    stringSchema = stringSchema.check(from_json_schema_z.cuid());
+                    stringSchema = stringSchema.check(z.cuid());
                 }
                 else if (format === "cuid2") {
-                    stringSchema = stringSchema.check(from_json_schema_z.cuid2());
+                    stringSchema = stringSchema.check(z.cuid2());
                 }
                 else if (format === "ulid") {
-                    stringSchema = stringSchema.check(from_json_schema_z.ulid());
+                    stringSchema = stringSchema.check(z.ulid());
                 }
                 else if (format === "xid") {
-                    stringSchema = stringSchema.check(from_json_schema_z.xid());
+                    stringSchema = stringSchema.check(z.xid());
                 }
                 else if (format === "ksuid") {
-                    stringSchema = stringSchema.check(from_json_schema_z.ksuid());
+                    stringSchema = stringSchema.check(z.ksuid());
                 }
                 // Note: json-string format is not currently supported by Zod
                 // Custom formats are ignored - keep as plain string
@@ -51388,7 +56585,7 @@ function convertBaseSchema(schema, ctx) {
         }
         case "number":
         case "integer": {
-            let numberSchema = type === "integer" ? from_json_schema_z.number().int() : from_json_schema_z.number();
+            let numberSchema = type === "integer" ? z.number().int() : z.number();
             // Apply constraints
             if (typeof schema.minimum === "number") {
                 numberSchema = numberSchema.min(schema.minimum);
@@ -51415,11 +56612,11 @@ function convertBaseSchema(schema, ctx) {
             break;
         }
         case "boolean": {
-            zodSchema = from_json_schema_z.boolean();
+            zodSchema = z.boolean();
             break;
         }
         case "null": {
-            zodSchema = from_json_schema_z.null();
+            zodSchema = z.null();
             break;
         }
         case "object": {
@@ -51437,16 +56634,16 @@ function convertBaseSchema(schema, ctx) {
                 const keySchema = convertSchema(schema.propertyNames, ctx);
                 const valueSchema = schema.additionalProperties && typeof schema.additionalProperties === "object"
                     ? convertSchema(schema.additionalProperties, ctx)
-                    : from_json_schema_z.any();
+                    : z.any();
                 // Case A: No properties (pure record)
                 if (Object.keys(shape).length === 0) {
-                    zodSchema = from_json_schema_z.record(keySchema, valueSchema);
+                    zodSchema = z.record(keySchema, valueSchema);
                     break;
                 }
                 // Case B: With properties (intersection of object and looseRecord)
-                const objectSchema = from_json_schema_z.object(shape).passthrough();
-                const recordSchema = from_json_schema_z.looseRecord(keySchema, valueSchema);
-                zodSchema = from_json_schema_z.intersection(objectSchema, recordSchema);
+                const objectSchema = z.object(shape).passthrough();
+                const recordSchema = z.looseRecord(keySchema, valueSchema);
+                zodSchema = z.intersection(objectSchema, recordSchema);
                 break;
             }
             // Handle patternProperties
@@ -51458,27 +56655,27 @@ function convertBaseSchema(schema, ctx) {
                 const looseRecords = [];
                 for (const pattern of patternKeys) {
                     const patternValue = convertSchema(patternProps[pattern], ctx);
-                    const keySchema = from_json_schema_z.string().regex(new RegExp(pattern));
-                    looseRecords.push(from_json_schema_z.looseRecord(keySchema, patternValue));
+                    const keySchema = z.string().regex(new RegExp(pattern));
+                    looseRecords.push(z.looseRecord(keySchema, patternValue));
                 }
                 // Build intersection: object schema + all pattern property records
                 const schemasToIntersect = [];
                 if (Object.keys(shape).length > 0) {
                     // Use passthrough so patternProperties can validate additional keys
-                    schemasToIntersect.push(from_json_schema_z.object(shape).passthrough());
+                    schemasToIntersect.push(z.object(shape).passthrough());
                 }
                 schemasToIntersect.push(...looseRecords);
                 if (schemasToIntersect.length === 0) {
-                    zodSchema = from_json_schema_z.object({}).passthrough();
+                    zodSchema = z.object({}).passthrough();
                 }
                 else if (schemasToIntersect.length === 1) {
                     zodSchema = schemasToIntersect[0];
                 }
                 else {
                     // Chain intersections: (A & B) & C & D ...
-                    let result = from_json_schema_z.intersection(schemasToIntersect[0], schemasToIntersect[1]);
+                    let result = z.intersection(schemasToIntersect[0], schemasToIntersect[1]);
                     for (let i = 2; i < schemasToIntersect.length; i++) {
-                        result = from_json_schema_z.intersection(result, schemasToIntersect[i]);
+                        result = z.intersection(result, schemasToIntersect[i]);
                     }
                     zodSchema = result;
                 }
@@ -51487,7 +56684,7 @@ function convertBaseSchema(schema, ctx) {
             // Handle additionalProperties
             // In JSON Schema, additionalProperties defaults to true (allow any extra properties)
             // In Zod, objects strip unknown keys by default, so we need to handle this explicitly
-            const objectSchema = from_json_schema_z.object(shape);
+            const objectSchema = z.object(shape);
             if (schema.additionalProperties === false) {
                 // Strict mode - no extra properties allowed
                 zodSchema = objectSchema.strict();
@@ -51515,17 +56712,17 @@ function convertBaseSchema(schema, ctx) {
                     ? convertSchema(items, ctx)
                     : undefined;
                 if (rest) {
-                    zodSchema = from_json_schema_z.tuple(tupleItems).rest(rest);
+                    zodSchema = z.tuple(tupleItems).rest(rest);
                 }
                 else {
-                    zodSchema = from_json_schema_z.tuple(tupleItems);
+                    zodSchema = z.tuple(tupleItems);
                 }
                 // Apply minItems/maxItems constraints to tuples
                 if (typeof schema.minItems === "number") {
-                    zodSchema = zodSchema.check(from_json_schema_z.minLength(schema.minItems));
+                    zodSchema = zodSchema.check(z.minLength(schema.minItems));
                 }
                 if (typeof schema.maxItems === "number") {
-                    zodSchema = zodSchema.check(from_json_schema_z.maxLength(schema.maxItems));
+                    zodSchema = zodSchema.check(z.maxLength(schema.maxItems));
                 }
             }
             else if (Array.isArray(items)) {
@@ -51535,23 +56732,23 @@ function convertBaseSchema(schema, ctx) {
                     ? convertSchema(schema.additionalItems, ctx)
                     : undefined; // additionalItems: false means no rest, handled by default tuple behavior
                 if (rest) {
-                    zodSchema = from_json_schema_z.tuple(tupleItems).rest(rest);
+                    zodSchema = z.tuple(tupleItems).rest(rest);
                 }
                 else {
-                    zodSchema = from_json_schema_z.tuple(tupleItems);
+                    zodSchema = z.tuple(tupleItems);
                 }
                 // Apply minItems/maxItems constraints to tuples
                 if (typeof schema.minItems === "number") {
-                    zodSchema = zodSchema.check(from_json_schema_z.minLength(schema.minItems));
+                    zodSchema = zodSchema.check(z.minLength(schema.minItems));
                 }
                 if (typeof schema.maxItems === "number") {
-                    zodSchema = zodSchema.check(from_json_schema_z.maxLength(schema.maxItems));
+                    zodSchema = zodSchema.check(z.maxLength(schema.maxItems));
                 }
             }
             else if (items !== undefined) {
                 // Regular array
                 const element = convertSchema(items, ctx);
-                let arraySchema = from_json_schema_z.array(element);
+                let arraySchema = z.array(element);
                 // Apply constraints
                 if (typeof schema.minItems === "number") {
                     arraySchema = arraySchema.min(schema.minItems);
@@ -51563,7 +56760,7 @@ function convertBaseSchema(schema, ctx) {
             }
             else {
                 // No items specified - array of any
-                zodSchema = from_json_schema_z.array(from_json_schema_z.any());
+                zodSchema = z.array(z.any());
             }
             break;
         }
@@ -51581,7 +56778,7 @@ function convertBaseSchema(schema, ctx) {
 }
 function convertSchema(schema, ctx) {
     if (typeof schema === "boolean") {
-        return schema ? from_json_schema_z.any() : from_json_schema_z.never();
+        return schema ? z.any() : z.never();
     }
     // Convert base schema first (ignoring composition keywords)
     let baseSchema = convertBaseSchema(schema, ctx);
@@ -51590,36 +56787,36 @@ function convertSchema(schema, ctx) {
     // Handle anyOf - wrap base schema with union
     if (schema.anyOf && Array.isArray(schema.anyOf)) {
         const options = schema.anyOf.map((s) => convertSchema(s, ctx));
-        const anyOfUnion = from_json_schema_z.union(options);
-        baseSchema = hasExplicitType ? from_json_schema_z.intersection(baseSchema, anyOfUnion) : anyOfUnion;
+        const anyOfUnion = z.union(options);
+        baseSchema = hasExplicitType ? z.intersection(baseSchema, anyOfUnion) : anyOfUnion;
     }
     // Handle oneOf - exclusive union (exactly one must match)
     if (schema.oneOf && Array.isArray(schema.oneOf)) {
         const options = schema.oneOf.map((s) => convertSchema(s, ctx));
-        const oneOfUnion = from_json_schema_z.xor(options);
-        baseSchema = hasExplicitType ? from_json_schema_z.intersection(baseSchema, oneOfUnion) : oneOfUnion;
+        const oneOfUnion = z.xor(options);
+        baseSchema = hasExplicitType ? z.intersection(baseSchema, oneOfUnion) : oneOfUnion;
     }
     // Handle allOf - wrap base schema with intersection
     if (schema.allOf && Array.isArray(schema.allOf)) {
         if (schema.allOf.length === 0) {
-            baseSchema = hasExplicitType ? baseSchema : from_json_schema_z.any();
+            baseSchema = hasExplicitType ? baseSchema : z.any();
         }
         else {
             let result = hasExplicitType ? baseSchema : convertSchema(schema.allOf[0], ctx);
             const startIdx = hasExplicitType ? 0 : 1;
             for (let i = startIdx; i < schema.allOf.length; i++) {
-                result = from_json_schema_z.intersection(result, convertSchema(schema.allOf[i], ctx));
+                result = z.intersection(result, convertSchema(schema.allOf[i], ctx));
             }
             baseSchema = result;
         }
     }
     // Handle nullable (OpenAPI 3.0)
     if (schema.nullable === true && ctx.version === "openapi-3.0") {
-        baseSchema = from_json_schema_z.nullable(baseSchema);
+        baseSchema = z.nullable(baseSchema);
     }
     // Handle readOnly
     if (schema.readOnly === true) {
-        baseSchema = from_json_schema_z.readonly(baseSchema);
+        baseSchema = z.readonly(baseSchema);
     }
     // Collect metadata: core schema keywords and unrecognized keys
     const extraMeta = {};
@@ -51653,7 +56850,7 @@ function convertSchema(schema, ctx) {
 function fromJSONSchema(schema, params) {
     // Handle boolean schemas
     if (typeof schema === "boolean") {
-        return schema ? from_json_schema_z.any() : from_json_schema_z.never();
+        return schema ? z.any() : z.never();
     }
     const version = detectVersion(schema, params?.defaultTarget);
     const defs = (schema.$defs || schema.definitions || {});
@@ -52513,8 +57710,8 @@ let AbstractZodLinterAdapter = class AbstractZodLinterAdapter {
     }
 };
 AbstractZodLinterAdapter = abstract_zod_linter_adapter_decorate([
-    W(),
-    abstract_zod_linter_adapter_param(0, U(MeetupIssueService)),
+    injectable(),
+    abstract_zod_linter_adapter_param(0, inject(MeetupIssueService)),
     abstract_zod_linter_adapter_metadata("design:paramtypes", [MeetupIssueService])
 ], AbstractZodLinterAdapter);
 
@@ -52538,8 +57735,8 @@ let EventDateLinterAdapter = class EventDateLinterAdapter extends AbstractZodLin
     }
 };
 EventDateLinterAdapter = event_date_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     })
 ], EventDateLinterAdapter);
@@ -52566,8 +57763,8 @@ let EventTitleLinterAdapter = class EventTitleLinterAdapter extends AbstractZodL
     }
 };
 EventTitleLinterAdapter = event_title_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     })
 ], EventTitleLinterAdapter);
@@ -52615,7 +57812,7 @@ let TitleLinterAdapter = class TitleLinterAdapter {
     }
 };
 TitleLinterAdapter = TitleLinterAdapter_1 = title_linter_adapter_decorate([
-    W()
+    injectable()
 ], TitleLinterAdapter);
 
 
@@ -52640,8 +57837,8 @@ let EventDescriptionLinterAdapter = class EventDescriptionLinterAdapter extends 
     }
 };
 EventDescriptionLinterAdapter = event_description_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     })
 ], EventDescriptionLinterAdapter);
@@ -52722,12 +57919,12 @@ let AbstractEntityLinkLinterAdapter = class AbstractEntityLinkLinterAdapter exte
     }
 };
 AbstractEntityLinkLinterAdapter = AbstractEntityLinkLinterAdapter_1 = abstract_entity_link_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     }),
-    abstract_entity_link_linter_adapter_param(0, U(MeetupIssueService)),
-    abstract_entity_link_linter_adapter_param(1, pe()),
+    abstract_entity_link_linter_adapter_param(0, inject(MeetupIssueService)),
+    abstract_entity_link_linter_adapter_param(1, unmanaged()),
     abstract_entity_link_linter_adapter_metadata("design:paramtypes", [MeetupIssueService, Array])
 ], AbstractEntityLinkLinterAdapter);
 
@@ -52793,12 +57990,12 @@ let HosterLinterAdapter = class HosterLinterAdapter extends AbstractEntityLinkLi
     }
 };
 HosterLinterAdapter = hoster_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     }),
-    hoster_linter_adapter_param(0, U(MeetupIssueService)),
-    hoster_linter_adapter_param(1, U(InputService)),
+    hoster_linter_adapter_param(0, inject(MeetupIssueService)),
+    hoster_linter_adapter_param(1, inject(InputService)),
     hoster_linter_adapter_metadata("design:paramtypes", [MeetupIssueService,
         InputService])
 ], HosterLinterAdapter);
@@ -52919,12 +58116,12 @@ let AgendaLinterAdapter = class AgendaLinterAdapter extends AbstractEntityLinkLi
     }
 };
 AgendaLinterAdapter = AgendaLinterAdapter_1 = agenda_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     }),
-    agenda_linter_adapter_param(0, U(MeetupIssueService)),
-    agenda_linter_adapter_param(1, U(InputService)),
+    agenda_linter_adapter_param(0, inject(MeetupIssueService)),
+    agenda_linter_adapter_param(1, inject(InputService)),
     agenda_linter_adapter_metadata("design:paramtypes", [MeetupIssueService,
         InputService])
 ], AgendaLinterAdapter);
@@ -52953,8 +58150,8 @@ let AbstractLinkLinterAdapter = class AbstractLinkLinterAdapter extends Abstract
     }
 };
 AbstractLinkLinterAdapter = abstract_link_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     })
 ], AbstractLinkLinterAdapter);
@@ -52984,8 +58181,8 @@ let MeetupLinkLinterAdapter = class MeetupLinkLinterAdapter extends AbstractLink
     }
 };
 MeetupLinkLinterAdapter = MeetupLinkLinterAdapter_1 = meetup_link_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     })
 ], MeetupLinkLinterAdapter);
@@ -53015,8 +58212,8 @@ let DriveLinkLinterAdapter = class DriveLinkLinterAdapter extends AbstractLinkLi
     }
 };
 DriveLinkLinterAdapter = DriveLinkLinterAdapter_1 = drive_link_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     })
 ], DriveLinkLinterAdapter);
@@ -53046,8 +58243,8 @@ let CNCFLinkLinterAdapter = class CNCFLinkLinterAdapter extends AbstractLinkLint
     }
 };
 CNCFLinkLinterAdapter = CNCFLinkLinterAdapter_1 = cncf_link_linter_adapter_decorate([
-    W(),
-    Z({
+    injectable(),
+    injectFromBase({
         extendConstructorArguments: true,
     })
 ], CNCFLinkLinterAdapter);
@@ -53115,7 +58312,7 @@ let LabelsLinterAdapter = class LabelsLinterAdapter {
     }
 };
 LabelsLinterAdapter = LabelsLinterAdapter_1 = labels_linter_adapter_decorate([
-    W()
+    injectable()
 ], LabelsLinterAdapter);
 
 
@@ -53138,24 +58335,35 @@ LabelsLinterAdapter = LabelsLinterAdapter_1 = labels_linter_adapter_decorate([
 
 
 
-const container = new esm_ne();
-container.bind(CORE_SERVICE_IDENTIFIER).toConstantValue(coreService);
-container.bind(GitHubService).toSelf();
-container.bind(InputService).toSelf();
-container.bind(LinterService).toSelf();
-container.bind(LoggerService).toSelf();
-container.bind(MeetupIssueService).toSelf();
-// Linters
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(EventDateLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(EventTitleLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(TitleLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(HosterLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(EventDescriptionLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(AgendaLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(MeetupLinkLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(CNCFLinkLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(DriveLinkLinterAdapter);
-container.bind(LINTER_ADAPTER_IDENTIFIER).to(LabelsLinterAdapter);
+const linterAdapters = [
+    EventDateLinterAdapter,
+    EventTitleLinterAdapter,
+    TitleLinterAdapter,
+    HosterLinterAdapter,
+    EventDescriptionLinterAdapter,
+    AgendaLinterAdapter,
+    MeetupLinkLinterAdapter,
+    CNCFLinkLinterAdapter,
+    DriveLinkLinterAdapter,
+    LabelsLinterAdapter,
+];
+const applicationModule = new ContainerModule(({ bind }) => {
+    bind(CORE_SERVICE_IDENTIFIER).toConstantValue(coreService);
+    bind(GitHubService).toSelf();
+    bind(InputService).toSelf();
+    bind(LinterService).toSelf();
+    bind(LoggerService).toSelf();
+    bind(MeetupIssueService).toSelf();
+    for (const linterAdapter of linterAdapters) {
+        bind(LINTER_ADAPTER_IDENTIFIER).to(linterAdapter);
+    }
+});
+function createContainer() {
+    const container = new Container();
+    container.load(applicationModule);
+    return container;
+}
+const container = createContainer();
 
 
 ;// CONCATENATED MODULE: ./src/index-runner.ts
