@@ -35,7 +35,7 @@ describe("run", () => {
   const hosters = getHostersFixture();
   const speakers = getSpeakersFixture();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
 
     setFailedMock = jest.spyOn(core, "setFailed").mockImplementation();
@@ -45,12 +45,9 @@ describe("run", () => {
 
     container.snapshot();
 
-    await container.unbind(InputService);
-    container.bind(InputService).toConstantValue(inputServiceMock);
-    await container.unbind(CORE_SERVICE_IDENTIFIER);
-    container.bind<CoreService>(CORE_SERVICE_IDENTIFIER).toConstantValue(coreServiceMock);
-    await container.unbind(GitHubService);
-    container.bind<GitHubService>(GitHubService).toConstantValue(githubServiceMock);
+    container.rebind(InputService).toConstantValue(inputServiceMock);
+    container.rebind<CoreService>(CORE_SERVICE_IDENTIFIER).toConstantValue(coreServiceMock);
+    container.rebind<GitHubService>(GitHubService).toConstantValue(githubServiceMock);
 
     inputServiceMock.getIssueNumber.mockReturnValue(1);
     inputServiceMock.getShouldFix.mockReturnValue(true);

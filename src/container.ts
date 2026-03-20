@@ -1,4 +1,4 @@
-import { Container } from "inversify";
+import { Container, ContainerModule } from "inversify";
 import { LoggerService } from "./services/logger.service.js";
 import { CORE_SERVICE_IDENTIFIER, coreService, CoreService } from "./services/core.service.js";
 import { InputService } from "./services/input.service.js";
@@ -17,26 +17,40 @@ import { DriveLinkLinterAdapter } from "./linter/adapter/drive-link-linter.adapt
 import { CNCFLinkLinterAdapter } from "./linter/adapter/cncf-link-linter.adapter.js";
 import { LabelsLinterAdapter } from "./linter/adapter/labels-linter.adapter.js";
 
-const container = new Container();
+const linterAdapters = [
+  EventDateLinterAdapter,
+  EventTitleLinterAdapter,
+  TitleLinterAdapter,
+  HosterLinterAdapter,
+  EventDescriptionLinterAdapter,
+  AgendaLinterAdapter,
+  MeetupLinkLinterAdapter,
+  CNCFLinkLinterAdapter,
+  DriveLinkLinterAdapter,
+  LabelsLinterAdapter,
+] as const;
 
-container.bind<CoreService>(CORE_SERVICE_IDENTIFIER).toConstantValue(coreService);
+const applicationModule = new ContainerModule(({ bind }) => {
+  bind<CoreService>(CORE_SERVICE_IDENTIFIER).toConstantValue(coreService);
 
-container.bind(GitHubService).toSelf();
-container.bind(InputService).toSelf();
-container.bind(LinterService).toSelf();
-container.bind(LoggerService).toSelf();
-container.bind(MeetupIssueService).toSelf();
+  bind(GitHubService).toSelf();
+  bind(InputService).toSelf();
+  bind(LinterService).toSelf();
+  bind(LoggerService).toSelf();
+  bind(MeetupIssueService).toSelf();
 
-// Linters
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(EventDateLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(EventTitleLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(TitleLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(HosterLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(EventDescriptionLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(AgendaLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(MeetupLinkLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(CNCFLinkLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(DriveLinkLinterAdapter);
-container.bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(LabelsLinterAdapter);
+  for (const linterAdapter of linterAdapters) {
+    bind<LinterAdapter>(LINTER_ADAPTER_IDENTIFIER).to(linterAdapter);
+  }
+});
+
+export function createContainer(): Container {
+  const container = new Container();
+  container.load(applicationModule);
+
+  return container;
+}
+
+const container = createContainer();
 
 export { container };

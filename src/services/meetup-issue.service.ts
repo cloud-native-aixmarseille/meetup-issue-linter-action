@@ -1,4 +1,4 @@
-import { inject, injectable } from "inversify";
+import { injectable } from "inversify";
 import {
   GitHubService,
   UpdatableGithubIssue,
@@ -39,7 +39,7 @@ export const MEETUP_ISSUE_BODY_FIELD_LABELS: Record<MeetupIssueBodyFields, strin
 
 @injectable()
 export class MeetupIssueService {
-  constructor(@inject(GitHubService) private readonly githubService: GitHubService) {}
+  constructor(private readonly githubService: GitHubService) {}
 
   async getMeetupIssue(
     issueNumber: number,
