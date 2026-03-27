@@ -17,6 +17,7 @@ lint-fix: ## Execute linting and fix
 
 ci: ## Execute all tasks to prepare commit
 	npm install
+	npm audit fix || true
 	npm run all
 	$(MAKE) lint-fix
 
