@@ -88,8 +88,8 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^3.0.0",
-    "@actions/github": "^9.1.0",
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
     "inversify": "^8.1.0",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.3.6",
