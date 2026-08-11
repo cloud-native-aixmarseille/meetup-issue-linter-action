@@ -1,10 +1,12 @@
-import { mock, MockProxy } from "jest-mock-extended";
-
-import { LinterService } from "./linter.service.js";
-import { LinterAdapter, LinterDependency } from "./adapter/linter.adapter.js";
+import { type MockProxy, mock } from "vitest-mock-extended";
 import { getMeetupIssueFixture } from "../__fixtures__/meetup-issue.fixture.js";
+import type { MeetupIssueService } from "../services/meetup-issue.service.js";
+import type {
+	LinterAdapter,
+	LinterDependency,
+} from "./adapter/linter.adapter.js";
 import { LintError } from "./lint.error.js";
-import { MeetupIssueService } from "../services/meetup-issue.service.js";
+import { LinterService } from "./linter.service.js";
 
 class TestLinterWithoutDependency {}
 
@@ -13,115 +15,125 @@ class AnotherTestLinterWithoutDependency {}
 class TestLinterWithDependency {}
 
 describe("LinterService", () => {
-  let meetupIssueService: MockProxy<MeetupIssueService>;
-  let firstLinterAdapterWithoutDependencies: MockProxy<LinterAdapter>;
-  let secondLinterAdapterWithoutDependencies: MockProxy<LinterAdapter>;
-  let linterAdapterWithDependency: MockProxy<LinterAdapter>;
+	let meetupIssueService: MockProxy<MeetupIssueService>;
+	let firstLinterAdapterWithoutDependencies: MockProxy<LinterAdapter>;
+	let secondLinterAdapterWithoutDependencies: MockProxy<LinterAdapter>;
+	let linterAdapterWithDependency: MockProxy<LinterAdapter>;
 
-  beforeEach(() => {
-    meetupIssueService = mock<MeetupIssueService>();
+	beforeEach(() => {
+		meetupIssueService = mock<MeetupIssueService>();
 
-    firstLinterAdapterWithoutDependencies = mock<LinterAdapter>();
-    firstLinterAdapterWithoutDependencies.constructor = TestLinterWithoutDependency;
-    firstLinterAdapterWithoutDependencies.getDependencies.mockReturnValue([]);
+		firstLinterAdapterWithoutDependencies = mock<LinterAdapter>();
+		firstLinterAdapterWithoutDependencies.constructor =
+			TestLinterWithoutDependency;
+		firstLinterAdapterWithoutDependencies.getDependencies.mockReturnValue([]);
 
-    secondLinterAdapterWithoutDependencies = mock<LinterAdapter>();
-    secondLinterAdapterWithoutDependencies.constructor = () => AnotherTestLinterWithoutDependency;
-    secondLinterAdapterWithoutDependencies.getDependencies.mockReturnValue([]);
+		secondLinterAdapterWithoutDependencies = mock<LinterAdapter>();
+		secondLinterAdapterWithoutDependencies.constructor = () =>
+			AnotherTestLinterWithoutDependency;
+		secondLinterAdapterWithoutDependencies.getDependencies.mockReturnValue([]);
 
-    // This linter has a dependency with first linter, so it should not be called as depending linters have failed
-    linterAdapterWithDependency = mock<LinterAdapter>();
-    linterAdapterWithDependency.constructor = TestLinterWithDependency;
-    linterAdapterWithDependency.getDependencies.mockReturnValue([
-      TestLinterWithoutDependency as LinterDependency,
-    ]);
-  });
+		// This linter has a dependency with first linter, so it should not be called as depending linters have failed
+		linterAdapterWithDependency = mock<LinterAdapter>();
+		linterAdapterWithDependency.constructor = TestLinterWithDependency;
+		linterAdapterWithDependency.getDependencies.mockReturnValue([
+			TestLinterWithoutDependency as LinterDependency,
+		]);
+	});
 
-  describe("lint", () => {
-    it("should call lint on each linter respecting dependencies", async () => {
-      const meetupIssue = getMeetupIssueFixture();
-      const shouldFix = false;
+	describe("lint", () => {
+		it("should call lint on each linter respecting dependencies", async () => {
+			const meetupIssue = getMeetupIssueFixture();
+			const shouldFix = false;
 
-      // Arrange
-      firstLinterAdapterWithoutDependencies.lint.mockResolvedValue(meetupIssue);
-      linterAdapterWithDependency.lint.mockResolvedValue(meetupIssue);
+			// Arrange
+			firstLinterAdapterWithoutDependencies.lint.mockResolvedValue(meetupIssue);
+			linterAdapterWithDependency.lint.mockResolvedValue(meetupIssue);
 
-      const linterService = new LinterService(
-        [linterAdapterWithDependency, firstLinterAdapterWithoutDependencies],
-        meetupIssueService
-      );
+			const linterService = new LinterService(
+				[linterAdapterWithDependency, firstLinterAdapterWithoutDependencies],
+				meetupIssueService,
+			);
 
-      // Act
-      await linterService.lint(meetupIssue, shouldFix);
+			// Act
+			await linterService.lint(meetupIssue, shouldFix);
 
-      // Assert
-      expect(firstLinterAdapterWithoutDependencies.lint).toHaveBeenCalled();
-      expect(linterAdapterWithDependency.lint).toHaveBeenCalled();
+			// Assert
+			expect(firstLinterAdapterWithoutDependencies.lint).toHaveBeenCalled();
+			expect(linterAdapterWithDependency.lint).toHaveBeenCalled();
 
-      // Assert that the linters were called in order of priority
-      const firstLinterOrder =
-        firstLinterAdapterWithoutDependencies.lint.mock.invocationCallOrder[0];
-      const linterAdapterWithDependencyOrder =
-        linterAdapterWithDependency.lint.mock.invocationCallOrder[0];
+			// Assert that the linters were called in order of priority
+			const firstLinterOrder =
+				firstLinterAdapterWithoutDependencies.lint.mock.invocationCallOrder[0];
+			const linterAdapterWithDependencyOrder =
+				linterAdapterWithDependency.lint.mock.invocationCallOrder[0];
 
-      expect(firstLinterOrder).toBeLessThan(linterAdapterWithDependencyOrder);
+			expect(firstLinterOrder).toBeLessThan(linterAdapterWithDependencyOrder);
 
-      expect(meetupIssueService.updateMeetupIssue).not.toHaveBeenCalled();
-    });
+			expect(meetupIssueService.updateMeetupIssue).not.toHaveBeenCalled();
+		});
 
-    it("should update meetup issue at the end of linting when shouldFix is true", async () => {
-      // Arrange
-      const meetupIssue = getMeetupIssueFixture();
-      const shouldFix = true;
+		it("should update meetup issue at the end of linting when shouldFix is true", async () => {
+			// Arrange
+			const meetupIssue = getMeetupIssueFixture();
+			const shouldFix = true;
 
-      // Arrange
-      firstLinterAdapterWithoutDependencies.lint.mockResolvedValue(meetupIssue);
-      linterAdapterWithDependency.lint.mockResolvedValue(meetupIssue);
+			// Arrange
+			firstLinterAdapterWithoutDependencies.lint.mockResolvedValue(meetupIssue);
+			linterAdapterWithDependency.lint.mockResolvedValue(meetupIssue);
 
-      const linterService = new LinterService(
-        [linterAdapterWithDependency, firstLinterAdapterWithoutDependencies],
-        meetupIssueService
-      );
+			const linterService = new LinterService(
+				[linterAdapterWithDependency, firstLinterAdapterWithoutDependencies],
+				meetupIssueService,
+			);
 
-      // Act
-      await linterService.lint(meetupIssue, shouldFix);
+			// Act
+			await linterService.lint(meetupIssue, shouldFix);
 
-      // Assert
-      expect(meetupIssueService.updateMeetupIssue).toHaveBeenCalledWith(meetupIssue, meetupIssue);
-    });
+			// Assert
+			expect(meetupIssueService.updateMeetupIssue).toHaveBeenCalledWith(
+				meetupIssue,
+				meetupIssue,
+			);
+		});
 
-    it("should throw a LintError if any linter fails", async () => {
-      // Arrange
-      firstLinterAdapterWithoutDependencies.lint.mockRejectedValue(
-        new LintError(["First Lint error"])
-      );
+		it("should throw a LintError if any linter fails", async () => {
+			// Arrange
+			firstLinterAdapterWithoutDependencies.lint.mockRejectedValue(
+				new LintError(["First Lint error"]),
+			);
 
-      secondLinterAdapterWithoutDependencies.lint.mockRejectedValue(
-        new LintError(["Second Lint error"])
-      );
+			secondLinterAdapterWithoutDependencies.lint.mockRejectedValue(
+				new LintError(["Second Lint error"]),
+			);
 
-      const linterService = new LinterService(
-        [
-          firstLinterAdapterWithoutDependencies,
-          secondLinterAdapterWithoutDependencies,
-          linterAdapterWithDependency,
-        ],
-        meetupIssueService
-      );
+			const linterService = new LinterService(
+				[
+					firstLinterAdapterWithoutDependencies,
+					secondLinterAdapterWithoutDependencies,
+					linterAdapterWithDependency,
+				],
+				meetupIssueService,
+			);
 
-      const meetupIssue = getMeetupIssueFixture();
-      const shouldFix = false;
+			const meetupIssue = getMeetupIssueFixture();
+			const shouldFix = false;
 
-      // Act & Assert
-      const expectedError = new LintError(["First Lint error", "Second Lint error"]);
-      await expect(linterService.lint(meetupIssue, shouldFix)).rejects.toStrictEqual(expectedError);
+			// Act & Assert
+			const expectedError = new LintError([
+				"First Lint error",
+				"Second Lint error",
+			]);
+			await expect(
+				linterService.lint(meetupIssue, shouldFix),
+			).rejects.toStrictEqual(expectedError);
 
-      expect(firstLinterAdapterWithoutDependencies.lint).toHaveBeenCalled();
-      expect(secondLinterAdapterWithoutDependencies.lint).toHaveBeenCalled();
+			expect(firstLinterAdapterWithoutDependencies.lint).toHaveBeenCalled();
+			expect(secondLinterAdapterWithoutDependencies.lint).toHaveBeenCalled();
 
-      expect(linterAdapterWithDependency.lint).not.toHaveBeenCalled();
+			expect(linterAdapterWithDependency.lint).not.toHaveBeenCalled();
 
-      expect(meetupIssueService.updateMeetupIssue).not.toHaveBeenCalled();
-    });
-  });
+			expect(meetupIssueService.updateMeetupIssue).not.toHaveBeenCalled();
+		});
+	});
 });

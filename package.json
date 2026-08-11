@@ -1,130 +1,71 @@
 {
-  "name": "meetup-issue-linter-action",
-  "description": "Docker Compose Action",
-  "version": "0.0.0",
-  "author": "Cloud Native Aix-Marseille",
-  "type": "module",
-  "private": true,
-  "homepage": "https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action.git"
-  },
-  "bugs": {
-    "url": "https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/issues"
-  },
-  "keywords": [
-    "actions",
-    "meetup",
-    "issue",
-    "linter"
-  ],
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "package": "npm run package:index",
-    "package:index": "ncc build src/index.ts -o dist --license licenses.txt",
-    "package:watch": "npm run package -- --watch",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
-    "lint:fix": "npm run lint -- --fix",
-    "lint:ci": "npm run lint -- --output-file=eslint-report.json --format=json",
-    "all": "npm run format && npm run lint && npm run test && npm run package",
-    "build": "tsc --noEmit",
-    "format": "prettier --cache --write '**/*.ts'",
-    "jest": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --detectOpenHandles --forceExit",
-    "test": "npm run jest --maxWorkers=50%",
-    "test:watch": "npm run jest --watch --maxWorkers=25%",
-    "test:cov": "npm run test --coverage",
-    "test:ci": "npm run test:cov --runInBand",
-    "prepare": "ts-dev-tools install"
-  },
-  "license": "MIT",
-  "jest": {
-    "preset": "ts-jest/presets/default-esm",
-    "verbose": true,
-    "clearMocks": true,
-    "testEnvironment": "node",
-    "extensionsToTreatAsEsm": [
-      ".ts"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "ts"
-    ],
-    "testMatch": [
-      "**/*.test.ts",
-      "**/__tests__/**/*.[jt]s?(x)",
-      "**/?(*.)+(spec|test)?(.*).+(ts|tsx|js)"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/dist/"
-    ],
-    "transform": {
-      "^.+\\.ts$": [
-        "ts-jest",
-        {
-          "useESM": true,
-          "tsconfig": "tsconfig.json"
-        }
-      ]
-    },
-    "moduleNameMapper": {
-      "^(\\.{1,2}/.*)\\.js$": "$1"
-    },
-    "coverageReporters": [
-      "json-summary",
-      "text",
-      "lcov"
-    ],
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "./src/**",
-      "**/src/**/*.[jt]s?(x)"
-    ]
-  },
-  "dependencies": {
-    "@actions/core": "^3.0.1",
-    "@actions/github": "^9.1.1",
-    "inversify": "^8.1.0",
-    "reflect-metadata": "^0.2.2",
-    "zod": "^4.3.6",
-    "zod-validation-error": "^5.0.0"
-  },
-  "devDependencies": {
-    "@ts-dev-tools/core": "^1.12.0",
-    "@vercel/ncc": "^0.38.4",
-    "eslint-plugin-github": "^6.0.0",
-    "eslint-plugin-jsonc": "^3.1.2",
-    "jest-mock-extended": "^4.0.1"
-  },
-  "prettier": {
-    "semi": true,
-    "printWidth": 100,
-    "trailingComma": "es5",
-    "plugins": []
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "lint-staged": {
-    "src/*.{js,ts,tsx}": [
-      "eslint --fix "
-    ]
-  },
-  "importSort": {
-    ".js, .jsx, .ts, .tsx": {
-      "style": "module",
-      "parser": "typescript"
-    }
-  },
-  "tsDevTools": {
-    "version": "20250623095600-remove-prettier-oxc"
-  }
+	"name": "meetup-issue-linter-action",
+	"description": "Docker Compose Action",
+	"version": "0.0.0",
+	"author": "Cloud Native Aix-Marseille",
+	"type": "module",
+	"private": true,
+	"homepage": "https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action.git"
+	},
+	"bugs": {
+		"url": "https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/issues"
+	},
+	"keywords": [
+		"actions",
+		"meetup",
+		"issue",
+		"linter"
+	],
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"prepackage": "rm -rf dist",
+		"package": "esbuild src/index.ts --bundle --format=esm --platform=node --target=node24 --outdir=dist --entry-names=[name] --banner:js='import { createRequire } from \"node:module\";const require = createRequire(import.meta.url);'",
+		"package:watch": "npm run package -- --watch",
+		"lint": "biome lint --error-on-warnings .",
+		"lint:fix": "npm run lint -- --fix",
+		"lint:ci": "biome lint --error-on-warnings --reporter=json --reporter-file=biome-report.json .",
+		"all": "npm run format && npm run lint && npm run build && npm run test && npm run package",
+		"build": "tsc --noEmit",
+		"format": "biome format --write .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:cov": "vitest run --coverage",
+		"test:ci": "npm run test:cov",
+		"prepare": "ts-dev-tools install",
+		"check": "biome check --error-on-warnings --write .",
+		"vitest": "vitest"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"@actions/core": "^3.0.1",
+		"@actions/github": "^9.1.1",
+		"inversify": "^8.2.3",
+		"reflect-metadata": "^0.2.2",
+		"zod": "^4.4.3",
+		"zod-validation-error": "^5.0.0"
+	},
+	"devDependencies": {
+		"@ts-dev-tools/core": "^1.13.1",
+		"esbuild": "^0.28.2",
+		"vitest-mock-extended": "^3.1.0"
+	},
+	"commitlint": {
+		"extends": [
+			"@commitlint/config-conventional"
+		]
+	},
+	"tsDevTools": {
+		"version": "20260604100000-migrate-to-vitest"
+	},
+	"allowScripts": {
+		"esbuild@0.28.2": true
+	}
 }

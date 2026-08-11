@@ -4,16 +4,16 @@ import { AbstractZodLinterAdapter } from "./abstract-zod-linter.adapter.js";
 
 @injectable()
 @injectFromBase({
-  extendConstructorArguments: true,
+	extendConstructorArguments: true,
 })
 export class EventDescriptionLinterAdapter extends AbstractZodLinterAdapter {
-  protected getValidator() {
-    return string().nonempty({
-      message: "Must not be empty",
-    });
-  }
+	protected getValidator() {
+		return string().nonempty({
+			message: "Must not be empty",
+		});
+	}
 
-  protected getFieldName() {
-    return "event_description" as const;
-  }
+	protected getFieldName() {
+		return "event_description" as const;
+	}
 }

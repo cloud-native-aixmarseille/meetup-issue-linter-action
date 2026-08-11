@@ -1,10 +1,10 @@
+import { inject, injectable, injectFromBase, unmanaged } from "inversify";
 import { MeetupIssueService } from "../../services/meetup-issue.service.js";
 import { AbstractZodLinterAdapter } from "./abstract-zod-linter.adapter.js";
-import { inject, injectable, injectFromBase, unmanaged } from "inversify";
 
 export type EntityWithUrl = {
-  name: string;
-  url: string;
+	name: string;
+	url: string;
 };
 
 /**
@@ -14,68 +14,73 @@ export type EntityWithUrl = {
  */
 @injectable()
 @injectFromBase({
-  extendConstructorArguments: true,
+	extendConstructorArguments: true,
 })
 export abstract class AbstractEntityLinkLinterAdapter<
-  TEntity extends EntityWithUrl,
+	TEntity extends EntityWithUrl,
 > extends AbstractZodLinterAdapter {
-  private static LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
+	private static LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
 
-  protected readonly nameToUrl: Map<string, string>;
+	protected readonly nameToUrl: Map<string, string>;
 
-  constructor(
-    @inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
-    @unmanaged() entities: TEntity[]
-  ) {
-    super(meetupIssueService);
-    this.nameToUrl = new Map(entities.map((entity) => [entity.name, entity.url]));
-  }
+	constructor(
+		@inject(MeetupIssueService) meetupIssueService: MeetupIssueService,
+		@unmanaged() entities: TEntity[],
+	) {
+		super(meetupIssueService);
+		this.nameToUrl = new Map(
+			entities.map((entity) => [entity.name, entity.url]),
+		);
+	}
 
-  /**
-   * Extracts entity names from text that may contain markdown links.
-   * @param text Text that may contain entities with or without markdown links
-   * @returns Array of entity names
-   */
-  protected extractEntityNames(text: string): string[] {
-    // Replace linked entities with their display text
-    const cleanedText = text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
-    return cleanedText.split(",").map((name) => name.trim());
-  }
+	/**
+	 * Extracts entity names from text that may contain markdown links.
+	 * @param text Text that may contain entities with or without markdown links
+	 * @returns Array of entity names
+	 */
+	protected extractEntityNames(text: string): string[] {
+		// Replace linked entities with their display text
+		const cleanedText = text.replace(
+			AbstractEntityLinkLinterAdapter.LINK_REGEX,
+			"$1",
+		);
+		return cleanedText.split(",").map((name) => name.trim());
+	}
 
-  /**
-   * Checks if the given text contains a markdown link.
-   * @param text Text to check
-   * @returns True if text contains a markdown link
-   */
-  protected hasLink(text: string): boolean {
-    return AbstractEntityLinkLinterAdapter.LINK_REGEX.test(text);
-  }
+	/**
+	 * Checks if the given text contains a markdown link.
+	 * @param text Text to check
+	 * @returns True if text contains a markdown link
+	 */
+	protected hasLink(text: string): boolean {
+		return AbstractEntityLinkLinterAdapter.LINK_REGEX.test(text);
+	}
 
-  /**
-   * Extracts a single entity name from text that may contain a markdown link.
-   * @param text Text that may contain an entity with or without markdown link
-   * @returns Entity name
-   */
-  protected extractEntityName(text: string): string {
-    return text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
-  }
+	/**
+	 * Extracts a single entity name from text that may contain a markdown link.
+	 * @param text Text that may contain an entity with or without markdown link
+	 * @returns Entity name
+	 */
+	protected extractEntityName(text: string): string {
+		return text.replace(AbstractEntityLinkLinterAdapter.LINK_REGEX, "$1");
+	}
 
-  /**
-   * Formats an entity name with its URL as a markdown link.
-   * @param entityName Name of the entity
-   * @returns Formatted markdown link or plain name if no URL found
-   */
-  protected formatEntityWithLink(entityName: string): string {
-    const url = this.nameToUrl.get(entityName);
-    return url ? `[${entityName}](${url})` : entityName;
-  }
+	/**
+	 * Formats an entity name with its URL as a markdown link.
+	 * @param entityName Name of the entity
+	 * @returns Formatted markdown link or plain name if no URL found
+	 */
+	protected formatEntityWithLink(entityName: string): string {
+		const url = this.nameToUrl.get(entityName);
+		return url ? `[${entityName}](${url})` : entityName;
+	}
 
-  /**
-   * Validates that an entity name exists in the known list.
-   * @param entityName Name to validate
-   * @returns True if entity exists
-   */
-  protected isValidEntity(entityName: string): boolean {
-    return this.nameToUrl.has(entityName);
-  }
+	/**
+	 * Validates that an entity name exists in the known list.
+	 * @param entityName Name to validate
+	 * @returns True if entity exists
+	 */
+	protected isValidEntity(entityName: string): boolean {
+		return this.nameToUrl.has(entityName);
+	}
 }

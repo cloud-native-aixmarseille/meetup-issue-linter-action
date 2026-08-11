@@ -7,23 +7,15 @@ permissions: {}
 
 jobs:
   linter:
-    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@4c9d51717dc04d823dac2dc9ac2857e7b3069454 # 0.35.0
+    uses: hoverkraft-tech/ci-github-common/.github/workflows/linter.yml@2334d395217f9811699dbd4ace9d8559e4d99e0d # 0.37.3
     permissions:
       actions: read
       contents: read
+      issues: write
+      packages: read
+      pull-requests: write
       security-events: write
       statuses: write
-    with:
-      # FIXME: remove VALIDATE_*_PRETTIER and *_SUMMARY when supported (https://github.com/super-linter/super-linter/issues/6089)
-      linter-env: |
-        FILTER_REGEX_EXCLUDE=dist/**/*
-        VALIDATE_TYPESCRIPT_ES=false
-        VALIDATE_JSON_PRETTIER=false
-        VALIDATE_MARKDOWN_PRETTIER=false
-        VALIDATE_TYPESCRIPT_PRETTIER=false
-        VALIDATE_YAML_PRETTIER=false
-        SAVE_SUPER_LINTER_SUMMARY=false
-        ENABLE_GITHUB_ACTIONS_STEP_SUMMARY=false
 
   check-nodejs:
     name: Test nodejs
@@ -35,7 +27,6 @@ jobs:
       packages: read
       pull-requests: write
       security-events: write
-    secrets: inherit
 
   check-dist:
     name: Test nodejs

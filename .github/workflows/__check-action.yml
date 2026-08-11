@@ -52,8 +52,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Assert
+        env:
+          LINT_ISSUES: ${{ steps.act.outputs.lint-issues }}
         run: |
-          if [[ "${{ steps.act.outputs.lint-issues }}" != "" ]]; then
+          if [[ "$LINT_ISSUES" != "" ]]; then
             echo "The action did not return an empty list of issues"
             exit 1
           fi
@@ -101,25 +103,19 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Assert
+        env:
+          LINT_ISSUES: ${{ steps.act.outputs.lint-issues }}
+          EXPECTED_LINT_ISSUES: |-
+            Title: Invalid, expected "[Meetup] - 2025-01-01 - Test Invalid Issue"
+            Hoster: "Wrong Hoster" is not an existing hoster
+            Event Description: Invalid input
+            Agenda: Speaker "Wrong Speaker" is not in the list of speakers
+            Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker(s)>: <talk_description>"
+            Meetup Link: Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789
+            CNCF Link: Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event
+            Drive Link: Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j
+            Labels: Missing label(s) "hoster:confirmed"
         run: |
-          LINT_ISSUES=$(cat <<EOF
-          ${{ steps.act.outputs.lint-issues }}
-          EOF
-          )
-
-          EXPECTED_LINT_ISSUES=$(cat <<EOF
-          Title: Invalid, expected "[Meetup] - 2025-01-01 - Test Invalid Issue"
-          Hoster: "Wrong Hoster" is not an existing hoster
-          Event Description: Invalid input: expected string, received undefined
-          Agenda: Speaker "Wrong Speaker" is not in the list of speakers
-          Agenda: Entry "- Wrong agenda entry" must follow the format: "- <speaker(s)>: <talk_description>"
-          Meetup Link: Must be a valid Meetup link, e.g. https://www.meetup.com/cloud-native-aix-marseille/events/123456789
-          CNCF Link: Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event
-          Drive Link: Must be a valid Drive Link, e.g. https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j
-          Labels: Missing label(s) "hoster:confirmed"
-          EOF
-          )
-
           if ! diff --color <(echo "${LINT_ISSUES}") <(echo "${EXPECTED_LINT_ISSUES}"); then
             echo -e "The action did not return the expected list of issues"
             exit 1
