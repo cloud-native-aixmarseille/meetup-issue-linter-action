@@ -55,7 +55,7 @@
 	"devDependencies": {
 		"@ts-dev-tools/core": "^1.13.1",
 		"esbuild": "^0.28.2",
-		"vitest-mock-extended": "^3.1.0"
+		"vitest-mock-extended": "^5.1.1"
 	},
 	"commitlint": {
 		"extends": [
