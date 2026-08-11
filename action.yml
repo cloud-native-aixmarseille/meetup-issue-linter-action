@@ -39,5 +39,5 @@ outputs:
     description: "List of issues found in the meetup issue."
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js

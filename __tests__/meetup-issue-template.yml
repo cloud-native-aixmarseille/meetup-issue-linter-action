@@ -59,7 +59,8 @@
     "attributes":
       "label": "CNCF Link"
       "description": "Provide the link to the CNCF event page"
-      "placeholder": "https://community.cncf.io/events/details/cncf-cloud-native-aix-\
+      "placeholder":
+        "https://community.cncf.io/events/details/cncf-cloud-native-aix-\
         marseille-presents-xxx"
   - "type": "input"
     "id": "drive_link"

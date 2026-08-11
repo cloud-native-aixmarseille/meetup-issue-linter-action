@@ -4,14 +4,14 @@ import { AbstractZodLinterAdapter } from "./abstract-zod-linter.adapter.js";
 
 @injectable()
 @injectFromBase({
-  extendConstructorArguments: true,
+	extendConstructorArguments: true,
 })
 export class EventDateLinterAdapter extends AbstractZodLinterAdapter {
-  protected getValidator() {
-    return string().date();
-  }
+	protected getValidator() {
+		return string().date();
+	}
 
-  protected getFieldName() {
-    return "event_date" as const;
-  }
+	protected getFieldName() {
+		return "event_date" as const;
+	}
 }
