@@ -22,7 +22,7 @@ export function getMeetupIssueFixture(
 		meetup_link:
 			"https://www.meetup.com/cloud-native-aix-marseille/events/123456789",
 		cncf_link:
-			"https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
+			"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef",
 		drive_link: "https://drive.google.com/drive/folders/1a2b3c4d5e6f7g8h9i0j",
 		...(override?.parsedBody ?? {}),
 	};
