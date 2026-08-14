@@ -108,7 +108,7 @@ describe("run", () => {
 			...meetupIssue.parsedBody,
 			hoster: [hosters[1].name], // This will trigger a fix
 			cncf_link:
-				"https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event/",
+				"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef/",
 		});
 
 		githubServiceMock.getIssue.mockResolvedValue({

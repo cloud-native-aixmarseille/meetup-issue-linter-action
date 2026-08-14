@@ -30,18 +30,38 @@ describe("CNCFLinkLinterAdapter", () => {
 			expect(result).toEqual(meetupIssue);
 		});
 
+		it("should accept the new ocgroups CNCF link format", async () => {
+			// Arrange
+			const meetupIssue = getMeetupIssueFixture({
+				parsedBody: {
+					cncf_link:
+						"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef",
+				},
+			});
+			const shouldFix = false;
+
+			// Act
+			const result = await cncfLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+			// Assert
+			expect(
+				meetupIssueService.updateMeetupIssueBodyField,
+			).not.toHaveBeenCalled();
+			expect(result).toEqual(meetupIssue);
+		});
+
 		it.each([
 			{
 				description: "CNCF link is invalid",
 				cncf_link: "invalid-link",
 				error:
-					"Invalid URL; Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
+					"Invalid URL; Must be a valid CNCF link, e.g. https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef",
 			},
 			{
 				description: "CNCF link is not a CNCF link",
 				cncf_link: "https://www.google.com",
 				error:
-					"Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
+					"Must be a valid CNCF link, e.g. https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef",
 			},
 		])("should throw a LintError if $description", async ({
 			cncf_link,
@@ -72,7 +92,7 @@ describe("CNCFLinkLinterAdapter", () => {
 			const meetupIssue = getMeetupIssueFixture({
 				parsedBody: {
 					cncf_link:
-						"https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event/",
+						"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef/",
 				},
 			});
 			const shouldFix = false;
@@ -92,7 +112,7 @@ describe("CNCFLinkLinterAdapter", () => {
 			const meetupIssue = getMeetupIssueFixture({
 				parsedBody: {
 					cncf_link:
-						"https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event/",
+						"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef/",
 				},
 			});
 			const shouldFix = true;
@@ -105,7 +125,29 @@ describe("CNCFLinkLinterAdapter", () => {
 				meetupIssueService.updateMeetupIssueBodyField,
 			).toHaveBeenCalledWith(meetupIssue, "cncf_link");
 			expect(result.parsedBody.cncf_link).toBe(
-				"https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event",
+				"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef",
+			);
+		});
+
+		it("should remove trailing slash from the new ocgroups format when shouldFix is true", async () => {
+			// Arrange
+			const meetupIssue = getMeetupIssueFixture({
+				parsedBody: {
+					cncf_link:
+						"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef/",
+				},
+			});
+			const shouldFix = true;
+
+			// Act
+			const result = await cncfLinkLinterAdapter.lint(meetupIssue, shouldFix);
+
+			// Assert
+			expect(
+				meetupIssueService.updateMeetupIssueBodyField,
+			).toHaveBeenCalledWith(meetupIssue, "cncf_link");
+			expect(result.parsedBody.cncf_link).toBe(
+				"https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef",
 			);
 		});
 	});

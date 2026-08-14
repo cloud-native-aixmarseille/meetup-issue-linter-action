@@ -34907,13 +34907,13 @@ var CNCFLinkLinterAdapter = class extends AbstractLinkLinterAdapter {
     return CNCFLinkLinterAdapter.CNCF_LINK_REGEX;
   }
   getErrorMessage() {
-    return "Must be a valid CNCF link, e.g. https://community.cncf.io/events/details/cncf-cloud-native-aix-marseille-presents-test-meetup-event";
+    return "Must be a valid CNCF link, e.g. https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/ab1cdef";
   }
   getFieldName() {
     return "cncf_link";
   }
 };
-__publicField(CNCFLinkLinterAdapter, "CNCF_LINK_REGEX", /^https:\/\/community\.cncf\.io\/events\/details\/cncf-cloud-native-aix-marseille-presents-[0-9a-z-]+\/?$/);
+__publicField(CNCFLinkLinterAdapter, "CNCF_LINK_REGEX", /^https:\/\/(?:community\.cncf\.io\/events\/details\/cncf-cloud-native-aix-marseille-presents-[0-9a-z-]+|ocgroups\.dev\/cncf\/group\/cloud-native-aix-marseille\/event\/[0-9a-z-]+)\/?$/);
 CNCFLinkLinterAdapter = __decorateClass([
   injectable(),
   injectFromBase({

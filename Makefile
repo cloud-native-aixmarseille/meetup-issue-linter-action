@@ -3,9 +3,12 @@
 help: ## Display help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+setup: ## Setup project
+	npm install
+
 lint: ## Execute linting
 	npm run lint
-	$(call run_linter)
+	$(call run_linter)	
 
 lint-fix: ## Execute linting and fix
 	npm run format
