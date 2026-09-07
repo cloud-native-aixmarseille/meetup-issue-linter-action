@@ -1,0 +1,20 @@
+{
+	"name": "journey",
+	"projectType": "library",
+	"sourceRoot": "packages/application/journey/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/application/journey/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/application/journey --passWithNoTests"
+			}
+		}
+	},
+	"tags": ["type:application", "domain:journey"]
+}

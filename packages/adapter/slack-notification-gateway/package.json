@@ -1,0 +1,10 @@
+{
+	"name": "@meetup-automation/slack-notification-gateway",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": "./src/index.ts",
+	"dependencies": {
+		"@meetup-automation/communication": "workspace:*"
+	}
+}

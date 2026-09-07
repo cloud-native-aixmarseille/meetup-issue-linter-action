@@ -1,0 +1,9 @@
+packages:
+  - packages/domain/*
+  - packages/application/*
+  - packages/adapter/*
+  - packages/runtime/*
+
+allowBuilds:
+  esbuild: true
+  nx: true

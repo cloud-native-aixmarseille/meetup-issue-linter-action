@@ -1,0 +1,25 @@
+{
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"name": "github-event-comment-repository",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/github-event-comment-repository/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/github-event-comment-repository/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --config packages/adapter/github-event-comment-repository/vitest.config.ts"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:github",
+		"responsibility:event-comment-repository"
+	]
+}

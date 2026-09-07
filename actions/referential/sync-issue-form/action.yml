@@ -1,0 +1,20 @@
+name: Synchronize meetup issue form
+description: Validate configured referentials and synchronize the public meetup issue form projection.
+author: Cloud Native Aix-Marseille
+inputs:
+  mode:
+    description: Use check to report projection drift or fix to rewrite the checked-out issue form with the validated public projection.
+    required: false
+    default: check
+outputs:
+  result:
+    description: Versioned redacted JSON envelope containing drift status, changed files, and redacted diagnostics.
+  changed:
+    description: Whether the checked-out issue form differs from the desired public projection.
+  changed-files:
+    description: JSON array of repository-relative files changed or that would change during synchronization.
+  diagnostics:
+    description: Redacted JSON diagnostics safe to expose in workflow logs and pull request summaries.
+runs:
+  using: node24
+  main: dist/index.js

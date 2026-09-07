@@ -1,22 +1,9 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
+	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
-		"target": "ES2022",
-		"module": "NodeNext",
-		"rootDir": "./src",
-		"moduleResolution": "NodeNext",
-		"sourceMap": true,
-		"outDir": "./dist",
-		"noImplicitAny": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"strict": true,
-		"skipLibCheck": true,
-		"newLine": "lf",
-		"noEmit": true,
 		"experimentalDecorators": true,
-		"emitDecoratorMetadata": true,
-		"isolatedModules": true
+		"emitDecoratorMetadata": true
 	},
 	"exclude": [
 		"./__fixtures__/**/*.ts",
@@ -26,6 +13,5 @@
 		"./src/**/*.test.ts",
 		"./coverage"
 	],
-	"include": ["./src/**/*"],
-	"isolatedModules": true
+	"include": ["./src/**/*", "./packages/**/*.ts", "./tests/**/*.ts"]
 }

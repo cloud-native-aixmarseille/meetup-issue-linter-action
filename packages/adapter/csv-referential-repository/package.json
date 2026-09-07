@@ -1,0 +1,11 @@
+{
+	"name": "@meetup-automation/csv-referential-repository",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": "./src/index.ts",
+	"dependencies": {
+		"@meetup-automation/referential": "workspace:*",
+		"csv-parse": "^7.0.2"
+	}
+}

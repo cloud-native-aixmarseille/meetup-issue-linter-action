@@ -1,0 +1,21 @@
+{
+	"name": "@meetup-automation/referential",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/domain/referential/src",
+	"projectType": "library",
+	"tags": ["type:domain", "domain:referential"],
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/domain/referential/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --config packages/domain/referential/vitest.config.ts"
+			}
+		}
+	}
+}

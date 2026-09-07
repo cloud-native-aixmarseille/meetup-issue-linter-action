@@ -1,0 +1,17 @@
+name: Validate meetup referentials
+description: Validate the configured host and speaker catalogs and return only redacted counts and diagnostics.
+author: Cloud Native Aix-Marseille
+outputs:
+  result:
+    description: Versioned redacted JSON envelope containing validation status, public counts, and redacted diagnostics.
+  is-valid:
+    description: Whether both configured referential catalogs passed validation.
+  host-count:
+    description: Number of valid host entries exposed to downstream automation; 0 when validation fails.
+  speaker-count:
+    description: Number of valid speaker entries exposed to downstream automation; 0 when validation fails.
+  diagnostics:
+    description: Redacted JSON diagnostics safe to expose outside the private catalogs.
+runs:
+  using: node24
+  main: dist/index.js

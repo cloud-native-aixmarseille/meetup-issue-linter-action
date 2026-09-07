@@ -1,0 +1,24 @@
+{
+	"name": "yaml-automation-config-repository",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/yaml-automation-config-repository/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/yaml-automation-config-repository/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/yaml-automation-config-repository"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:yaml",
+		"responsibility:automation-config-repository"
+	]
+}

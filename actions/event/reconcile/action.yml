@@ -1,0 +1,32 @@
+name: Reconcile meetup event
+description: Read one meetup issue, derive lifecycle and readiness, and optionally persist safe issue and managed-comment updates.
+author: Cloud Native Aix-Marseille
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  issue-number:
+    description: GitHub issue number in the caller repository containing the meetup event document to inspect.
+    required: true
+  mode:
+    description: Use check for read-only validation or fix to persist safe normalizations to the issue and managed diagnostic comment.
+    required: false
+    default: check
+  github-token:
+    description: Token for the caller repository. Requires issues:read; fix mode also requires issues:write.
+    required: true
+  managed-comment-author:
+    description: Trusted bot login allowed to create or update the managed diagnostic comment, for example my-app[bot].
+    required: true
+outputs:
+  result:
+    description: Versioned JSON envelope containing whether the event was skipped, the derived state, readiness, persistence flags, and redacted diagnostics.
+  state:
+    description: Derived lifecycle state for the meetup issue, such as draft, planned, ready, held, or follow-up-complete.
+  is-ready:
+    description: Whether the current meetup issue revision satisfies readiness checks.
+  diagnostics:
+    description: Redacted JSON diagnostics safe to expose in workflow logs and summaries.
+runs:
+  using: node24
+  main: dist/index.js

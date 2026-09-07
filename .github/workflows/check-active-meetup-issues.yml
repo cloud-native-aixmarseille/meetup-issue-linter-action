@@ -1,0 +1,171 @@
+# Reusable workflow that checks active meetup issues, evaluates their current
+# state, and processes due communications under the shared per-event lock.
+name: Check active meetup issues
+
+on:
+  workflow_call:
+    inputs:
+      github-app-id:
+        description: GitHub App ID used to mint the narrowly scoped installation token for meetup automation.
+        required: true
+        type: string
+      slack-channel-id:
+        description: Optional Slack channel ID used for approved notifications. When omitted, Slack delivery is skipped safely.
+        required: false
+        type: string
+    outputs:
+      issue-numbers:
+        description: JSON array of meetup issue numbers selected for audit during the listing phase.
+        value: ${{ jobs.list.outputs.issue-numbers }}
+    secrets:
+      github-app-private-key:
+        description: PEM-encoded private key for the GitHub App identified by the github-app-id input. Used to mint a narrowly scoped installation token.
+        required: true
+      mailings-token:
+        description: Optional token used to dispatch approved email communications to the configured mailings repository. When omitted, mail intents remain planned but are not sent.
+        required: false
+      slack-token:
+        description: Optional Slack bot token used for approved notifications. When omitted, Slack delivery is skipped safely.
+        required: false
+
+permissions: {}
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+    outputs:
+      issue-numbers: ${{ steps.list.outputs.issue-numbers }}
+    steps:
+      - name: Checkout consumer repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: local-workflow-actions
+        uses: hoverkraft-tech/ci-github-common/actions/local-workflow-actions@3a27d31e9ccefbe9609cc9165017ed100ff34a22 # 0.38.0
+        with:
+          actions-path: actions
+
+      - name: List active events
+        id: list
+        uses: ./../self-workflow/actions/event/list-active
+        with:
+          github-token: ${{ github.token }}
+
+  audit:
+    needs: list
+    if: needs.list.outputs.issue-numbers != '' && needs.list.outputs.issue-numbers != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        issue-number: ${{ fromJSON(needs.list.outputs.issue-numbers) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: meetup-event-${{ github.repository_id }}-${{ matrix.issue-number }}
+      cancel-in-progress: false
+    steps:
+      - name: Create narrowly scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
+        with:
+          app-id: ${{ inputs.github-app-id }}
+          private-key: ${{ secrets.github-app-private-key }} # zizmor: ignore[secrets-outside-env] reusable workflows cannot safely consume environment secrets without broad inherit; this workflow forwards only the required secret
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: read
+          permission-issues: write
+
+      - name: Checkout consumer repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: local-workflow-actions
+        uses: hoverkraft-tech/ci-github-common/actions/local-workflow-actions@3a27d31e9ccefbe9609cc9165017ed100ff34a22 # 0.38.0
+        with:
+          actions-path: actions
+
+      - name: Evaluate current event state
+        id: event
+        uses: ./../self-workflow/actions/event/reconcile
+        with:
+          issue-number: ${{ matrix.issue-number }}
+          mode: check
+          github-token: ${{ steps.app-token.outputs.token }}
+          managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
+
+      - name: Reconcile communications
+        id: communications
+        uses: ./../self-workflow/actions/communication/reconcile
+        env:
+          SLACK_CHANNEL_ID: ${{ inputs.slack-channel-id }}
+        with:
+          issue-number: ${{ matrix.issue-number }}
+          mode: dispatch
+          github-token: ${{ steps.app-token.outputs.token }}
+          managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
+          mailings-token: ${{ secrets.mailings-token }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly to avoid secrets: inherit
+          slack-token: ${{ secrets.slack-token }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly to avoid secrets: inherit
+          dispatch-authorized: "true"
+
+      - name: Add redacted audit summary
+        if: always()
+        shell: bash
+        env:
+          ISSUE_NUMBER: ${{ matrix.issue-number }}
+          EVENT_STATE: ${{ steps.event.outputs.state || 'unavailable' }}
+          EVENT_READY: ${{ steps.event.outputs.is-ready || 'false' }}
+          EVENT_RESULT: ${{ steps.event.outputs.result || '{}' }}
+          EVENT_DIAGNOSTICS: ${{ steps.event.outputs.diagnostics || '[]' }}
+          PLANNED_COUNT: ${{ steps.communications.outputs.planned-count || '0' }}
+          DISPATCHED_COUNT: ${{ steps.communications.outputs.dispatched-count || '0' }}
+          COMMUNICATION_RESULT: ${{ steps.communications.outputs.result || '{}' }}
+          COMMUNICATION_DIAGNOSTICS: ${{ steps.communications.outputs.diagnostics || '[]' }}
+        run: |
+          sanitize_json() {
+            local value
+            if ! value="$(jq -c . <<< "$1" 2>/dev/null)"; then
+              value='{}'
+            fi
+            printf '%s' "${value}" | sed \
+              -e 's/&/\&amp;/g' \
+              -e 's/</\&lt;/g' \
+              -e 's/>/\&gt;/g'
+          }
+
+          {
+            echo "### Meetup issue #${ISSUE_NUMBER}"
+            echo
+            echo "Event state: \`${EVENT_STATE}\`"
+            echo
+            echo "Event ready: \`${EVENT_READY}\`"
+            echo
+            echo "Planned communications: ${PLANNED_COUNT}"
+            echo
+            echo "Dispatched communications: ${DISPATCHED_COUNT}"
+            echo
+            echo '<details><summary>Redacted event result</summary>'
+            echo
+            printf '<pre>%s</pre>\n' "$(sanitize_json "${EVENT_RESULT}")"
+            echo '</details>'
+            echo
+            echo '<details><summary>Redacted event diagnostics</summary>'
+            echo
+            printf '<pre>%s</pre>\n' "$(sanitize_json "${EVENT_DIAGNOSTICS}")"
+            echo '</details>'
+            echo
+            echo '<details><summary>Redacted communication result</summary>'
+            echo
+            printf '<pre>%s</pre>\n' "$(sanitize_json "${COMMUNICATION_RESULT}")"
+            echo '</details>'
+            echo
+            echo '<details><summary>Redacted communication diagnostics</summary>'
+            echo
+            printf '<pre>%s</pre>\n' "$(sanitize_json "${COMMUNICATION_DIAGNOSTICS}")"
+            echo '</details>'
+          } >> "${GITHUB_STEP_SUMMARY}"

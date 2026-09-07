@@ -1,0 +1,12 @@
+{
+	"name": "@meetup-automation/yaml-issue-form-projection",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": "./src/index.ts",
+	"dependencies": {
+		"@meetup-automation/journey": "workspace:*",
+		"@meetup-automation/referential": "workspace:*",
+		"yaml": "^2.9.0"
+	}
+}

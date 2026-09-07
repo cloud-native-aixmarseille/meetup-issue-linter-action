@@ -1,0 +1,24 @@
+{
+	"name": "github-delivery-ledger",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/github-delivery-ledger/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/github-delivery-ledger/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/github-delivery-ledger"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:github",
+		"responsibility:delivery-ledger"
+	]
+}
