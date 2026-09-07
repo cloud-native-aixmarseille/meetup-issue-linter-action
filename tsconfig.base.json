@@ -1,0 +1,72 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"sourceMap": true,
+		"noEmit": true,
+		"noImplicitAny": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"newLine": "lf",
+		"isolatedModules": true,
+		"resolveJsonModule": true,
+		"types": ["node", "vitest/globals"],
+		"baseUrl": ".",
+		"ignoreDeprecations": "6.0",
+		"paths": {
+			"@meetup-automation/event": ["packages/domain/event/src/index.ts"],
+			"@meetup-automation/referential": [
+				"packages/domain/referential/src/index.ts"
+			],
+			"@meetup-automation/communication": [
+				"packages/domain/communication/src/index.ts"
+			],
+			"@meetup-automation/publication": [
+				"packages/domain/publication/src/index.ts"
+			],
+			"@meetup-automation/journey": [
+				"packages/application/journey/src/index.ts"
+			],
+			"@meetup-automation/github-event-repository": [
+				"packages/adapter/github-event-repository/src/index.ts"
+			],
+			"@meetup-automation/github-communication-approval-repository": [
+				"packages/adapter/github-communication-approval-repository/src/index.ts"
+			],
+			"@meetup-automation/github-event-comment-repository": [
+				"packages/adapter/github-event-comment-repository/src/index.ts"
+			],
+			"@meetup-automation/github-issue-form-event-document-codec": [
+				"packages/adapter/github-issue-form-event-document-codec/src/index.ts"
+			],
+			"@meetup-automation/github-delivery-ledger": [
+				"packages/adapter/github-delivery-ledger/src/index.ts"
+			],
+			"@meetup-automation/csv-referential-repository": [
+				"packages/adapter/csv-referential-repository/src/index.ts"
+			],
+			"@meetup-automation/yaml-issue-form-projection": [
+				"packages/adapter/yaml-issue-form-projection/src/index.ts"
+			],
+			"@meetup-automation/github-repository-dispatch-mail-gateway": [
+				"packages/adapter/github-repository-dispatch-mail-gateway/src/index.ts"
+			],
+			"@meetup-automation/slack-notification-gateway": [
+				"packages/adapter/slack-notification-gateway/src/index.ts"
+			],
+			"@meetup-automation/system-clock": [
+				"packages/adapter/system-clock/src/index.ts"
+			],
+			"@meetup-automation/yaml-automation-config-repository": [
+				"packages/adapter/yaml-automation-config-repository/src/index.ts"
+			],
+			"@meetup-automation/github-actions-runtime": [
+				"packages/runtime/github-actions/src/index.ts"
+			]
+		}
+	}
+}

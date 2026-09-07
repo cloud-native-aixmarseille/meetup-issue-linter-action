@@ -1,9 +1,9 @@
 <!-- header:start -->
 
-# ![Icon](data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJmZWF0aGVyIGZlYXRoZXItY2hlY2stY2lyY2xlIiBjb2xvcj0iYmx1ZSI+PHBhdGggZD0iTTIyIDExLjA4VjEyYTEwIDEwIDAgMSAxLTUuOTMtOS4xNCI+PC9wYXRoPjxwb2x5bGluZSBwb2ludHM9IjIyIDQgMTIgMTQuMDEgOSAxMS4wMSI+PC9wb2x5bGluZT48L3N2Zz4=) GitHub Action: Meetup issue linter action
+# Meetup Event Automation
 
 <div align="center">
-  <img src=".github/logo.svg" width="60px" align="center" alt="Meetup issue linter action" />
+  <img src=".github/logo.svg" width="60px" align="center" alt="Meetup Event Automation logo" />
 </div>
 
 ---
@@ -12,7 +12,6 @@
 
 <!-- badges:start -->
 
-[![Marketplace](https://img.shields.io/badge/Marketplace-meetup--issue--linter--action-blue?logo=github-actions)](https://github.com/marketplace/actions/meetup-issue-linter-action)
 [![Release](https://img.shields.io/github/v/release/cloud-native-aixmarseille/meetup-issue-linter-action)](https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/releases)
 [![License](https://img.shields.io/github/license/cloud-native-aixmarseille/meetup-issue-linter-action)](http://choosealicense.com/licenses/mit/)
 [![Stars](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-issue-linter-action?style=social)](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-issue-linter-action?style=social)
@@ -24,98 +23,117 @@
 
 ## Overview
 
-This action lint the meetup issue for required fields and format
+This repository owns the tested Meetup Event Automation product for the complete
+meetup event journey through dedicated Actions and reusable workflows.
 
 <!-- overview:end -->
 
-<!-- usage:start -->
+## Automation catalog
 
-## Usage
+This repository is the implementation and release unit for Meetup Event
+Automation. The `meetups` repository owns event data, credentials, and
+trigger-only workflows; it consumes the Actions and reusable workflows
+published here at an immutable release revision.
+
+The architecture and migration constraints are recorded in
+[ADR-0001](docs/adr/0001-centralize-meetup-event-automation.md).
+
+### Domains
+
+Domain packages contain deterministic business models, policies, ports, and use
+cases. They do not depend on GitHub Actions, vendor SDKs, files, YAML/CSV, or the
+system clock.
+
+| Domain        | Package                                                             | Responsibility                                                                                         |
+| ------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Event         | [`@meetup-automation/event`](packages/domain/event)                 | Event documents, validation and normalization, readiness, explicit lifecycle, and event reconciliation |
+| Referential   | [`@meetup-automation/referential`](packages/domain/referential)     | Hosts and speakers, stable identifiers, catalog validation, resolution, and public choices             |
+| Communication | [`@meetup-automation/communication`](packages/domain/communication) | Communication policy, recipient-safe intent planning, idempotency, and delivery state                  |
+| Publication   | [`@meetup-automation/publication`](packages/domain/publication)     | External event URLs and explicit manual publication, asset, and attendance tasks                       |
+
+Cross-domain journey orchestration and the versioned consumer configuration
+contract live in [`@meetup-automation/journey`](packages/application/journey).
+The contract is intentionally opinionated: all reusable workflows have zero
+ordinary inputs. Paths, labels, Europe/Paris time, routing, and policy defaults
+are brain-owned conventions. Consumers do not provide a meetup-specific runtime
+config file; only credentials and the fixed `CI_BOT_APP_ID` /
+`SLACK_CHANNEL_ID` variables remain repository-owned.
+Occurrence status is operational too: scheduled is the default, closing an
+issue implies occurrence, and explicit labels drive postponed or cancelled
+transitions.
+
+### Adapters
+
+Adapter names state both their technology and responsibility. Vendor objects
+remain at these boundaries and do not leak into domain APIs.
+
+| Adapter                                                                                                 | Responsibility                                                     |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [`github-event-repository`](packages/adapter/github-event-repository)                                   | Read and minimally patch GitHub Issue-backed event documents       |
+| [`github-event-comment-repository`](packages/adapter/github-event-comment-repository)                   | Reconcile the single managed diagnostic comment                    |
+| [`github-issue-form-event-document-codec`](packages/adapter/github-issue-form-event-document-codec)     | Decode, migrate, and render versioned issue-form event documents   |
+| [`github-communication-approval-repository`](packages/adapter/github-communication-approval-repository) | Persist maintainer-approved event, revision, and routing snapshots |
+| [`github-delivery-ledger`](packages/adapter/github-delivery-ledger)                                     | Persist communication delivery reservations and outcomes           |
+| [`github-repository-dispatch-mail-gateway`](packages/adapter/github-repository-dispatch-mail-gateway)   | Dispatch idempotent mail intents through a repository event        |
+| [`csv-referential-repository`](packages/adapter/csv-referential-repository)                             | Load host and speaker referentials from checked-out CSV files      |
+| [`yaml-issue-form-projection`](packages/adapter/yaml-issue-form-projection)                             | Project public referential choices into the issue form             |
+| [`yaml-automation-config-repository`](packages/adapter/yaml-automation-config-repository)               | Load and validate the checked-out journey configuration            |
+| [`slack-notification-gateway`](packages/adapter/slack-notification-gateway)                             | Deliver redacted Slack notifications                               |
+| [`system-clock`](packages/adapter/system-clock)                                                         | Supply explicit instants to time-dependent use cases               |
+
+### Actions
+
+Each Action is a thin input/output boundary over the application use cases. Its
+directory contains the public contract, documentation, entrypoint, and
+committed bundle.
+
+| Action                                                                                 | Responsibility                                                   |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [`actions/event/reconcile`](actions/event/reconcile/README.md)                         | Reconcile one event issue and its managed diagnostics            |
+| [`actions/event/list-active`](actions/event/list-active/README.md)                     | List all active event issue numbers with pagination              |
+| [`actions/referential/validate`](actions/referential/validate/README.md)               | Validate private referentials with redacted results              |
+| [`actions/referential/sync-issue-form`](actions/referential/sync-issue-form/README.md) | Synchronize public issue-form choices from referentials          |
+| [`actions/communication/reconcile`](actions/communication/reconcile/README.md)         | Plan or dispatch due communications under workflow authorization |
+
+### Reusable workflows
+
+Consumer repositories keep GitHub-required triggers and delegate the journey
+to these workflows.
+
+| Workflow                                       | Intended trigger                                            | Documentation                                                                                             |
+| ---------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `update-meetup-issue.yml`                      | Relevant issue events                                       | [Update one meetup issue](.github/workflows/update-meetup-issue.md)                                       |
+| `check-active-meetup-issues.yml`               | Schedule or manual audit                                    | [Check active meetup issues](.github/workflows/check-active-meetup-issues.md)                             |
+| `update-meetup-issue-form.yml`                 | Referential/configuration changes or manual synchronization | [Update the meetup issue form](.github/workflows/update-meetup-issue-form.md)                             |
+| `check-meetup-referentials-and-issue-form.yml` | Consumer pull requests                                      | [Check meetup referentials and issue form](.github/workflows/check-meetup-referentials-and-issue-form.md) |
+
+### Release pinning
+
+Actions and reusable workflows share one SemVer release. Consumers must pin a
+full 40-character release commit SHA, retaining the version as a review aid:
 
 ```yaml
-- uses: cloud-native-aixmarseille/meetup-issue-linter-action@5d63450f85f2d43e14f4af77b5f6c4f65fd55035 # 0.9.7
-  with:
-    # The issue number to lint.
-    # This input is required.
-    issue-number: ""
-
-    # The parsed issue body. See <https://github.com/issue-ops/parser>.
-    # This input is required.
-    issue-parsed-body: ""
-
-    # JSON List of hosters to update.
-    # Example: `["Hoster 1", "Hoster 2"]`.
-    #
-    # This input is required.
-    hosters: ""
-
-    # JSON List of speakers with name and URL.
-    # Example: `[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]`.
-    #
-    # This input is required.
-    speakers: ""
-
-    # Whether to fix the issue or not.
-    # Default: `true`
-    should-fix: "true"
-
-    # Whether to fail on error or not.
-    # Default: `true`
-    fail-on-error: "true"
-
-    # The GitHub token with permissions to update the issue.
-    # This input is required.
-    github-token: ""
+jobs:
+  manage:
+    uses: cloud-native-aixmarseille/meetup-issue-linter-action/.github/workflows/update-meetup-issue.yml@0123456789abcdef0123456789abcdef01234567 # 1.x.y; replace with the published release SHA
 ```
 
-<!-- usage:end -->
+Do not pin a mutable branch or major-version tag. Upgrades are explicit changes
+to that SHA and can be rolled back by restoring the previous release SHA.
 
-<!-- inputs:start -->
+### Development
 
-## Inputs
+The repository uses pnpm for the workspace and Nx for dependency-aware project
+tasks.
 
-| **Input**               | **Description**                                                                                                                              | **Required** | **Default** |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
-| **`issue-number`**      | The issue number to lint.                                                                                                                    | **true**     | -           |
-| **`issue-parsed-body`** | The parsed issue body. See <https://github.com/issue-ops/parser>.                                                                            | **true**     | -           |
-| **`hosters`**           | JSON List of hosters to update.                                                                                                              | **true**     | -           |
-|                         | Example: `["Hoster 1", "Hoster 2"]`.                                                                                                         |              |             |
-| **`speakers`**          | JSON List of speakers with name and URL.                                                                                                     | **true**     | -           |
-|                         | Example: `[{"name": "Speaker One", "url": "https://example.com/speaker1"}, {"name": "Speaker Two", "url": "https://example.com/speaker2"}]`. |              |             |
-| **`should-fix`**        | Whether to fix the issue or not.                                                                                                             | **false**    | `true`      |
-| **`fail-on-error`**     | Whether to fail on error or not.                                                                                                             | **false**    | `true`      |
-| **`github-token`**      | The GitHub token with permissions to update the issue.                                                                                       | **true**     | -           |
-
-<!-- inputs:end -->
-
-<!-- secrets:start -->
-<!-- secrets:end -->
-
-<!-- outputs:start -->
-
-## Outputs
-
-| **Output**        | **Description**                           |
-| ----------------- | ----------------------------------------- |
-| **`lint-issues`** | List of issues found in the meetup issue. |
-
-<!-- outputs:end -->
-
-<!-- examples:start -->
-<!-- examples:end -->
-
-<!-- contributing:start -->
+```shell
+make setup
+make ci
+```
 
 ## Contributing
 
 Contributions are welcome! Please see the [contributing guidelines](https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action/blob/main/CONTRIBUTING.md) for more details.
-
-<!-- contributing:end -->
-
-<!-- security:start -->
-<!-- security:end -->
-
-<!-- license:start -->
 
 ## License
 
@@ -126,13 +144,3 @@ SPDX-License-Identifier: MIT
 Copyright © 2026 Cloud Native Aix-Marseille
 
 For more details, see the [license](http://choosealicense.com/licenses/mit/).
-
-<!-- license:end -->
-
-<!-- generated:start -->
-
----
-
-This documentation was automatically generated by [CI Dokumentor](https://github.com/hoverkraft-tech/ci-dokumentor).
-
-<!-- generated:end -->

@@ -1,0 +1,20 @@
+{
+	"name": "github-actions-runtime",
+	"projectType": "application",
+	"sourceRoot": "packages/runtime/github-actions/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/runtime/github-actions/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/runtime/github-actions"
+			}
+		}
+	},
+	"tags": ["type:runtime", "technology:github-actions"]
+}

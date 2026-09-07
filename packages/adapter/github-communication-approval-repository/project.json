@@ -1,0 +1,24 @@
+{
+	"name": "github-communication-approval-repository",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/github-communication-approval-repository/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/github-communication-approval-repository/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/github-communication-approval-repository"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:github",
+		"responsibility:communication-approval-repository"
+	]
+}

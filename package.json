@@ -1,10 +1,11 @@
 {
-	"name": "meetup-issue-linter-action",
-	"description": "Docker Compose Action",
-	"version": "0.0.0",
+	"name": "meetup-event-automation",
+	"description": "Meetup event journey automation actions and reusable workflows",
+	"version": "1.0.0",
 	"author": "Cloud Native Aix-Marseille",
 	"type": "module",
 	"private": true,
+	"packageManager": "pnpm@11.25.0",
 	"homepage": "https://github.com/cloud-native-aixmarseille/meetup-issue-linter-action",
 	"repository": {
 		"type": "git",
@@ -19,27 +20,25 @@
 		"issue",
 		"linter"
 	],
-	"exports": {
-		".": "./dist/index.js"
-	},
 	"engines": {
 		"node": ">=20"
 	},
 	"scripts": {
-		"prepackage": "rm -rf dist",
-		"package": "esbuild src/index.ts --bundle --format=esm --platform=node --target=node24 --outdir=dist --entry-names=[name] --banner:js='import { createRequire } from \"node:module\";const require = createRequire(import.meta.url);'",
-		"package:watch": "npm run package -- --watch",
+		"package": "node scripts/build-actions.mjs",
 		"lint": "biome lint --error-on-warnings .",
-		"lint:fix": "npm run lint -- --fix",
-		"lint:ci": "biome lint --error-on-warnings --reporter=json --reporter-file=biome-report.json .",
-		"all": "npm run format && npm run lint && npm run build && npm run test && npm run package",
-		"build": "tsc --noEmit",
+		"lint:fix": "pnpm lint --fix",
+		"lint:ci": "biome lint --error-on-warnings . --reporter=sarif | tee biome-report.sarif",
+		"all": "pnpm format && pnpm lint && pnpm build && pnpm package && pnpm test && pnpm check:dist",
+		"build": "tsc --noEmit -p tsconfig.json",
 		"format": "biome format --write .",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:cov": "vitest run --coverage",
-		"test:ci": "npm run test:cov",
-		"prepare": "ts-dev-tools install",
+		"test:ci": "vitest run --reporter=default --reporter=junit --outputFile=junit.xml --coverage.enabled --coverage.reporter=lcov --coverage.reporter=text",
+		"nx": "nx",
+		"workspace:build": "nx run-many -t typecheck",
+		"workspace:test": "nx run-many -t test",
+		"check:dist": "node scripts/check-dist.mjs",
 		"check": "biome check --error-on-warnings --write .",
 		"vitest": "vitest"
 	},
@@ -47,25 +46,28 @@
 	"dependencies": {
 		"@actions/core": "^3.0.1",
 		"@actions/github": "^9.1.1",
+		"@meetup-automation/event": "workspace:*",
+		"@meetup-automation/publication": "workspace:*",
 		"inversify": "^8.2.3",
-		"reflect-metadata": "^0.2.2",
-		"zod": "^4.4.3",
-		"zod-validation-error": "^5.0.0"
+		"reflect-metadata": "^0.2.2"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^2.5.12",
+		"@commitlint/config-conventional": "20.0.0",
 		"@ts-dev-tools/core": "^1.13.1",
+		"@types/node": "^26.4.1",
+		"@vitest/coverage-v8": "4.1.10",
 		"esbuild": "^0.28.2",
-		"vitest-mock-extended": "^5.1.1"
+		"nx": "^23.2.0",
+		"prettier": "^3.9.6",
+		"typescript": "^6.0.3",
+		"vitest": "4.1.10",
+		"vitest-mock-extended": "^5.1.1",
+		"yaml": "^2.9.0"
 	},
 	"commitlint": {
 		"extends": [
 			"@commitlint/config-conventional"
 		]
-	},
-	"tsDevTools": {
-		"version": "20260604100000-migrate-to-vitest"
-	},
-	"allowScripts": {
-		"esbuild@0.28.2": true
 	}
 }

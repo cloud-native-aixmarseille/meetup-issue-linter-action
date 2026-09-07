@@ -1,0 +1,24 @@
+{
+	"name": "slack-notification-gateway",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/slack-notification-gateway/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/slack-notification-gateway/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/slack-notification-gateway"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:slack",
+		"responsibility:notification-gateway"
+	]
+}

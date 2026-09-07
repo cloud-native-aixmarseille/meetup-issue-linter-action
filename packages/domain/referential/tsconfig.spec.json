@@ -1,0 +1,10 @@
+{
+	"extends": "../../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"ignoreDeprecations": "6.0",
+		"rootDir": ".",
+		"tsBuildInfoFile": "../../../node_modules/.cache/referential.spec.tsbuildinfo"
+	},
+	"include": ["src/**/*.ts", "__tests__/**/*.ts"]
+}

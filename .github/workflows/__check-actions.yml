@@ -1,0 +1,410 @@
+name: Internal - Integration tests for actions
+
+on:
+  workflow_call:
+
+permissions: {}
+
+env:
+  ISSUE_LABEL: integration-test-meetup
+  HOST_CONFIRMATION_LABEL: integration-test-hoster-confirmed
+  SPEAKER_CONFIRMATION_LABEL: integration-test-speakers-confirmed
+  APPROVAL_LABEL: integration-test-communication-approved
+  EVENT_DATE: "2099-06-08"
+
+jobs:
+  prepare-synthetic-issue:
+    name: Prepare synthetic meetup issue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    outputs:
+      issue-number: ${{ steps.create-issue.outputs.issue-number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Ensure synthetic labels exist
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const labels = [...new Set([
+              'meetup',
+              'hoster:confirmed',
+              'speakers:confirmed',
+              'communication:approved',
+              process.env.ISSUE_LABEL,
+              process.env.HOST_CONFIRMATION_LABEL,
+              process.env.SPEAKER_CONFIRMATION_LABEL,
+              process.env.APPROVAL_LABEL,
+            ])];
+
+            for (const name of labels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                  color: '0366d6',
+                  description: 'Synthetic integration test label',
+                });
+              } catch (error) {
+                if (error.status !== 422) throw error;
+              }
+            }
+
+      - name: Create synthetic meetup issue
+        id: create-issue
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const body = `<!-- meetup-event-schema:1 -->
+            <!-- meetup-event-references:{"schemaVersion":2,"host":{"id":"host-0001","displayName":"Public Venue"},"speakers":[{"id":"speaker-0001","displayName":"Ada Speaker"}]} -->
+            ### Event Title
+
+            Platform Night
+
+            ### Event Date
+
+            ${process.env.EVENT_DATE}
+
+            ### Hoster
+
+            Public Venue [host-0001]
+
+            ### Event Description
+
+            Public event description.
+
+            ### Agenda
+
+            - Ada Speaker [speaker-0001]: A public talk
+
+            ### Meetup Link
+
+            https://www.meetup.com/cloud-native-aix-marseille/events/123
+
+            ### CNCF Link
+
+            https://ocgroups.dev/cncf/group/cloud-native-aix-marseille/event/platform-night
+
+            ### Drive Link
+
+            https://drive.google.com/drive/folders/public-event-assets
+            `;
+            const labels = [...new Set([
+              process.env.ISSUE_LABEL,
+              process.env.HOST_CONFIRMATION_LABEL,
+              process.env.SPEAKER_CONFIRMATION_LABEL,
+              process.env.APPROVAL_LABEL,
+              'communication:approved',
+              'meetup',
+              'hoster:confirmed',
+              'speakers:confirmed',
+            ])];
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[Meetup] - ${process.env.EVENT_DATE} - Platform Night`,
+              body,
+              labels,
+            });
+
+            core.setOutput('issue-number', String(issue.data.number));
+
+  test-referential-validate:
+    name: Test referential validate action
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare synthetic consumer workspace
+        shell: bash
+        run: |
+          mkdir -p .github/ISSUE_TEMPLATE referentials
+
+          cat > referentials/hosting.csv <<'EOF'
+          host_id,name,contact_id,contact,mail,phone,address
+          host-0001,Public Venue,contact-0001,Private Host Contact,host@example.invalid,,1 Private Street
+          EOF
+
+          cat > referentials/speakers.csv <<'EOF'
+          speaker_id,firstname,lastname,company,mail,phone
+          speaker-0001,Ada,Speaker,Public Company,speaker@example.invalid,
+          EOF
+
+      - name: Validate referentials
+        id: validate-referentials
+        uses: ./actions/referential/validate
+
+      - name: Assert referential validation
+        shell: bash
+        env:
+          RESULT: ${{ steps.validate-referentials.outputs.result }}
+          IS_VALID: ${{ steps.validate-referentials.outputs.is-valid }}
+          HOST_COUNT: ${{ steps.validate-referentials.outputs.host-count }}
+          SPEAKER_COUNT: ${{ steps.validate-referentials.outputs.speaker-count }}
+          DIAGNOSTICS: ${{ steps.validate-referentials.outputs.diagnostics }}
+        run: |
+          [[ "$IS_VALID" == "true" ]]
+          [[ "$HOST_COUNT" == "1" ]]
+          [[ "$SPEAKER_COUNT" == "1" ]]
+          [[ "$DIAGNOSTICS" == "[]" ]]
+          jq -e '.data.isValid == true and .data.hostCount == 1 and .data.speakerCount == 1 and (.diagnostics | length == 0)' <<< "$RESULT" >/dev/null
+
+  test-referential-sync-issue-form:
+    name: Test referential sync issue form action
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare synthetic consumer workspace
+        shell: bash
+        run: |
+          mkdir -p .github/ISSUE_TEMPLATE referentials
+
+          cat > referentials/hosting.csv <<'EOF'
+          host_id,name,contact_id,contact,mail,phone,address
+          host-0001,Public Venue,contact-0001,Private Host Contact,host@example.invalid,,1 Private Street
+          EOF
+
+          cat > referentials/speakers.csv <<'EOF'
+          speaker_id,firstname,lastname,company,mail,phone
+          speaker-0001,Ada,Speaker,Public Company,speaker@example.invalid,
+          EOF
+
+          cat > .github/ISSUE_TEMPLATE/meetup.yml <<'EOF'
+          name: Meetup
+          description: Gather event data
+          title: "[Meetup]"
+          labels:
+            - meetup
+          body:
+            - type: input
+              id: event_title
+              attributes:
+                label: Event Title
+                custom-property: preserved
+            - type: dropdown
+              id: hoster
+              attributes:
+                label: Hoster
+                options:
+                  - Old Host
+            - type: markdown
+              attributes:
+                value: |-
+                  <!-- Available speakers -->
+                  <!--
+                  Old Speaker
+                  -->
+            - type: textarea
+              id: unrelated
+              attributes:
+                label: Unrelated field
+                description: Must survive synchronization
+          EOF
+
+      - name: Synchronize issue form
+        id: sync-issue-form
+        uses: ./actions/referential/sync-issue-form
+        with:
+          mode: fix
+
+      - name: Assert issue form synchronization
+        shell: bash
+        env:
+          RESULT: ${{ steps.sync-issue-form.outputs.result }}
+          CHANGED: ${{ steps.sync-issue-form.outputs.changed }}
+          CHANGED_FILES: ${{ steps.sync-issue-form.outputs.changed-files }}
+          DIAGNOSTICS: ${{ steps.sync-issue-form.outputs.diagnostics }}
+        run: |
+          [[ "$CHANGED" == "true" ]]
+          [[ "$DIAGNOSTICS" == *'issue-form.updated'* ]]
+          jq -e '. == [".github/ISSUE_TEMPLATE/meetup.yml"]' <<< "$CHANGED_FILES" >/dev/null
+          jq -e '.data.changed == true and .data.changedFiles == [".github/ISSUE_TEMPLATE/meetup.yml"]' <<< "$RESULT" >/dev/null
+          grep -Fq 'Public Venue' .github/ISSUE_TEMPLATE/meetup.yml
+          grep -Fq 'Ada Speaker' .github/ISSUE_TEMPLATE/meetup.yml
+          if grep -Fq '[host-0001]' .github/ISSUE_TEMPLATE/meetup.yml; then exit 1; fi
+          if grep -Fq 'speaker-0001' .github/ISSUE_TEMPLATE/meetup.yml; then exit 1; fi
+          if grep -Fq 'Private Host Contact' .github/ISSUE_TEMPLATE/meetup.yml; then exit 1; fi
+          if grep -Fq 'host@example.invalid' .github/ISSUE_TEMPLATE/meetup.yml; then exit 1; fi
+          if grep -Fq 'speaker@example.invalid' .github/ISSUE_TEMPLATE/meetup.yml; then exit 1; fi
+          if grep -Fq 'event_status' .github/ISSUE_TEMPLATE/meetup.yml; then exit 1; fi
+
+  test-event-list-active:
+    name: Test event list active action
+    needs: prepare-synthetic-issue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare synthetic consumer workspace
+        shell: bash
+        run: |
+          mkdir -p .github referentials
+
+      - name: List active meetup issues
+        id: list-active
+        uses: ./actions/event/list-active
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assert active meetup listing
+        shell: bash
+        env:
+          ISSUE_NUMBER: ${{ needs.prepare-synthetic-issue.outputs.issue-number }}
+          RESULT: ${{ steps.list-active.outputs.result }}
+          ISSUE_NUMBERS: ${{ steps.list-active.outputs.issue-numbers }}
+          DIAGNOSTICS: ${{ steps.list-active.outputs.diagnostics }}
+        run: |
+          jq -e 'type == "array"' <<< "$DIAGNOSTICS" >/dev/null
+          jq -e --argjson issue "$ISSUE_NUMBER" 'index($issue) != null' <<< "$ISSUE_NUMBERS" >/dev/null
+          jq -e --argjson issue "$ISSUE_NUMBER" '.data.issueNumbers | index($issue) != null' <<< "$RESULT" >/dev/null
+          jq -e '.data.count >= 1 and (.data.issueNumbers | length) >= 1 and (.diagnostics | type == "array")' <<< "$RESULT" >/dev/null
+
+  test-event-reconcile:
+    name: Test event reconcile action
+    needs: prepare-synthetic-issue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare synthetic consumer workspace
+        shell: bash
+        run: |
+          mkdir -p .github referentials
+
+          cat > referentials/hosting.csv <<'EOF'
+          host_id,name,contact_id,contact,mail,phone,address
+          host-0001,Public Venue,contact-0001,Private Host Contact,host@example.invalid,,1 Private Street
+          EOF
+
+          cat > referentials/speakers.csv <<'EOF'
+          speaker_id,firstname,lastname,company,mail,phone
+          speaker-0001,Ada,Speaker,Public Company,speaker@example.invalid,
+          EOF
+
+      - name: Reconcile synthetic meetup event
+        id: reconcile-event
+        uses: ./actions/event/reconcile
+        with:
+          issue-number: ${{ needs.prepare-synthetic-issue.outputs.issue-number }}
+          mode: check
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          managed-comment-author: integration-tests[bot]
+
+      - name: Assert event reconciliation
+        shell: bash
+        env:
+          RESULT: ${{ steps.reconcile-event.outputs.result }}
+          STATE: ${{ steps.reconcile-event.outputs.state }}
+          IS_READY: ${{ steps.reconcile-event.outputs.is-ready }}
+          DIAGNOSTICS: ${{ steps.reconcile-event.outputs.diagnostics }}
+        run: |
+          [[ "$STATE" == "ready" ]]
+          [[ "$IS_READY" == "true" ]]
+          [[ "$DIAGNOSTICS" == "[]" ]]
+          jq -e '.data.skipped == false and .data.state == "ready" and .data.isReady == true and (.diagnostics | length == 0)' <<< "$RESULT" >/dev/null
+
+  test-communication-reconcile:
+    name: Test communication reconcile action
+    needs: prepare-synthetic-issue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prepare synthetic consumer workspace
+        shell: bash
+        run: |
+          mkdir -p .github referentials
+
+          cat > referentials/hosting.csv <<'EOF'
+          host_id,name,contact_id,contact,mail,phone,address
+          host-0001,Public Venue,contact-0001,Private Host Contact,host@example.invalid,,1 Private Street
+          EOF
+
+          cat > referentials/speakers.csv <<'EOF'
+          speaker_id,firstname,lastname,company,mail,phone
+          speaker-0001,Ada,Speaker,Public Company,speaker@example.invalid,
+          EOF
+
+      - name: Reconcile synthetic meetup communications
+        id: reconcile-communications
+        uses: ./actions/communication/reconcile
+        with:
+          issue-number: ${{ needs.prepare-synthetic-issue.outputs.issue-number }}
+          mode: check
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          managed-comment-author: integration-tests[bot]
+
+      - name: Assert communication reconciliation
+        shell: bash
+        env:
+          RESULT: ${{ steps.reconcile-communications.outputs.result }}
+          PLANNED_COUNT: ${{ steps.reconcile-communications.outputs.planned-count }}
+          DISPATCHED_COUNT: ${{ steps.reconcile-communications.outputs.dispatched-count }}
+          DIAGNOSTICS: ${{ steps.reconcile-communications.outputs.diagnostics }}
+        run: |
+          [[ "$PLANNED_COUNT" == "2" ]]
+          [[ "$DISPATCHED_COUNT" == "0" ]]
+          [[ "$DIAGNOSTICS" == *'communication.approval-missing'* ]]
+          jq -e '.data.mode == "check" and .data.counts.planned == 2 and .data.counts.dispatched == 0 and (.data.intentIds | length == 2) and (.diagnostics | map(.code) | index("communication.approval-missing") != null)' <<< "$RESULT" >/dev/null
+
+  cleanup-synthetic-issue:
+    name: Cleanup synthetic meetup issue
+    if: always()
+    needs:
+      - prepare-synthetic-issue
+      - test-event-list-active
+      - test-event-reconcile
+      - test-communication-reconcile
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Close synthetic meetup issue
+        if: needs.prepare-synthetic-issue.outputs.issue-number != ''
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_NUMBER: ${{ needs.prepare-synthetic-issue.outputs.issue-number }}
+        with:
+          script: |
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number(process.env.ISSUE_NUMBER),
+              state: 'closed',
+            });

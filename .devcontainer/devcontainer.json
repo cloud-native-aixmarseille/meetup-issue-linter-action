@@ -1,5 +1,5 @@
 {
-	"name": "meetup-issue-linter-action",
+	"name": "cloud-native-aixmarseille/meetup-event-automation",
 	"image": "mcr.microsoft.com/devcontainers/base:debian",
 	"features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {

@@ -1,0 +1,21 @@
+{
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"name": "domain-communication",
+	"projectType": "library",
+	"sourceRoot": "packages/domain/communication/src",
+	"targets": {
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --config packages/domain/communication/vitest.config.ts"
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/domain/communication/tsconfig.json"
+			}
+		}
+	},
+	"tags": ["scope:communication", "type:domain"]
+}

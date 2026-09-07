@@ -1,0 +1,10 @@
+{
+	"extends": "../../../tsconfig.base.json",
+	"compilerOptions": {
+		"composite": true,
+		"ignoreDeprecations": "6.0",
+		"noEmit": true,
+		"types": ["vitest/globals"]
+	},
+	"include": ["src/**/*.ts", "__tests__/**/*.ts", "vitest.config.ts"]
+}

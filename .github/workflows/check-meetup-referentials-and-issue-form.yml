@@ -1,0 +1,71 @@
+# Reusable workflow that checks referential catalogs and the generated meetup
+# issue-form projection for consumer pull requests.
+name: Check meetup referentials and issue form
+
+on:
+  workflow_call:
+    outputs:
+      is-valid:
+        description: Whether the private referential catalogs passed validation.
+        value: ${{ jobs.validate.outputs.is-valid }}
+      host-count:
+        description: Number of valid host entries detected during referential validation.
+        value: ${{ jobs.validate.outputs.host-count }}
+      speaker-count:
+        description: Number of valid speaker entries detected during referential validation.
+        value: ${{ jobs.validate.outputs.speaker-count }}
+      referential-diagnostics:
+        description: Redacted JSON diagnostics produced during referential validation.
+        value: ${{ jobs.validate.outputs.referential-diagnostics }}
+      issue-form-changed:
+        description: Whether the checked-out issue form differs from the desired public projection.
+        value: ${{ jobs.validate.outputs.issue-form-changed }}
+      issue-form-changed-files:
+        description: JSON array of repository-relative files that would change during issue-form synchronization.
+        value: ${{ jobs.validate.outputs.issue-form-changed-files }}
+      issue-form-diagnostics:
+        description: Redacted JSON diagnostics produced by the issue-form projection check.
+        value: ${{ jobs.validate.outputs.issue-form-diagnostics }}
+
+permissions: {}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      is-valid: ${{ steps.referentials.outputs.is-valid }}
+      host-count: ${{ steps.referentials.outputs.host-count }}
+      speaker-count: ${{ steps.referentials.outputs.speaker-count }}
+      referential-diagnostics: ${{ steps.referentials.outputs.diagnostics }}
+      issue-form-changed: ${{ steps.issue-form.outputs.changed }}
+      issue-form-changed-files: ${{ steps.issue-form.outputs.changed-files }}
+      issue-form-diagnostics: ${{ steps.issue-form.outputs.diagnostics }}
+    steps:
+      - name: Checkout consumer repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: local-workflow-actions
+        uses: hoverkraft-tech/ci-github-common/actions/local-workflow-actions@3a27d31e9ccefbe9609cc9165017ed100ff34a22 # 0.38.0
+        with:
+          actions-path: actions
+
+      - name: Validate referentials
+        id: referentials
+        uses: ./../self-workflow/actions/referential/validate
+
+      - name: Check issue form projection
+        id: issue-form
+        uses: ./../self-workflow/actions/referential/sync-issue-form
+        with:
+          mode: check
+
+      - name: Enforce validation result
+        if: steps.referentials.outputs.is-valid != 'true' || steps.issue-form.outputs.changed == 'true'
+        shell: bash
+        run: |
+          echo "Meetup referentials are invalid or the issue form projection is stale." >&2
+          exit 1

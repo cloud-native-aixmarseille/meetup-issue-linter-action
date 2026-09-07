@@ -1,0 +1,99 @@
+# Reusable workflow that checks one meetup issue and applies the approved
+# communication and issue updates needed to keep it current.
+name: Update meetup issue
+
+on:
+  workflow_call:
+    inputs:
+      github-app-id:
+        description: GitHub App ID used to mint the narrowly scoped installation token for meetup automation.
+        required: true
+        type: string
+      slack-channel-id:
+        description: Optional Slack channel ID used for approved notifications. When omitted, Slack delivery is skipped safely.
+        required: false
+        type: string
+    secrets:
+      github-app-private-key:
+        description: PEM-encoded private key for the GitHub App identified by the github-app-id input. Used to mint a narrowly scoped installation token.
+        required: true
+      mailings-token:
+        description: Optional token used to dispatch approved email communications to the configured mailings repository. When omitted, mail intents remain planned but are not sent.
+        required: false
+      slack-token:
+        description: Optional Slack bot token used for approved notifications. When omitted, Slack delivery is skipped safely.
+        required: false
+    outputs:
+      state:
+        description: Derived lifecycle state for the target meetup issue, such as draft, planned, ready, held, or follow-up-complete.
+        value: ${{ jobs.manage.outputs.state }}
+      is-ready:
+        description: Whether the current meetup issue revision satisfies readiness checks.
+        value: ${{ jobs.manage.outputs.is-ready }}
+      diagnostics:
+        description: Redacted JSON diagnostics produced by event reconciliation.
+        value: ${{ jobs.manage.outputs.diagnostics }}
+      communication-diagnostics:
+        description: Redacted JSON diagnostics produced by approval capture and communication reconciliation.
+        value: ${{ jobs.manage.outputs.communication-diagnostics }}
+
+permissions: {}
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: meetup-event-${{ github.repository_id }}-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    outputs:
+      state: ${{ steps.reconcile.outputs.state }}
+      is-ready: ${{ steps.reconcile.outputs.is-ready }}
+      diagnostics: ${{ steps.reconcile.outputs.diagnostics }}
+      communication-diagnostics: ${{ steps.communications.outputs.diagnostics }}
+    steps:
+      - name: Create narrowly scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
+        with:
+          app-id: ${{ inputs.github-app-id }}
+          private-key: ${{ secrets.github-app-private-key }} # zizmor: ignore[secrets-outside-env] reusable workflows cannot safely consume environment secrets without broad inherit; this workflow forwards only the required secret
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: read
+          permission-issues: write
+
+      - name: Checkout consumer repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: local-workflow-actions
+        uses: hoverkraft-tech/ci-github-common/actions/local-workflow-actions@3a27d31e9ccefbe9609cc9165017ed100ff34a22 # 0.38.0
+        with:
+          actions-path: actions
+
+      - name: Reconcile communications
+        id: communications
+        uses: ./../self-workflow/actions/communication/reconcile
+        env:
+          SLACK_CHANNEL_ID: ${{ inputs.slack-channel-id }}
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          mode: dispatch
+          github-token: ${{ steps.app-token.outputs.token }}
+          managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
+          mailings-token: ${{ secrets.mailings-token }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly to avoid secrets: inherit
+          slack-token: ${{ secrets.slack-token }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly to avoid secrets: inherit
+          dispatch-authorized: "true"
+
+      - name: Reconcile event
+        id: reconcile
+        if: always()
+        uses: ./../self-workflow/actions/event/reconcile
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          mode: fix
+          github-token: ${{ steps.app-token.outputs.token }}
+          managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}

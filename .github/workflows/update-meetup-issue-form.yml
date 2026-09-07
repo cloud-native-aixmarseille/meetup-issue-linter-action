@@ -1,0 +1,104 @@
+# Reusable workflow that validates private referentials and updates the public
+# meetup issue form when the checked-out projection is stale.
+name: Update meetup issue form
+
+on:
+  workflow_call:
+    inputs:
+      github-app-id:
+        description: GitHub App ID used to mint the narrowly scoped installation token for meetup automation.
+        required: true
+        type: string
+    outputs:
+      is-valid:
+        description: Whether the private referential catalogs passed validation before issue-form projection.
+        value: ${{ jobs.synchronize.outputs.is-valid }}
+      host-count:
+        description: Number of valid host entries detected during referential validation.
+        value: ${{ jobs.synchronize.outputs.host-count }}
+      speaker-count:
+        description: Number of valid speaker entries detected during referential validation.
+        value: ${{ jobs.synchronize.outputs.speaker-count }}
+      referential-diagnostics:
+        description: Redacted JSON diagnostics produced during referential validation.
+        value: ${{ jobs.synchronize.outputs.referential-diagnostics }}
+      changed:
+        description: Whether the checked-out issue form differed from the desired public projection.
+        value: ${{ jobs.synchronize.outputs.changed }}
+      changed-files:
+        description: JSON array of repository-relative files changed or that would change during synchronization.
+        value: ${{ jobs.synchronize.outputs.changed-files }}
+      diagnostics:
+        description: Redacted JSON diagnostics produced by the issue-form projection step.
+        value: ${{ jobs.synchronize.outputs.diagnostics }}
+    secrets:
+      github-app-private-key:
+        description: PEM-encoded private key for the GitHub App identified by the github-app-id input. Used to mint a narrowly scoped installation token.
+        required: true
+
+permissions: {}
+
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      is-valid: ${{ steps.referentials.outputs.is-valid }}
+      host-count: ${{ steps.referentials.outputs.host-count }}
+      speaker-count: ${{ steps.referentials.outputs.speaker-count }}
+      referential-diagnostics: ${{ steps.referentials.outputs.diagnostics }}
+      changed: ${{ steps.synchronize.outputs.changed }}
+      changed-files: ${{ steps.synchronize.outputs.changed-files }}
+      diagnostics: ${{ steps.synchronize.outputs.diagnostics }}
+    steps:
+      - name: Create narrowly scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # v3.0.0
+        with:
+          app-id: ${{ inputs.github-app-id }}
+          private-key: ${{ secrets.github-app-private-key }} # zizmor: ignore[secrets-outside-env] reusable workflows cannot safely consume environment secrets without broad inherit; this workflow forwards only the required secret
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Checkout consumer repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: local-workflow-actions
+        uses: hoverkraft-tech/ci-github-common/actions/local-workflow-actions@3a27d31e9ccefbe9609cc9165017ed100ff34a22 # 0.38.0
+        with:
+          actions-path: actions
+
+      - name: Validate referentials
+        id: referentials
+        uses: ./../self-workflow/actions/referential/validate
+
+      - name: Enforce valid referentials
+        if: steps.referentials.outputs.is-valid != 'true'
+        shell: bash
+        run: |
+          echo "Meetup referentials are invalid; issue-form synchronization is blocked." >&2
+          exit 1
+
+      - name: Render issue form
+        id: synchronize
+        uses: ./../self-workflow/actions/referential/sync-issue-form
+        with:
+          mode: fix
+
+      - name: Open or update synchronization pull request
+        if: steps.synchronize.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: chore/update-meetup-issue-form
+          delete-branch: true
+          title: "chore: update meetup issue form"
+          commit-message: "chore: update meetup issue form"
+          body: |
+            Synchronizes the meetup issue form from the validated referential
+            projection using the central meetup automation workflow.

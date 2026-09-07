@@ -1,0 +1,25 @@
+{
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"name": "github-event-repository",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/github-event-repository/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/github-event-repository/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --config packages/adapter/github-event-repository/vitest.config.ts"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:github",
+		"responsibility:event-repository"
+	]
+}

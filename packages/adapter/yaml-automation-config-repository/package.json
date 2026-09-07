@@ -1,0 +1,11 @@
+{
+	"name": "@meetup-automation/yaml-automation-config-repository",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": "./src/index.ts",
+	"dependencies": {
+		"@meetup-automation/journey": "workspace:*",
+		"yaml": "^2.9.0"
+	}
+}

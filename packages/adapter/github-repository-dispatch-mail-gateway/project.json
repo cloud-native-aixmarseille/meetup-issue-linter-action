@@ -1,0 +1,24 @@
+{
+	"name": "github-repository-dispatch-mail-gateway",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/github-repository-dispatch-mail-gateway/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/github-repository-dispatch-mail-gateway/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/github-repository-dispatch-mail-gateway"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:github",
+		"responsibility:repository-dispatch-mail-gateway"
+	]
+}

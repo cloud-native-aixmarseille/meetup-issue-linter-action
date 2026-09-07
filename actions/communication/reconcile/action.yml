@@ -1,0 +1,39 @@
+name: Reconcile meetup communications
+description: Plan due meetup communications and, when authorized, dispatch them through the configured mail and Slack gateways.
+author: Cloud Native Aix-Marseille
+inputs:
+  issue-number:
+    description: GitHub issue number in the caller repository containing the meetup event document to inspect.
+    required: true
+  mode:
+    description: Use check to plan and validate only, or dispatch to send due communications when every safety gate passes.
+    required: false
+    default: check
+  github-token:
+    description: Token for the caller repository. Requires issues:read; dispatch mode also requires issues:write.
+    required: true
+  managed-comment-author:
+    description: Trusted bot login allowed to create or update the managed delivery ledger comment, for example my-app[bot].
+    required: true
+  mailings-token:
+    description: Optional token used to dispatch approved email communications to the configured mailings repository. When omitted, mail intents remain planned but are not sent.
+    required: false
+  slack-token:
+    description: Optional Slack bot token used for approved notifications. When omitted, Slack delivery is skipped safely.
+    required: false
+  dispatch-authorized:
+    description: Internal workflow assertion that the shared event concurrency lock is held and dispatch is authorized by the caller workflow.
+    required: false
+    default: "false"
+outputs:
+  result:
+    description: Versioned redacted JSON envelope containing the effective mode, reconciliation counts, hashed intent identifiers, and diagnostics.
+  planned-count:
+    description: Number of due communication intents identified for the current event revision.
+  dispatched-count:
+    description: Number of gateway calls attempted during this run.
+  diagnostics:
+    description: Redacted JSON diagnostics safe to expose in workflow logs and summaries.
+runs:
+  using: node24
+  main: dist/index.js

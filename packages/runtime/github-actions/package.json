@@ -1,0 +1,26 @@
+{
+	"name": "@meetup-automation/github-actions-runtime",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": "./src/index.ts",
+	"dependencies": {
+		"@actions/core": "^3.0.1",
+		"@actions/github": "^9.1.1",
+		"@meetup-automation/communication": "workspace:*",
+		"@meetup-automation/csv-referential-repository": "workspace:*",
+		"@meetup-automation/event": "workspace:*",
+		"@meetup-automation/github-communication-approval-repository": "workspace:*",
+		"@meetup-automation/github-delivery-ledger": "workspace:*",
+		"@meetup-automation/github-event-comment-repository": "workspace:*",
+		"@meetup-automation/github-event-repository": "workspace:*",
+		"@meetup-automation/github-issue-form-event-document-codec": "workspace:*",
+		"@meetup-automation/github-repository-dispatch-mail-gateway": "workspace:*",
+		"@meetup-automation/journey": "workspace:*",
+		"@meetup-automation/referential": "workspace:*",
+		"@meetup-automation/slack-notification-gateway": "workspace:*",
+		"@meetup-automation/system-clock": "workspace:*",
+		"@meetup-automation/yaml-automation-config-repository": "workspace:*",
+		"@meetup-automation/yaml-issue-form-projection": "workspace:*"
+	}
+}

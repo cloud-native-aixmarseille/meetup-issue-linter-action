@@ -1,0 +1,17 @@
+name: List active meetup events
+description: List active meetup issue numbers from the caller repository using the configured event label and lifecycle rules.
+author: Cloud Native Aix-Marseille
+inputs:
+  github-token:
+    description: Token for the caller repository with issues:read permission.
+    required: true
+outputs:
+  result:
+    description: Versioned JSON envelope containing the selected issue numbers, their count, and redacted diagnostics.
+  issue-numbers:
+    description: JSON array of nonterminal meetup issue numbers selected for downstream workflows.
+  diagnostics:
+    description: Redacted JSON diagnostics safe to expose in workflow logs and summaries.
+runs:
+  using: node24
+  main: dist/index.js

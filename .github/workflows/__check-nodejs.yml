@@ -15,5 +15,8 @@ jobs:
       pull-requests: write
       security-events: write
     with:
+      build: |
+        workspace:build
+        package
       test: |
         {"coverage":"codecov"}
