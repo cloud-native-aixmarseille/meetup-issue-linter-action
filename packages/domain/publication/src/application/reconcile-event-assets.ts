@@ -17,7 +17,6 @@ export class ReconcileEventAssets {
 
 	async execute(input: {
 		eventId: string;
-		legacyEventId: string;
 		date: string;
 		hostName: string;
 		existingUrl?: string;
@@ -46,22 +45,16 @@ export class ReconcileEventAssets {
 		}).format(new Date(`${date}T00:00:00Z`));
 		const request = {
 			eventId: input.eventId,
-			legacyEventId: input.legacyEventId,
 			idempotencyKey: `${input.eventId}:assets:v1`,
 			title: `${date} - ${month} - ${host}`,
-			existingUrl: input.existingUrl,
 		};
 		const diagnostics: PublicationDiagnostic[] = [];
 		let container = await this.repository.findContainer(request);
-		if (
-			!container ||
-			container.name !== request.title ||
-			container.eventId !== input.eventId
-		) {
+		if (!container || container.name !== request.title) {
 			diagnostics.push(
 				diagnostic(
 					"container.drift",
-					"The event asset folder must be created, renamed, or associated with this event",
+					"The event asset folder must be created or renamed",
 					input.mode === "fix",
 				),
 			);
@@ -82,24 +75,15 @@ export class ReconcileEventAssets {
 		const files: Record<string, string> = {};
 		for (const template of templates) {
 			const name = template.name.replaceAll("[EVENT_DATE:YYYY-MM-DD]", date);
-			const candidates = currentFiles.filter(
+			const matches = currentFiles.filter(
 				(file) => file.templateId === template.id,
 			);
-			// Adopt historical template copies only when their exact name is unambiguous.
-			const matches = candidates.length
-				? candidates
-				: currentFiles.filter((file) => !file.templateId && file.name === name);
 			if (matches.length > 1)
 				throw new Error(
 					"Ambiguous event asset copies require manual reconciliation",
 				);
 			let file: AssetFile | undefined = matches[0];
-			if (
-				!file ||
-				file.name !== name ||
-				file.kind !== template.kind ||
-				file.templateId !== template.id
-			) {
+			if (!file || file.name !== name || file.kind !== template.kind) {
 				diagnostics.push(
 					diagnostic(
 						"file.drift",

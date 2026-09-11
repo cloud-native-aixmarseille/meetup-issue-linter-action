@@ -9,7 +9,6 @@ import {
 const options = { parentFolderId: "parent", templateFolderId: "templates" };
 const request = {
 	eventId: "community/meetups#42",
-	legacyEventId: "42",
 	title: "2026-09-30 - September - Example Host",
 	idempotencyKey: "community/meetups#42:assets:v1",
 };
@@ -21,7 +20,7 @@ const folder = {
 	name: request.title,
 	mimeType: "application/vnd.google-apps.folder",
 	parents: [options.parentFolderId],
-	appProperties: { meetup_event_key: eventKey, issue_number: "42" },
+	appProperties: { meetup_event_key: eventKey },
 };
 const template = { id: "template-1", name: "Slides", kind: "slides" };
 const file = {
@@ -37,7 +36,6 @@ const file = {
 function setup() {
 	const files = {
 		list: vi.fn().mockResolvedValue({ data: { files: [] } }),
-		get: vi.fn().mockResolvedValue({ data: folder }),
 		create: vi.fn().mockResolvedValue({ data: folder }),
 		update: vi.fn().mockResolvedValue({ data: folder }),
 		copy: vi.fn().mockResolvedValue({ data: file }),
@@ -98,19 +96,14 @@ describe("Google Drive asset repository", () => {
 		);
 	});
 
-	it("adopts a linked legacy folder and renames it without creating another", async () => {
+	it("renames a folder identified by the event key without creating another", async () => {
 		const { files, repository } = setup();
-		files.get.mockResolvedValue({
+		files.list.mockResolvedValue({
 			data: {
-				...folder,
-				name: "Old name",
-				appProperties: { issue_number: "42" },
+				files: [{ ...folder, name: "Previous name" }],
 			},
 		});
-		await repository.ensureContainer({
-			...request,
-			existingUrl: "https://drive.google.com/drive/folders/folder-1/",
-		});
+		await repository.ensureContainer(request);
 		expect(files.update).toHaveBeenCalledWith(
 			expect.objectContaining({
 				fileId: folder.id,
@@ -129,34 +122,31 @@ describe("Google Drive asset repository", () => {
 		{ mimeType: "application/pdf" },
 		{ trashed: true },
 		{ appProperties: { meetup_event_key: "another-event" } },
-		{ appProperties: { issue_number: "43" } },
-	])(
-		"rejects out-of-scope or conflicting legacy folders: %j",
-		async (override) => {
-			const { files, repository } = setup();
-			files.get.mockResolvedValue({ data: { ...folder, ...override } });
-			await expect(
-				repository.ensureContainer({
-					...request,
-					existingUrl: "https://drive.google.com/drive/folders/folder-1",
-				}),
-			).rejects.toThrow(
-				"outside the configured parent or belongs to another event",
-			);
-			expect(files.create).not.toHaveBeenCalled();
-			expect(files.update).not.toHaveBeenCalled();
-		},
-	);
-
-	it("does not fetch arbitrary issue URLs", async () => {
+		{ appProperties: {} },
+		{ appProperties: undefined },
+	])("rejects folders that do not match the requested event and parent: %j", async (override) => {
 		const { files, repository } = setup();
-		expect(
-			await repository.findContainer({
-				...request,
-				existingUrl: "https://example.test/private",
-			}),
-		).toBeUndefined();
-		expect(files.get).not.toHaveBeenCalled();
+		files.list.mockResolvedValue({
+			data: { files: [{ ...folder, ...override }] },
+		});
+		await expect(repository.ensureContainer(request)).rejects.toThrow(
+			"does not match the requested event and configured parent",
+		);
+		expect(files.create).not.toHaveBeenCalled();
+		expect(files.update).not.toHaveBeenCalled();
+	});
+
+	it("keeps event keys distinct across repositories with the same issue number", async () => {
+		const { files, repository } = setup();
+		await repository.findContainer(request);
+		await repository.findContainer({
+			...request,
+			eventId: "another/meetups#42",
+			idempotencyKey: "another/meetups#42:assets:v1",
+		});
+		expect(files.list.mock.calls[0][0].q).not.toBe(
+			files.list.mock.calls[1][0].q,
+		);
 	});
 
 	it("rejects duplicate folders instead of selecting the first result", async () => {
@@ -213,16 +203,16 @@ describe("Google Drive asset repository", () => {
 		);
 	});
 
-	it.each([{ incompleteSearch: true }, { nextPageToken: "repeated" }])(
-		"rejects incomplete or looping paginated responses: %j",
-		async (data) => {
-			const { files, repository } = setup();
-			files.list.mockResolvedValue({ data });
-			await expect(repository.listFiles("folder")).rejects.toThrow(
-				/incomplete search|repeated pagination/,
-			);
-		},
-	);
+	it.each([
+		{ incompleteSearch: true },
+		{ nextPageToken: "repeated" },
+	])("rejects incomplete or looping paginated responses: %j", async (data) => {
+		const { files, repository } = setup();
+		files.list.mockResolvedValue({ data });
+		await expect(repository.listFiles("folder")).rejects.toThrow(
+			/incomplete search|repeated pagination/,
+		);
+	});
 
 	it.each([
 		{},
@@ -249,30 +239,35 @@ describe("Google Drive asset repository", () => {
 		);
 	});
 
-	it.each([401, 403, 429, 500, undefined])(
-		"redacts provider responses and does not retry HTTP %s",
-		async (status) => {
-			const { files, repository } = setup();
-			files.create.mockRejectedValue({
-				response: { status, data: "private@example.test" },
-				message: "secret-token",
-			});
-			await expect(repository.ensureContainer(request)).rejects.toMatchObject({
-				name: "GoogleDriveAssetRepositoryError",
-				message: expect.not.stringMatching(/private@example.test|secret-token/),
-			});
-			expect(files.create).toHaveBeenCalledOnce();
-		},
-	);
+	it.each([
+		401,
+		403,
+		429,
+		500,
+		undefined,
+	])("redacts provider responses and does not retry HTTP %s", async (status) => {
+		const { files, repository } = setup();
+		files.create.mockRejectedValue({
+			response: { status, data: "private@example.test" },
+			message: "secret-token",
+		});
+		await expect(repository.ensureContainer(request)).rejects.toMatchObject({
+			name: "GoogleDriveAssetRepositoryError",
+			message: expect.not.stringMatching(/private@example.test|secret-token/),
+		});
+		expect(files.create).toHaveBeenCalledOnce();
+	});
 
-	it.each(["not json", "null", "{}", '{"type":"external_account"}'])(
-		"rejects unsupported credentials without exposing them: %s",
-		(credentials) => {
-			expect(() =>
-				createGoogleDriveAssetRepository(credentials, options),
-			).toThrow("Invalid Google service-account credentials");
-		},
-	);
+	it.each([
+		"not json",
+		"null",
+		"{}",
+		'{"type":"external_account"}',
+	])("rejects unsupported credentials without exposing them: %s", (credentials) => {
+		expect(() =>
+			createGoogleDriveAssetRepository(credentials, options),
+		).toThrow("Invalid Google service-account credentials");
+	});
 
 	it("constructs a service-account client without calling the provider", () => {
 		expect(

@@ -78,7 +78,6 @@ export class ManageMeetupAssets {
 			this.dependencies.assetRepository,
 		).execute({
 			eventId: `${input.identity.repository}#${input.identity.issueNumber}`,
-			legacyEventId: String(input.identity.issueNumber),
 			date: evaluation.event.date,
 			hostName: evaluation.event.host.displayName,
 			existingUrl: evaluation.event.publicationLinks.assets,

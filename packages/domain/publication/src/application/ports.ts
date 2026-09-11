@@ -22,15 +22,13 @@ export type AssetContainer = Readonly<{
 	id: string;
 	url: string;
 	name: string;
-	eventId?: string;
+	eventId: string;
 }>;
 
 export type EnsureAssetContainerRequest = Readonly<{
 	eventId: string;
-	legacyEventId: string;
 	title: string;
 	idempotencyKey: string;
-	existingUrl?: string;
 }>;
 
 export type AssetTemplate = Readonly<{

@@ -208,23 +208,19 @@ function assetJourney() {
 				url: "https://drive.google.com/drive/folders/new-folder",
 				eventId: `${identity.repository}#42`,
 			}),
-		listTemplates: vi
-			.fn<AssetRepository["listTemplates"]>()
-			.mockResolvedValue([
-				{
-					id: "template",
-					name: "[EVENT_DATE:YYYY-MM-DD] Slides",
-					kind: "slides",
-				},
-			]),
+		listTemplates: vi.fn<AssetRepository["listTemplates"]>().mockResolvedValue([
+			{
+				id: "template",
+				name: "[EVENT_DATE:YYYY-MM-DD] Slides",
+				kind: "slides",
+			},
+		]),
 		listFiles: vi.fn<AssetRepository["listFiles"]>().mockResolvedValue([]),
-		copyTemplate: vi
-			.fn<AssetRepository["copyTemplate"]>()
-			.mockResolvedValue({
-				id: "copy",
-				name: "2026-09-30 Slides",
-				url: "https://docs.google.com/presentation/d/copy",
-			}),
+		copyTemplate: vi.fn<AssetRepository["copyTemplate"]>().mockResolvedValue({
+			id: "copy",
+			name: "2026-09-30 Slides",
+			url: "https://docs.google.com/presentation/d/copy",
+		}),
 		updateFile: vi.fn<AssetRepository["updateFile"]>(),
 	};
 	const useCase = new ManageMeetupAssets({
@@ -295,39 +291,41 @@ describe("ManageMeetupAssets", () => {
 		expect(eventDependencies.repository.applyPatch).not.toHaveBeenCalled();
 	});
 
-	it.each(["unrelated", "cancelled", "unresolved-host", "invalid-date"])(
-		"skips asset writes for %s events",
-		async (scenario) => {
-			const { eventDependencies, assetRepository, useCase } = assetJourney();
-			if (scenario === "unrelated")
-				vi.mocked(eventDependencies.repository.find).mockResolvedValue({
-					...sourceDocument,
-					labels: [],
-				});
-			else
-				vi.mocked(eventDependencies.documentCodec.decode).mockReturnValue({
-					event: {
-						...event,
-						...(scenario === "cancelled"
-							? {
-									occurrenceStatus: "cancelled",
-									labels: [...event.labels, "event:cancelled"],
-								}
-							: scenario === "unresolved-host"
-								? { host: { displayName: "Unknown" } }
-								: { date: "invalid" }),
-					},
-					diagnostics: [],
-				});
-			const result = await useCase.execute({
-				configPath: "",
-				identity,
-				mode: "fix",
+	it.each([
+		"unrelated",
+		"cancelled",
+		"unresolved-host",
+		"invalid-date",
+	])("skips asset writes for %s events", async (scenario) => {
+		const { eventDependencies, assetRepository, useCase } = assetJourney();
+		if (scenario === "unrelated")
+			vi.mocked(eventDependencies.repository.find).mockResolvedValue({
+				...sourceDocument,
+				labels: [],
 			});
-			expect(result.persisted).toBe(false);
-			expect(assetRepository.ensureContainer).not.toHaveBeenCalled();
-		},
-	);
+		else
+			vi.mocked(eventDependencies.documentCodec.decode).mockReturnValue({
+				event: {
+					...event,
+					...(scenario === "cancelled"
+						? {
+								occurrenceStatus: "cancelled",
+								labels: [...event.labels, "event:cancelled"],
+							}
+						: scenario === "unresolved-host"
+							? { host: { displayName: "Unknown" } }
+							: { date: "invalid" }),
+				},
+				diagnostics: [],
+			});
+		const result = await useCase.execute({
+			configPath: "",
+			identity,
+			mode: "fix",
+		});
+		expect(result.persisted).toBe(false);
+		expect(assetRepository.ensureContainer).not.toHaveBeenCalled();
+	});
 
 	it("fails when the issue cannot be found", async () => {
 		const { eventDependencies, useCase } = assetJourney();
