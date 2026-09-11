@@ -7,7 +7,6 @@ import {
 
 const input = {
 	eventId: "community/meetups#42",
-	legacyEventId: "42",
 	date: "2026-09-30",
 	hostName: "Example Host",
 	mode: "fix" as const,
@@ -61,7 +60,6 @@ describe("event asset reconciliation", () => {
 			expect.objectContaining({
 				title: folder.name,
 				idempotencyKey: "community/meetups#42:assets:v1",
-				legacyEventId: "42",
 			}),
 		);
 		expect(repository.copyTemplate).toHaveBeenCalledWith(
@@ -102,7 +100,6 @@ describe("event asset reconciliation", () => {
 		repository.findContainer.mockResolvedValue({
 			...folder,
 			name: "Old folder",
-			eventId: undefined,
 		});
 		repository.listFiles.mockResolvedValue([
 			{ ...file, name: "Old slides", kind: undefined },
@@ -118,15 +115,14 @@ describe("event asset reconciliation", () => {
 		expect(repository.copyTemplate).not.toHaveBeenCalled();
 	});
 
-	it("renames folders and adopts legacy copies without duplicating them", async () => {
+	it("renames managed folders and updates copies identified by template ID", async () => {
 		const { repository, reconcile } = setup();
 		repository.findContainer.mockResolvedValue({
 			...folder,
 			name: "Old name",
-			eventId: undefined,
 		});
 		repository.listFiles.mockResolvedValue([
-			{ ...file, templateId: undefined, kind: undefined },
+			{ ...file, name: "Previous slides name", kind: undefined },
 		]);
 		await reconcile.execute(input);
 		expect(repository.ensureContainer).toHaveBeenCalledOnce();
@@ -146,16 +142,18 @@ describe("event asset reconciliation", () => {
 		expect(repository.updateFile).toHaveBeenCalledOnce();
 	});
 
-	it.each(["", "invalid", "2026-02-30", "2026-13-01"])(
-		"does not contact the asset repository for invalid date %s",
-		async (date) => {
-			const { repository, reconcile } = setup();
-			expect(
-				(await reconcile.execute({ ...input, date })).diagnostics[0].code,
-			).toBe("publication.assets.prerequisites");
-			expect(repository.listTemplates).not.toHaveBeenCalled();
-		},
-	);
+	it.each([
+		"",
+		"invalid",
+		"2026-02-30",
+		"2026-13-01",
+	])("does not contact the asset repository for invalid date %s", async (date) => {
+		const { repository, reconcile } = setup();
+		expect(
+			(await reconcile.execute({ ...input, date })).diagnostics[0].code,
+		).toBe("publication.assets.prerequisites");
+		expect(repository.listTemplates).not.toHaveBeenCalled();
+	});
 
 	it("requires a host and uses civil date month names independently of runtime timezone", async () => {
 		const { repository, reconcile } = setup();
@@ -177,31 +175,51 @@ describe("event asset reconciliation", () => {
 		[{ ...template, kind: "" }],
 		[template, template],
 		[template, { ...template, id: "template-2" }],
-	])(
-		"rejects invalid template catalogs before any mutation",
-		async (...templates) => {
-			const { repository, reconcile } = setup();
-			repository.listTemplates.mockResolvedValue(templates);
-			await expect(reconcile.execute(input)).rejects.toThrow("Asset templates");
-			expect(repository.ensureContainer).not.toHaveBeenCalled();
-		},
-	);
+	])("rejects invalid template catalogs before any mutation", async (...templates) => {
+		const { repository, reconcile } = setup();
+		repository.listTemplates.mockResolvedValue(templates);
+		await expect(reconcile.execute(input)).rejects.toThrow("Asset templates");
+		expect(repository.ensureContainer).not.toHaveBeenCalled();
+	});
 
-	it.each([true, false])(
-		"rejects ambiguous matching copies (tagged: %s)",
-		async (tagged) => {
-			const { repository, reconcile } = setup();
-			const duplicate = {
-				...file,
-				templateId: tagged ? file.templateId : undefined,
-			};
-			repository.listFiles.mockResolvedValue([
-				duplicate,
-				{ ...duplicate, id: "duplicate" },
-			]);
-			await expect(reconcile.execute(input)).rejects.toThrow("Ambiguous");
-			expect(repository.updateFile).not.toHaveBeenCalled();
-			expect(repository.copyTemplate).not.toHaveBeenCalled();
-		},
-	);
+	it("rejects multiple copies with the same template ID", async () => {
+		const { repository, reconcile } = setup();
+		repository.listFiles.mockResolvedValue([
+			file,
+			{ ...file, id: "duplicate" },
+		]);
+		await expect(reconcile.execute(input)).rejects.toThrow("Ambiguous");
+		expect(repository.updateFile).not.toHaveBeenCalled();
+		expect(repository.copyTemplate).not.toHaveBeenCalled();
+	});
+
+	it("creates a managed copy when untagged files share the expected filename", async () => {
+		const { repository, reconcile } = setup();
+		repository.listFiles.mockResolvedValue([
+			{ ...file, id: "unmanaged-1", templateId: undefined },
+			{ ...file, id: "unmanaged-2", templateId: undefined },
+		]);
+		await reconcile.execute(input);
+		expect(repository.copyTemplate).toHaveBeenCalledWith(
+			folder.id,
+			template,
+			file.name,
+		);
+		expect(repository.updateFile).not.toHaveBeenCalled();
+	});
+
+	it("uses the current issue link only to report projection drift", async () => {
+		const { repository, reconcile } = setup();
+		repository.findContainer.mockResolvedValue(undefined);
+		await reconcile.execute({
+			...input,
+			existingUrl: "https://drive.google.com/drive/folders/unmanaged",
+		});
+		expect(repository.findContainer).toHaveBeenCalledWith({
+			eventId: input.eventId,
+			idempotencyKey: `${input.eventId}:assets:v1`,
+			title: folder.name,
+		});
+		expect(repository.ensureContainer).toHaveBeenCalledOnce();
+	});
 });

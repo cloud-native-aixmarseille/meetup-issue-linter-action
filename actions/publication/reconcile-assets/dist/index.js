@@ -50840,38 +50840,20 @@ var GoogleDriveAssetRepository = class {
       throw failure(
         "Multiple asset folders match this event; manual reconciliation is required"
       );
-    let file2 = matches[0];
-    if (!file2 && request2.existingUrl) {
-      const id = /^https:\/\/drive\.google\.com\/drive\/folders\/([\w-]+)\/?$/.exec(
-        request2.existingUrl
-      )?.[1];
-      if (id)
-        file2 = await remote(
-          () => this.client.files.get(
-            { fileId: id, fields, supportsAllDrives: true },
-            requestOptions
-          )
-        ).then(({ data }) => data);
-    }
+    const file2 = matches[0];
     if (!file2) return void 0;
-    const properties = file2.appProperties ?? {};
-    if (file2.trashed || file2.mimeType !== folderMimeType || !file2.parents?.includes(this.options.parentFolderId) || properties.meetup_event_key && properties.meetup_event_key !== key(request2) || properties.issue_number && properties.issue_number !== request2.legacyEventId) {
+    if (file2.trashed || file2.mimeType !== folderMimeType || !file2.parents?.includes(this.options.parentFolderId) || file2.appProperties?.meetup_event_key !== key(request2)) {
       throw failure(
-        "The linked asset folder is outside the configured parent or belongs to another event"
+        "The asset folder does not match the requested event and configured parent"
       );
     }
-    return container(
-      file2,
-      properties.meetup_event_key === key(request2) ? request2.eventId : void 0
-    );
+    return container(file2, request2.eventId);
   }
   async ensureContainer(request2) {
     const current = await this.findContainer(request2);
-    if (current?.name === request2.title && current.eventId === request2.eventId)
-      return current;
+    if (current?.name === request2.title) return current;
     const appProperties = {
-      meetup_event_key: key(request2),
-      issue_number: request2.legacyEventId
+      meetup_event_key: key(request2)
     };
     const response = current ? await remote(
       () => this.client.files.update(
@@ -71172,18 +71154,16 @@ var ReconcileEventAssets = class {
     }).format(/* @__PURE__ */ new Date(`${date5}T00:00:00Z`));
     const request2 = {
       eventId: input2.eventId,
-      legacyEventId: input2.legacyEventId,
       idempotencyKey: `${input2.eventId}:assets:v1`,
-      title: `${date5} - ${month} - ${host}`,
-      existingUrl: input2.existingUrl
+      title: `${date5} - ${month} - ${host}`
     };
     const diagnostics = [];
     let container2 = await this.repository.findContainer(request2);
-    if (!container2 || container2.name !== request2.title || container2.eventId !== input2.eventId) {
+    if (!container2 || container2.name !== request2.title) {
       diagnostics.push(
         diagnostic2(
           "container.drift",
-          "The event asset folder must be created, renamed, or associated with this event",
+          "The event asset folder must be created or renamed",
           input2.mode === "fix"
         )
       );
@@ -71204,16 +71184,15 @@ var ReconcileEventAssets = class {
     const files = {};
     for (const template of templates) {
       const name = template.name.replaceAll("[EVENT_DATE:YYYY-MM-DD]", date5);
-      const candidates = currentFiles.filter(
+      const matches = currentFiles.filter(
         (file3) => file3.templateId === template.id
       );
-      const matches = candidates.length ? candidates : currentFiles.filter((file3) => !file3.templateId && file3.name === name);
       if (matches.length > 1)
         throw new Error(
           "Ambiguous event asset copies require manual reconciliation"
         );
       let file2 = matches[0];
-      if (!file2 || file2.name !== name || file2.kind !== template.kind || file2.templateId !== template.id) {
+      if (!file2 || file2.name !== name || file2.kind !== template.kind) {
         diagnostics.push(
           diagnostic2(
             "file.drift",
@@ -72324,7 +72303,6 @@ var ManageMeetupAssets = class {
       this.dependencies.assetRepository
     ).execute({
       eventId: `${input2.identity.repository}#${input2.identity.issueNumber}`,
-      legacyEventId: String(input2.identity.issueNumber),
       date: evaluation.event.date,
       hostName: evaluation.event.host.displayName,
       existingUrl: evaluation.event.publicationLinks.assets,

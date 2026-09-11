@@ -2,9 +2,7 @@
 
 # Meetup Event Automation
 
-<div align="center">
-  <img src=".github/logo.svg" width="60px" align="center" alt="Meetup Event Automation logo" />
-</div>
+![Meetup Event Automation logo](.github/logo.svg)
 
 ---
 
@@ -66,20 +64,20 @@ transitions.
 Adapter names state both their technology and responsibility. Vendor objects
 remain at these boundaries and do not leak into domain APIs.
 
-| Adapter                                                                                                 | Responsibility                                                     |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| [`github-event-repository`](packages/adapter/github-event-repository)                                   | Read and minimally patch GitHub Issue-backed event documents       |
-| [`github-event-comment-repository`](packages/adapter/github-event-comment-repository)                   | Reconcile the single managed diagnostic comment                    |
-| [`github-issue-form-event-document-codec`](packages/adapter/github-issue-form-event-document-codec)     | Decode, migrate, and render versioned issue-form event documents   |
-| [`github-communication-approval-repository`](packages/adapter/github-communication-approval-repository) | Persist maintainer-approved event, revision, and routing snapshots |
-| [`github-delivery-ledger`](packages/adapter/github-delivery-ledger)                                     | Persist communication delivery reservations and outcomes           |
-| [`github-repository-dispatch-mail-gateway`](packages/adapter/github-repository-dispatch-mail-gateway)   | Dispatch idempotent mail intents through a repository event        |
-| [`csv-referential-repository`](packages/adapter/csv-referential-repository)                             | Load host and speaker referentials from checked-out CSV files      |
-| [`yaml-issue-form-projection`](packages/adapter/yaml-issue-form-projection)                             | Project public referential choices into the issue form             |
-| [`yaml-automation-config-repository`](packages/adapter/yaml-automation-config-repository)               | Load and validate the checked-out journey configuration            |
-| [`slack-notification-gateway`](packages/adapter/slack-notification-gateway)                             | Deliver redacted Slack notifications                               |
-| [`system-clock`](packages/adapter/system-clock)                                                         | Supply explicit instants to time-dependent use cases               |
-| [`google-drive-asset-repository`](packages/adapter/google-drive-asset-repository) | Reconcile event folders and template copies through the publication asset port |
+| Adapter                                                                                                 | Responsibility                                                                 |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [`github-event-repository`](packages/adapter/github-event-repository)                                   | Read and minimally patch GitHub Issue-backed event documents                   |
+| [`github-event-comment-repository`](packages/adapter/github-event-comment-repository)                   | Reconcile the single managed diagnostic comment                                |
+| [`github-issue-form-event-document-codec`](packages/adapter/github-issue-form-event-document-codec)     | Decode, migrate, and render versioned issue-form event documents               |
+| [`github-communication-approval-repository`](packages/adapter/github-communication-approval-repository) | Persist maintainer-approved event, revision, and routing snapshots             |
+| [`github-delivery-ledger`](packages/adapter/github-delivery-ledger)                                     | Persist communication delivery reservations and outcomes                       |
+| [`github-repository-dispatch-mail-gateway`](packages/adapter/github-repository-dispatch-mail-gateway)   | Dispatch idempotent mail intents through a repository event                    |
+| [`csv-referential-repository`](packages/adapter/csv-referential-repository)                             | Load host and speaker referentials from checked-out CSV files                  |
+| [`yaml-issue-form-projection`](packages/adapter/yaml-issue-form-projection)                             | Project public referential choices into the issue form                         |
+| [`yaml-automation-config-repository`](packages/adapter/yaml-automation-config-repository)               | Load and validate the checked-out journey configuration                        |
+| [`slack-notification-gateway`](packages/adapter/slack-notification-gateway)                             | Deliver redacted Slack notifications                                           |
+| [`system-clock`](packages/adapter/system-clock)                                                         | Supply explicit instants to time-dependent use cases                           |
+| [`google-drive-asset-repository`](packages/adapter/google-drive-asset-repository)                       | Reconcile event folders and template copies through the publication asset port |
 
 ### Actions
 
@@ -87,18 +85,18 @@ Each Action is a thin input/output boundary over the application use cases. Its
 directory contains the public contract, documentation, entrypoint, and
 committed bundle.
 
-| Action                                                                                 | Responsibility                                                   |
-| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [`actions/event/reconcile`](actions/event/reconcile/README.md)                         | Reconcile one event issue and its managed diagnostics            |
-| [`actions/event/list-active`](actions/event/list-active/README.md)                     | List all active event issue numbers with pagination              |
-| [`actions/referential/validate`](actions/referential/validate/README.md)               | Validate private referentials with redacted results              |
-| [`actions/referential/sync-issue-form`](actions/referential/sync-issue-form/README.md) | Synchronize public issue-form choices from referentials          |
-| [`actions/communication/reconcile`](actions/communication/reconcile/README.md)         | Plan or dispatch due communications under workflow authorization |
+| Action                                                                                   | Responsibility                                                           |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [`actions/event/reconcile`](actions/event/reconcile/README.md)                           | Reconcile one event issue and its managed diagnostics                    |
+| [`actions/event/list-active`](actions/event/list-active/README.md)                       | List all active event issue numbers with pagination                      |
+| [`actions/referential/validate`](actions/referential/validate/README.md)                 | Validate private referentials with redacted results                      |
+| [`actions/referential/sync-issue-form`](actions/referential/sync-issue-form/README.md)   | Synchronize public issue-form choices from referentials                  |
+| [`actions/communication/reconcile`](actions/communication/reconcile/README.md)           | Plan or dispatch due communications under workflow authorization         |
 | [`actions/publication/reconcile-assets`](actions/publication/reconcile-assets/README.md) | Check or reconcile Drive folders, template copies, and issue asset links |
 
 Drive integration is optional in both event workflows. See
-[Google Drive event assets](docs/publication-assets.md) for the credential,
-folder-variable, migration, and retry contracts.
+[Google Drive event assets](docs/publication-assets.md) for setup instructions,
+asset identity, and retry behavior.
 
 ### Reusable workflows
 

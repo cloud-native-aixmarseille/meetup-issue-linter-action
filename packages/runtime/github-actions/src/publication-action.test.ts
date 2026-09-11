@@ -77,46 +77,46 @@ describe("publication action boundary", () => {
 		expect(mocks.createAssets).not.toHaveBeenCalled();
 	});
 
-	it.each([{}, { "google-credentials": "secret" }])(
-		"requires the workflow lock assertion before fix mode: %j",
-		async (inputs) => {
-			Object.assign(mocks.inputs, { mode: "fix", ...inputs });
-			await expect(runPublicationReconcileAssetsAction()).rejects.toThrow(
-				"shared event workflow lock",
-			);
-			expect(mocks.createAssets).not.toHaveBeenCalled();
-		},
-	);
+	it.each([
+		{},
+		{ "google-credentials": "secret" },
+	])("requires the workflow lock assertion before fix mode: %j", async (inputs) => {
+		Object.assign(mocks.inputs, { mode: "fix", ...inputs });
+		await expect(runPublicationReconcileAssetsAction()).rejects.toThrow(
+			"shared event workflow lock",
+		);
+		expect(mocks.createAssets).not.toHaveBeenCalled();
+	});
 
-	it.each(["check", "fix"])(
-		"masks credentials and serializes the %s result",
-		async (mode) => {
-			Object.assign(mocks.inputs, {
+	it.each([
+		"check",
+		"fix",
+	])("masks credentials and serializes the %s result", async (mode) => {
+		Object.assign(mocks.inputs, {
+			mode,
+			"mutation-authorized": "true",
+			"google-credentials": "secret-json",
+		});
+		vi.stubEnv("GOOGLE_DRIVE_MEETUP_FOLDER_ID", "parent");
+		vi.stubEnv("GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID", "templates");
+		await runPublicationReconcileAssetsAction();
+		expect(mocks.setSecret).toHaveBeenCalledWith("secret-json");
+		expect(mocks.createAssets).toHaveBeenCalledWith("secret-json", {
+			parentFolderId: "parent",
+			templateFolderId: "templates",
+		});
+		expect(mocks.execute).toHaveBeenCalledWith(
+			expect.objectContaining({
+				identity: { repository: "community/meetups", issueNumber: 42 },
 				mode,
-				"mutation-authorized": "true",
-				"google-credentials": "secret-json",
-			});
-			vi.stubEnv("GOOGLE_DRIVE_MEETUP_FOLDER_ID", "parent");
-			vi.stubEnv("GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID", "templates");
-			await runPublicationReconcileAssetsAction();
-			expect(mocks.setSecret).toHaveBeenCalledWith("secret-json");
-			expect(mocks.createAssets).toHaveBeenCalledWith("secret-json", {
-				parentFolderId: "parent",
-				templateFolderId: "templates",
-			});
-			expect(mocks.execute).toHaveBeenCalledWith(
-				expect.objectContaining({
-					identity: { repository: "community/meetups", issueNumber: 42 },
-					mode,
-				}),
-			);
-			expect(JSON.parse(mocks.outputs["drive-files"])).toHaveProperty(
-				"slides-link",
-			);
-			expect(mocks.outputs.diagnostics).toBe("[]");
-			expect(JSON.stringify(mocks.outputs)).not.toContain("secret-json");
-		},
-	);
+			}),
+		);
+		expect(JSON.parse(mocks.outputs["drive-files"])).toHaveProperty(
+			"slides-link",
+		);
+		expect(mocks.outputs.diagnostics).toBe("[]");
+		expect(JSON.stringify(mocks.outputs)).not.toContain("secret-json");
+	});
 
 	it("passes missing folder configuration to the validating adapter and handles skipped events", async () => {
 		mocks.inputs["google-credentials"] = "secret-json";

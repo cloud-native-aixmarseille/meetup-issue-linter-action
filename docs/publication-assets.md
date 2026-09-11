@@ -45,7 +45,7 @@ lock. The two public event workflows provide that lock and assertion.
 - Each template file must have a unique `template_kind` app property. Its
   filename can contain `[EVENT_DATE:YYYY-MM-DD]` placeholders.
 - Copies retain `template_file_id` and `template_kind` app properties. Changed
-  event dates, host names, template filenames, and kinds are reconciled without
+  event dates, hostnames, template filenames, and kinds are reconciled without
   creating duplicate copies.
 - `drive-files` is a JSON object mapping `<template_kind>-link` to file URLs.
   `asset-url` contains the folder URL. The versioned `result` envelope includes
@@ -54,15 +54,17 @@ lock. The two public event workflows provide that lock and assertion.
   `fix` also projects the managed folder URL through the event document codec.
   Event normalization and managed comments remain owned by event reconciliation.
 
-## Migration and retries
+## Asset identity and retries
 
-An existing issue folder link can be adopted when it points to a non-trashed
-folder inside the configured parent. A conflicting `issue_number` or
-repository-scoped event key is rejected. Adoption stores a SHA-256 key derived
-from the repository, issue identity, and asset policy version, retaining the
-legacy `issue_number` property. Existing untagged template copies are adopted
-only by an unambiguous exact expected filename. Conflicting folder or file
-matches require manual reconciliation.
+Managed folders are identified by a SHA-256 key derived from the repository,
+issue identity, and asset policy version. Lookups require this key and the
+configured parent. Template copies are identified by their `template_file_id`
+metadata. Multiple matches for either identity require manual reconciliation.
+
+When no matching managed folder or template copy exists, `fix` creates one.
+Unmanaged folders and files are left untouched, including files with matching
+names. The issue's current asset URL is used to detect projection drift; `fix`
+updates it to the managed folder URL.
 
 All Drive listings are paginated, including empty intermediate pages. An
 incomplete search or repeated pagination token fails reconciliation. A repeated
@@ -79,7 +81,5 @@ or quota checks. For an uncertain write, inspect provider state before retrying.
 Exactly-once creation is not guaranteed across lost responses or Drive search
 indexing delays.
 
-The former root action, `src/linter` classes, npm lockfile, and standalone
-`fix-meetup-drive.mjs` script are superseded by the workspace use cases and
-dedicated action. No real Drive folders or consumer event issues are modified
-by the local test suite.
+No real Drive folders or consumer event issues are modified by the local test
+suite.

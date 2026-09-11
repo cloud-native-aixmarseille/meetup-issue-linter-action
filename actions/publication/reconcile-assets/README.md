@@ -79,7 +79,8 @@ Check or reconcile the event Drive folder, template copies, and issue asset link
 <!-- outputs:end -->
 <!-- examples:start -->
 
-See [Google Drive event assets](../../../docs/publication-assets.md) for the required folder environment variables, service-account access, and migration and retry behavior.
+See [Google Drive event assets](../../../docs/publication-assets.md) for the required folder environment variables, service-account access, asset identity, and retry behavior.
+
 <!-- examples:end -->
 <!-- contributing:start -->
 <!-- contributing:end -->

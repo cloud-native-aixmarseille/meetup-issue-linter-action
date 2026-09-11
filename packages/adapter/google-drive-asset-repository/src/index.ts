@@ -89,52 +89,28 @@ export class GoogleDriveAssetRepository implements AssetRepository {
 			throw failure(
 				"Multiple asset folders match this event; manual reconciliation is required",
 			);
-		let file = matches[0];
-		if (!file && request.existingUrl) {
-			const id =
-				/^https:\/\/drive\.google\.com\/drive\/folders\/([\w-]+)\/?$/.exec(
-					request.existingUrl,
-				)?.[1];
-			if (id)
-				file = await remote(() =>
-					this.client.files.get(
-						{ fileId: id, fields, supportsAllDrives: true },
-						requestOptions,
-					),
-				).then(({ data }) => data);
-		}
+		const file = matches[0];
 		if (!file) return undefined;
-		const properties = file.appProperties ?? {};
 		if (
 			file.trashed ||
 			file.mimeType !== folderMimeType ||
 			!file.parents?.includes(this.options.parentFolderId) ||
-			(properties.meetup_event_key &&
-				properties.meetup_event_key !== key(request)) ||
-			(properties.issue_number &&
-				properties.issue_number !== request.legacyEventId)
+			file.appProperties?.meetup_event_key !== key(request)
 		) {
 			throw failure(
-				"The linked asset folder is outside the configured parent or belongs to another event",
+				"The asset folder does not match the requested event and configured parent",
 			);
 		}
-		return container(
-			file,
-			properties.meetup_event_key === key(request)
-				? request.eventId
-				: undefined,
-		);
+		return container(file, request.eventId);
 	}
 
 	async ensureContainer(
 		request: EnsureAssetContainerRequest,
 	): Promise<AssetContainer> {
 		const current = await this.findContainer(request);
-		if (current?.name === request.title && current.eventId === request.eventId)
-			return current;
+		if (current?.name === request.title) return current;
 		const appProperties = {
 			meetup_event_key: key(request),
-			issue_number: request.legacyEventId,
 		};
 		const response = current
 			? await remote(() =>
@@ -280,7 +256,7 @@ function escapeQuery(value: string): string {
 function templateProperties(template: AssetTemplate): Record<string, string> {
 	return { template_file_id: template.id, template_kind: template.kind };
 }
-function container(file: DriveFile, eventId?: string): AssetContainer {
+function container(file: DriveFile, eventId: string): AssetContainer {
 	if (!file.id || !file.name)
 		throw failure("Google Drive returned an invalid asset folder");
 	return {
