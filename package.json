@@ -53,7 +53,7 @@
 		"zod-validation-error": "^5.0.0"
 	},
 	"devDependencies": {
-		"@ts-dev-tools/core": "^1.13.1",
+		"@ts-dev-tools/core": "^1.13.2",
 		"esbuild": "^0.28.2",
 		"vitest-mock-extended": "^5.1.1"
 	},
