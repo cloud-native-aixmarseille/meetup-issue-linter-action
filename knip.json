@@ -1,0 +1,62 @@
+{
+	"$schema": "https://unpkg.com/knip@6/schema.json",
+	"workspaces": {
+		".": {
+			"entry": [
+				"scripts/*.mjs",
+				"tests/**/*.spec.ts"
+			],
+			"project": [
+				"scripts/*.mjs",
+				"tests/**/*.ts"
+			]
+		},
+		"packages/domain/communication": {
+			"entry": [
+				"src/**/*.test.ts"
+			],
+			"project": [
+				"src/**/*.ts"
+			]
+		},
+		"packages/domain/*": {
+			"entry": [
+				"__tests__/**/*.ts"
+			],
+			"project": [
+				"src/**/*.ts",
+				"__tests__/**/*.ts"
+			]
+		},
+		"packages/application/*": {
+			"entry": [
+				"__tests__/**/*.ts"
+			],
+			"project": [
+				"src/**/*.ts",
+				"__tests__/**/*.ts"
+			]
+		},
+		"packages/adapter/*": {
+			"entry": [
+				"__tests__/**/*.ts"
+			],
+			"project": [
+				"src/**/*.ts",
+				"__tests__/**/*.ts"
+			]
+		},
+		"packages/runtime/github-actions": {
+			"entry": [
+				"src/entrypoints/*.ts",
+				"src/**/*.test.ts"
+			],
+			"project": [
+				"src/**/*.ts"
+			]
+		}
+	},
+	"ignoreDependencies": [
+		"@commitlint/config-conventional"
+	]
+}

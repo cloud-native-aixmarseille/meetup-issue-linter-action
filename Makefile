@@ -1,6 +1,6 @@
 PNPM ?= corepack pnpm
 
-.PHONY: help setup typecheck test package lint lint-fix ci
+.PHONY: help setup typecheck test package lint lint-fix quality check-knip check-architecture check-contracts ci
 
 help: ## Display help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -37,16 +37,24 @@ lint-fix: ## Execute linting and fix
 		-e FIX_MARKDOWN_PRETTIER=true \
 	)
 
+quality: ## Execute deterministic quality checks
+	$(PNPM) quality
+
+check-knip: ## Validate unused files and dependencies
+	$(PNPM) check:knip
+
+check-architecture: ## Validate architecture rules
+	$(PNPM) check:architecture
+
+check-contracts: ## Validate workflow and action contracts
+	$(PNPM) check:contracts
+
 check-dist: ## Check that the dist folder is up to date
 	$(PNPM) check:dist
 
 ci: setup ## Execute all CI quality gates
 	$(MAKE) lint-fix
-	$(MAKE) typecheck
-	$(MAKE) build
-	$(MAKE) package
-	$(MAKE) test
-	$(MAKE) check-dist
+	$(MAKE) quality
 
 define run_linter
 	DEFAULT_WORKSPACE="$(CURDIR)"; \

@@ -126,12 +126,16 @@ to that SHA and can be rolled back by restoring the previous release SHA.
 
 ### Development
 
-The repository uses pnpm for the workspace and Nx for dependency-aware project
-tasks.
+Developer workflow, repository rules, and quality gates live in
+[docs/developer-guide.md](docs/developer-guide.md).
 
 ```shell
 make setup
-make ci
+make lint
+make check-knip
+make quality
+make check-architecture
+make check-contracts
 ```
 
 ## Contributing
