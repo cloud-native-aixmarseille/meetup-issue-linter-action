@@ -18,10 +18,6 @@ inputs:
   google-credentials:
     description: Optional service-account JSON with access to the configured Drive parent and template folders. Omission leaves asset management manual.
     required: false
-  mutation-authorized:
-    description: Internal workflow assertion that the shared non-cancelling event concurrency lock is held.
-    required: false
-    default: "false"
 outputs:
   result:
     description: Versioned JSON envelope containing folder and template links, persistence status, and diagnostics.

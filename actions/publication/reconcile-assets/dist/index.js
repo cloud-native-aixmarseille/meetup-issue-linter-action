@@ -75428,11 +75428,6 @@ function enumInput(name, value, allowed) {
   }
   return value;
 }
-function booleanInput(name, value) {
-  if (value === "true") return true;
-  if (value === "false") return false;
-  throw new Error(`${name} must be true or false`);
-}
 function publicErrorMessage(error62) {
   if (error62 instanceof Error && SAFE_ERROR_NAMES.has(error62.name)) {
     return `${error62.name}: ${error62.message}`;
@@ -75450,12 +75445,6 @@ async function runPublicationReconcileAssetsAction() {
     "check",
     "fix"
   ]);
-  const authorized = booleanInput(
-    "mutation-authorized",
-    getInput("mutation-authorized") || "false"
-  );
-  if (mode === "fix" && !authorized)
-    throw new Error("Asset fixes require the shared event workflow lock");
   const credentials = getInput("google-credentials");
   if (!credentials) {
     const diagnostics = [

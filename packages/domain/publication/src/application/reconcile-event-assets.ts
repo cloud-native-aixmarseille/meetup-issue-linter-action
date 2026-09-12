@@ -12,6 +12,10 @@ export type ReconcileEventAssetsResult = Readonly<{
 	diagnostics: readonly PublicationDiagnostic[];
 }>;
 
+export const RECONCILE_EVENT_ASSETS_MODES = ["check", "fix"] as const;
+export type ReconcileEventAssetsMode =
+	(typeof RECONCILE_EVENT_ASSETS_MODES)[number];
+
 export class ReconcileEventAssets {
 	constructor(private readonly repository: AssetRepository) {}
 
@@ -20,7 +24,7 @@ export class ReconcileEventAssets {
 		date: string;
 		hostName: string;
 		existingUrl?: string;
-		mode: "check" | "fix";
+		mode: ReconcileEventAssetsMode;
 	}): Promise<ReconcileEventAssetsResult> {
 		const date = input.date.trim();
 		const host = input.hostName.trim();
