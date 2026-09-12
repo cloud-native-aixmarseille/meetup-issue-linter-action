@@ -11,6 +11,8 @@ part of the product.
 - `tests/architecture.spec.ts` and `tests/contracts.spec.ts` encode the
   structural rules that must stay deterministic.
 - `.github/copilot-instructions.md` inherits from this guide for agent behavior.
+- `tests/architecture.spec.ts` uses ArchUnitTS for clean-architecture and
+  cycle rules, while contract tests keep repository-specific boundaries honest.
 
 ## Daily workflow
 

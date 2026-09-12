@@ -54,6 +54,7 @@
 		"@commitlint/config-conventional": "20.0.0",
 		"@types/node": "^26.4.1",
 		"@vitest/coverage-v8": "4.1.10",
+		"archunit": "2.4.0",
 		"esbuild": "^0.28.2",
 		"knip": "6.35.1",
 		"nx": "^23.2.0",

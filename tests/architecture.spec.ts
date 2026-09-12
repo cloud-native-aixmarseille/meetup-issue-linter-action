@@ -1,9 +1,11 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { projectFiles } from "archunit";
 import { describe, expect, it } from "vitest";
 
 const repositoryRoot = process.cwd();
 const workspaceNamespace = "@meetup-automation/";
+const tsConfigPath = "tsconfig.json";
 
 type WorkspaceLayer = "domain" | "application" | "adapter" | "runtime";
 
@@ -51,6 +53,58 @@ describe("clean architecture boundaries", () => {
 		}
 
 		expect(violations).toEqual([]);
+	});
+
+	describe("archunit clean architecture boundaries", () => {
+		it("keeps the domain layer free from outer-layer imports", async () => {
+			await expect(
+				projectFiles(tsConfigPath)
+					.inPath("packages/domain/**/src/**/*.ts")
+					.shouldNot()
+					.dependOnFiles()
+					.inPath("packages/application/**/src/**/*.ts"),
+			).toPassAsync();
+			await expect(
+				projectFiles(tsConfigPath)
+					.inPath("packages/domain/**/src/**/*.ts")
+					.shouldNot()
+					.dependOnFiles()
+					.inPath("packages/adapter/**/src/**/*.ts"),
+			).toPassAsync();
+			await expect(
+				projectFiles(tsConfigPath)
+					.inPath("packages/domain/**/src/**/*.ts")
+					.shouldNot()
+					.dependOnFiles()
+					.inPath("packages/runtime/**/src/**/*.ts"),
+			).toPassAsync();
+		});
+
+		it("keeps the application layer free from adapter and runtime imports", async () => {
+			await expect(
+				projectFiles(tsConfigPath)
+					.inPath("packages/application/**/src/**/*.ts")
+					.shouldNot()
+					.dependOnFiles()
+					.inPath("packages/adapter/**/src/**/*.ts"),
+			).toPassAsync();
+			await expect(
+				projectFiles(tsConfigPath)
+					.inPath("packages/application/**/src/**/*.ts")
+					.shouldNot()
+					.dependOnFiles()
+					.inPath("packages/runtime/**/src/**/*.ts"),
+			).toPassAsync();
+		});
+
+		it("keeps the package source graph cycle-free", async () => {
+			await expect(
+				projectFiles(tsConfigPath)
+					.inPath("packages/**/src/**/*.ts")
+					.should()
+					.haveNoCycles(),
+			).toPassAsync();
+		});
 	});
 
 	it("uses responsibility-bearing adapter package names", async () => {
