@@ -12,10 +12,7 @@ import {
 	createReferentialRepository,
 	workspaceConfigRepository,
 } from "./composition.js";
-import {
-	enumInput,
-	positiveIntegerInput,
-} from "./runtime-input.js";
+import { enumInput, positiveIntegerInput } from "./runtime-input.js";
 
 export async function runPublicationReconcileAssetsAction(): Promise<void> {
 	const issueNumber = positiveIntegerInput(
