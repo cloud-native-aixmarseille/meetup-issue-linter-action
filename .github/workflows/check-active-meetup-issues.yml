@@ -13,6 +13,14 @@ on:
         description: Optional Slack channel ID used for approved notifications. When omitted, Slack delivery is skipped safely.
         required: false
         type: string
+      google-drive-meetup-folder-id:
+        description: Optional Google Drive folder ID of the parent meetup folder used for asset reconciliation.
+        required: false
+        type: string
+      google-drive-meetup-template-folder-id:
+        description: Optional Google Drive folder ID of the template folder used for asset reconciliation.
+        required: false
+        type: string
     outputs:
       issue-numbers:
         description: JSON array of meetup issue numbers selected for audit during the listing phase.
@@ -97,15 +105,14 @@ jobs:
         id: assets
         uses: ./../self-workflow/actions/publication/reconcile-assets
         env:
-          GOOGLE_DRIVE_MEETUP_FOLDER_ID: ${{ vars.CI_GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
-          GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID: ${{ vars.CI_GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
+          GOOGLE_DRIVE_MEETUP_FOLDER_ID: ${{ inputs.google-drive-meetup-folder-id }}
+          GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID: ${{ inputs.google-drive-meetup-template-folder-id }}
         with:
           issue-number: ${{ matrix.issue-number }}
           mode: fix
           github-token: ${{ steps.app-token.outputs.token }}
           managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
           google-credentials: ${{ secrets.google-credentials }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly
-          mutation-authorized: "true"
 
       - name: Evaluate current event state
         id: event

@@ -78,7 +78,6 @@ const actionContracts = [
 			"issue-number",
 			"managed-comment-author",
 			"mode",
-			"mutation-authorized",
 		],
 		outputs: ["asset-url", "diagnostics", "drive-files", "result"],
 	},
@@ -125,7 +124,12 @@ const actionContracts = [
 
 const publicWorkflowContracts = {
 	"check-active-meetup-issues": {
-		inputs: ["github-app-id", "slack-channel-id"],
+		inputs: [
+			"github-app-id",
+			"google-drive-meetup-folder-id",
+			"google-drive-meetup-template-folder-id",
+			"slack-channel-id",
+		],
 		outputs: ["issue-numbers"],
 		secrets: [
 			"github-app-private-key",
@@ -135,7 +139,12 @@ const publicWorkflowContracts = {
 		],
 	},
 	"update-meetup-issue": {
-		inputs: ["github-app-id", "slack-channel-id"],
+		inputs: [
+			"github-app-id",
+			"google-drive-meetup-folder-id",
+			"google-drive-meetup-template-folder-id",
+			"slack-channel-id",
+		],
 		outputs: ["communication-diagnostics", "diagnostics", "is-ready", "state"],
 		secrets: [
 			"github-app-private-key",
@@ -346,7 +355,6 @@ describe("event side-effect safeguards", () => {
 		const action = await readYaml<ActionManifest>(
 			"actions/publication/reconcile-assets/action.yml",
 		);
-		expect(action.inputs?.["mutation-authorized"]?.default).toBe("false");
 		expect(action.inputs?.["google-credentials"]?.required).toBe(false);
 		for (const [name, jobName] of [
 			["update-meetup-issue", "manage"],
@@ -361,21 +369,29 @@ describe("event side-effect safeguards", () => {
 			expect(job.concurrency?.["cancel-in-progress"]).toBe(false);
 			expect(step?.with).toMatchObject({
 				mode: "fix",
-				"mutation-authorized": "true",
 				"google-credentials": workflowExpression("secrets.google-credentials"),
 				"managed-comment-author": managedAuthor,
 			});
+			expect(step?.with).not.toHaveProperty("mutation-authorized");
 			expect(step?.env).toEqual({
 				GOOGLE_DRIVE_MEETUP_FOLDER_ID: workflowExpression(
-					"vars.CI_GOOGLE_DRIVE_MEETUP_FOLDER_ID",
+					"inputs.google-drive-meetup-folder-id",
 				),
 				GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID: workflowExpression(
-					"vars.CI_GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID",
+					"inputs.google-drive-meetup-template-folder-id",
 				),
 			});
 			expect(
 				workflow.on?.workflow_call?.secrets?.["google-credentials"]?.required,
 			).toBe(false);
+			expect(
+				workflow.on?.workflow_call?.inputs?.["google-drive-meetup-folder-id"],
+			).toBeDefined();
+			expect(
+				workflow.on?.workflow_call?.inputs?.[
+					"google-drive-meetup-template-folder-id"
+				],
+			).toBeDefined();
 		}
 	});
 	it("shares one non-cancelling event lock between issue and audit paths", async () => {
@@ -460,6 +476,8 @@ describe("event side-effect safeguards", () => {
 
 		expect(sortedKeys(workflow.on?.workflow_call?.inputs)).toEqual([
 			"github-app-id",
+			"google-drive-meetup-folder-id",
+			"google-drive-meetup-template-folder-id",
 			"slack-channel-id",
 		]);
 		expect(token?.with?.["app-id"]).toBe(

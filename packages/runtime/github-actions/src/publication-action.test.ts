@@ -78,23 +78,11 @@ describe("publication action boundary", () => {
 	});
 
 	it.each([
-		{},
-		{ "google-credentials": "secret" },
-	])("requires the workflow lock assertion before fix mode: %j", async (inputs) => {
-		Object.assign(mocks.inputs, { mode: "fix", ...inputs });
-		await expect(runPublicationReconcileAssetsAction()).rejects.toThrow(
-			"shared event workflow lock",
-		);
-		expect(mocks.createAssets).not.toHaveBeenCalled();
-	});
-
-	it.each([
 		"check",
 		"fix",
 	])("masks credentials and serializes the %s result", async (mode) => {
 		Object.assign(mocks.inputs, {
 			mode,
-			"mutation-authorized": "true",
 			"google-credentials": "secret-json",
 		});
 		vi.stubEnv("GOOGLE_DRIVE_MEETUP_FOLDER_ID", "parent");

@@ -13,7 +13,6 @@ import {
 	workspaceConfigRepository,
 } from "./composition.js";
 import {
-	booleanInput,
 	enumInput,
 	positiveIntegerInput,
 } from "./runtime-input.js";
@@ -27,12 +26,6 @@ export async function runPublicationReconcileAssetsAction(): Promise<void> {
 		"check",
 		"fix",
 	] as const);
-	const authorized = booleanInput(
-		"mutation-authorized",
-		core.getInput("mutation-authorized") || "false",
-	);
-	if (mode === "fix" && !authorized)
-		throw new Error("Asset fixes require the shared event workflow lock");
 	const credentials = core.getInput("google-credentials");
 	if (!credentials) {
 		const diagnostics = [
