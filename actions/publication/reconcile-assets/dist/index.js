@@ -71126,7 +71126,7 @@ function readLegacyOccurrenceStatus(value, diagnostics) {
 }
 
 // packages/domain/publication/src/application/reconcile-event-assets.ts
-var ReconcileEventAssets = class {
+var ReconcileEventAssets = class _ReconcileEventAssets {
   constructor(repository) {
     this.repository = repository;
   }
@@ -71134,11 +71134,11 @@ var ReconcileEventAssets = class {
   async execute(input2) {
     const date5 = input2.date.trim();
     const host = input2.hostName.trim();
-    if (!validDate(date5) || !host) {
+    if (!_ReconcileEventAssets.validDate(date5) || !host) {
       return {
         files: {},
         diagnostics: [
-          diagnostic2(
+          _ReconcileEventAssets.diagnostic(
             "prerequisites",
             "A valid event date and resolved host are required to reconcile assets",
             false
@@ -71147,7 +71147,7 @@ var ReconcileEventAssets = class {
       };
     }
     const templates = await this.repository.listTemplates();
-    validateTemplates(templates);
+    _ReconcileEventAssets.validateTemplates(templates);
     const month = new Intl.DateTimeFormat("en-US", {
       month: "long",
       timeZone: "UTC"
@@ -71161,7 +71161,7 @@ var ReconcileEventAssets = class {
     let container2 = await this.repository.findContainer(request2);
     if (!container2 || container2.name !== request2.title) {
       diagnostics.push(
-        diagnostic2(
+        _ReconcileEventAssets.diagnostic(
           "container.drift",
           "The event asset folder must be created or renamed",
           input2.mode === "fix"
@@ -71173,7 +71173,7 @@ var ReconcileEventAssets = class {
     if (!container2) return { files: {}, diagnostics };
     if (container2.url !== input2.existingUrl) {
       diagnostics.push(
-        diagnostic2(
+        _ReconcileEventAssets.diagnostic(
           "link.drift",
           "The event asset link must reference the managed folder",
           input2.mode === "fix"
@@ -71194,7 +71194,7 @@ var ReconcileEventAssets = class {
       let file2 = matches[0];
       if (!file2 || file2.name !== name || file2.kind !== template.kind) {
         diagnostics.push(
-          diagnostic2(
+          _ReconcileEventAssets.diagnostic(
             "file.drift",
             "An event template copy is missing or its name or template metadata has changed",
             input2.mode === "fix"
@@ -71208,31 +71208,31 @@ var ReconcileEventAssets = class {
     }
     return { container: container2, files, diagnostics };
   }
-};
-function diagnostic2(code, message, fixApplied) {
-  return {
-    code: `publication.assets.${code}`,
-    field: "assets",
-    severity: "warning",
-    message,
-    fixAvailable: code !== "prerequisites",
-    fixApplied
-  };
-}
-function validDate(date5) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date5)) return false;
-  const instant = /* @__PURE__ */ new Date(`${date5}T00:00:00Z`);
-  return !Number.isNaN(instant.valueOf()) && instant.toISOString().slice(0, 10) === date5;
-}
-function validateTemplates(templates) {
-  if (!templates.length || templates.some(
-    (template) => !template.id || !template.name.trim() || !template.kind.trim()
-  ) || new Set(templates.map(({ id }) => id)).size !== templates.length || new Set(templates.map(({ kind }) => kind)).size !== templates.length) {
-    throw new Error(
-      "Asset templates must have unique IDs, unique kinds, and non-empty names"
-    );
+  static diagnostic(code, message, fixApplied) {
+    return {
+      code: `publication.assets.${code}`,
+      field: "assets",
+      severity: "warning",
+      message,
+      fixAvailable: code !== "prerequisites",
+      fixApplied
+    };
   }
-}
+  static validDate(date5) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date5)) return false;
+    const instant = /* @__PURE__ */ new Date(`${date5}T00:00:00Z`);
+    return !Number.isNaN(instant.valueOf()) && instant.toISOString().slice(0, 10) === date5;
+  }
+  static validateTemplates(templates) {
+    if (!templates.length || templates.some(
+      (template) => !template.id || !template.name.trim() || !template.kind.trim()
+    ) || new Set(templates.map(({ id }) => id)).size !== templates.length || new Set(templates.map(({ kind }) => kind)).size !== templates.length) {
+      throw new Error(
+        "Asset templates must have unique IDs, unique kinds, and non-empty names"
+      );
+    }
+  }
+};
 
 // packages/domain/publication/src/domain/manual-task-policy.ts
 function planManualPublicationTasks(event) {
@@ -71509,7 +71509,7 @@ function freezeCatalog(hosts, speakers) {
 }
 
 // packages/domain/referential/src/domain/referential-diagnostic.ts
-function diagnostic3(code, severity, path, message) {
+function diagnostic2(code, severity, path, message) {
   return Object.freeze({ code, severity, path, message });
 }
 function freezeDiagnostics(diagnostics) {
@@ -71550,7 +71550,7 @@ var ResolveEventReferences = class {
     const parsed = this.parseReference(reference);
     if (!parsed) {
       diagnostics.push(
-        diagnostic3(
+        diagnostic2(
           "referential.reference.host.invalid",
           "error",
           "hostReference",
@@ -71563,7 +71563,7 @@ var ResolveEventReferences = class {
       const id = asHostId(parsed.stableId);
       if (!id) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.reference.host.invalid",
             "error",
             "hostReference",
@@ -71575,7 +71575,7 @@ var ResolveEventReferences = class {
       const host = hosts.find((candidate) => candidate.id === id);
       if (!host) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.reference.host.unknown",
             "error",
             "hostReference",
@@ -71586,7 +71586,7 @@ var ResolveEventReferences = class {
       }
       if (displayNameKey(host.displayName) !== displayNameKey(parsed.displayName)) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.reference.host.display-name-mismatch",
             "warning",
             "hostReference",
@@ -71603,7 +71603,7 @@ var ResolveEventReferences = class {
       return matches[0];
     }
     diagnostics.push(
-      diagnostic3(
+      diagnostic2(
         matches.length === 0 ? "referential.reference.host.unknown" : "referential.reference.host.ambiguous",
         "error",
         "hostReference",
@@ -71617,7 +71617,7 @@ var ResolveEventReferences = class {
     const parsed = this.parseReference(reference);
     if (!parsed) {
       diagnostics.push(
-        diagnostic3(
+        diagnostic2(
           "referential.reference.speaker.invalid",
           "error",
           path,
@@ -71630,7 +71630,7 @@ var ResolveEventReferences = class {
       const id = asSpeakerId(parsed.stableId);
       if (!id) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.reference.speaker.invalid",
             "error",
             path,
@@ -71642,7 +71642,7 @@ var ResolveEventReferences = class {
       const speaker = speakers.find((candidate) => candidate.id === id);
       if (!speaker) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.reference.speaker.unknown",
             "error",
             path,
@@ -71653,7 +71653,7 @@ var ResolveEventReferences = class {
       }
       if (displayNameKey(speaker.displayName) !== displayNameKey(parsed.displayName)) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.reference.speaker.display-name-mismatch",
             "warning",
             path,
@@ -71670,7 +71670,7 @@ var ResolveEventReferences = class {
       return matches[0];
     }
     diagnostics.push(
-      diagnostic3(
+      diagnostic2(
         matches.length === 0 ? "referential.reference.speaker.unknown" : "referential.reference.speaker.ambiguous",
         "error",
         path,
@@ -71757,7 +71757,7 @@ var ValidateReferentialCatalog = class {
       }
       if (contactIds.has(parsed.contact.id)) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.contact.id.duplicate",
             "error",
             `hosts[${index}].contactId`,
@@ -71778,7 +71778,7 @@ var ValidateReferentialCatalog = class {
       }
       if (host.displayName !== parsed.displayName) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.host.id.conflict",
             "error",
             `hosts[${index}].hostId`,
@@ -71806,7 +71806,7 @@ var ValidateReferentialCatalog = class {
     const hostId = hostIdValue ? asHostId(hostIdValue) : void 0;
     if (hostIdValue && !hostId) {
       diagnostics.push(
-        diagnostic3(
+        diagnostic2(
           "referential.host.id.invalid",
           "error",
           `hosts[${index}].hostId`,
@@ -71831,7 +71831,7 @@ var ValidateReferentialCatalog = class {
     const contactId = contactIdValue ? asContactId(contactIdValue) : void 0;
     if (contactIdValue && !contactId) {
       diagnostics.push(
-        diagnostic3(
+        diagnostic2(
           "referential.contact.id.invalid",
           "error",
           `hosts[${index}].contactId`,
@@ -71896,7 +71896,7 @@ var ValidateReferentialCatalog = class {
       const speakerId = speakerIdValue ? asSpeakerId(speakerIdValue) : void 0;
       if (speakerIdValue && !speakerId) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.speaker.id.invalid",
             "error",
             `speakers[${index}].speakerId`,
@@ -71944,7 +71944,7 @@ var ValidateReferentialCatalog = class {
       }
       if (speakerIds.has(speakerId)) {
         diagnostics.push(
-          diagnostic3(
+          diagnostic2(
             "referential.speaker.id.duplicate",
             "error",
             `speakers[${index}].speakerId`,
@@ -71968,12 +71968,12 @@ var ValidateReferentialCatalog = class {
   }
   requiredText(value, code, path, message, diagnostics) {
     if (typeof value !== "string") {
-      diagnostics.push(diagnostic3(code, "error", path, message));
+      diagnostics.push(diagnostic2(code, "error", path, message));
       return void 0;
     }
     const normalized = normalizeDisplayName(value);
     if (!normalized) {
-      diagnostics.push(diagnostic3(code, "error", path, message));
+      diagnostics.push(diagnostic2(code, "error", path, message));
       return void 0;
     }
     return normalized;
@@ -71983,19 +71983,19 @@ var ValidateReferentialCatalog = class {
       return void 0;
     }
     if (typeof value !== "string") {
-      diagnostics.push(diagnostic3(code, "error", path, message));
+      diagnostics.push(diagnostic2(code, "error", path, message));
       return null;
     }
     return value.normalize("NFC").trim() || void 0;
   }
   email(value, code, path, message, diagnostics) {
     if (typeof value !== "string") {
-      diagnostics.push(diagnostic3(code, "error", path, message));
+      diagnostics.push(diagnostic2(code, "error", path, message));
       return void 0;
     }
     const normalized = value.normalize("NFC").trim().toLowerCase();
     if (!EMAIL_PATTERN.test(normalized)) {
-      diagnostics.push(diagnostic3(code, "error", path, message));
+      diagnostics.push(diagnostic2(code, "error", path, message));
       return void 0;
     }
     return normalized;
@@ -72012,7 +72012,7 @@ var ValidateReferentialCatalog = class {
         continue;
       }
       diagnostics.push(
-        diagnostic3(
+        diagnostic2(
           code,
           "error",
           `${path}.ambiguities[${ambiguityIndex}]`,
@@ -75468,8 +75468,8 @@ async function runPublicationReconcileAssetsAction() {
   }
   setSecret(credentials);
   const assetRepository = createGoogleDriveAssetRepository(credentials, {
-    parentFolderId: process.env.GOOGLE_DRIVE_MEETUP_FOLDER_ID ?? "",
-    templateFolderId: process.env.GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID ?? ""
+    parentFolderId: getInput("google-drive-meetup-folder-id"),
+    templateFolderId: getInput("google-drive-meetup-template-folder-id")
   });
   const client = getOctokit(getInput("github-token", { required: true }));
   const commentAuthorLogin = getInput("managed-comment-author", {

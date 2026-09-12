@@ -18,6 +18,12 @@ inputs:
   google-credentials:
     description: Optional service-account JSON with access to the configured Drive parent and template folders. Omission leaves asset management manual.
     required: false
+  google-drive-meetup-folder-id:
+    description: Optional Google Drive folder ID of the parent meetup folder. Required when google-credentials is provided.
+    required: false
+  google-drive-meetup-template-folder-id:
+    description: Optional Google Drive folder ID of the template folder. Required when google-credentials is provided.
+    required: false
 outputs:
   result:
     description: Versioned JSON envelope containing folder and template links, persistence status, and diagnostics.

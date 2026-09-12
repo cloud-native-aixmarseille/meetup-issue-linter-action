@@ -50,8 +50,8 @@ export async function runPublicationReconcileAssetsAction(): Promise<void> {
 	}
 	core.setSecret(credentials);
 	const assetRepository = createGoogleDriveAssetRepository(credentials, {
-		parentFolderId: process.env.GOOGLE_DRIVE_MEETUP_FOLDER_ID ?? "",
-		templateFolderId: process.env.GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID ?? "",
+		parentFolderId: core.getInput("google-drive-meetup-folder-id"),
+		templateFolderId: core.getInput("google-drive-meetup-template-folder-id"),
 	});
 	const client = getOctokit(core.getInput("github-token", { required: true }));
 	const commentAuthorLogin = core.getInput("managed-comment-author", {

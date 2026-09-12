@@ -104,15 +104,14 @@ jobs:
       - name: Reconcile event assets
         id: assets
         uses: ./../self-workflow/actions/publication/reconcile-assets
-        env:
-          GOOGLE_DRIVE_MEETUP_FOLDER_ID: ${{ inputs.google-drive-meetup-folder-id }}
-          GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID: ${{ inputs.google-drive-meetup-template-folder-id }}
         with:
           issue-number: ${{ matrix.issue-number }}
           mode: fix
           github-token: ${{ steps.app-token.outputs.token }}
           managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
           google-credentials: ${{ secrets.google-credentials }} # zizmor: ignore[secrets-outside-env] optional reusable-workflow secret is forwarded explicitly
+          google-drive-meetup-folder-id: ${{ inputs.google-drive-meetup-folder-id }}
+          google-drive-meetup-template-folder-id: ${{ inputs.google-drive-meetup-template-folder-id }}
 
       - name: Evaluate current event state
         id: event
