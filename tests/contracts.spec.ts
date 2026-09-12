@@ -75,6 +75,8 @@ const actionContracts = [
 		inputs: [
 			"github-token",
 			"google-credentials",
+			"google-drive-meetup-folder-id",
+			"google-drive-meetup-template-folder-id",
 			"issue-number",
 			"managed-comment-author",
 			"mode",
@@ -371,16 +373,15 @@ describe("event side-effect safeguards", () => {
 				mode: "fix",
 				"google-credentials": workflowExpression("secrets.google-credentials"),
 				"managed-comment-author": managedAuthor,
-			});
-			expect(step?.with).not.toHaveProperty("mutation-authorized");
-			expect(step?.env).toEqual({
-				GOOGLE_DRIVE_MEETUP_FOLDER_ID: workflowExpression(
+				"google-drive-meetup-folder-id": workflowExpression(
 					"inputs.google-drive-meetup-folder-id",
 				),
-				GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID: workflowExpression(
+				"google-drive-meetup-template-folder-id": workflowExpression(
 					"inputs.google-drive-meetup-template-folder-id",
 				),
 			});
+			expect(step?.with).not.toHaveProperty("mutation-authorized");
+			expect(step?.env).toBeUndefined();
 			expect(
 				workflow.on?.workflow_call?.secrets?.["google-credentials"]?.required,
 			).toBe(false);

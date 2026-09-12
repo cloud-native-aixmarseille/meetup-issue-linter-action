@@ -85,8 +85,10 @@ describe("publication action boundary", () => {
 			mode,
 			"google-credentials": "secret-json",
 		});
-		vi.stubEnv("GOOGLE_DRIVE_MEETUP_FOLDER_ID", "parent");
-		vi.stubEnv("GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID", "templates");
+		Object.assign(mocks.inputs, {
+			"google-drive-meetup-folder-id": "parent",
+			"google-drive-meetup-template-folder-id": "templates",
+		});
 		await runPublicationReconcileAssetsAction();
 		expect(mocks.setSecret).toHaveBeenCalledWith("secret-json");
 		expect(mocks.createAssets).toHaveBeenCalledWith("secret-json", {
@@ -108,8 +110,6 @@ describe("publication action boundary", () => {
 
 	it("passes missing folder configuration to the validating adapter and handles skipped events", async () => {
 		mocks.inputs["google-credentials"] = "secret-json";
-		vi.stubEnv("GOOGLE_DRIVE_MEETUP_FOLDER_ID", undefined);
-		vi.stubEnv("GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID", undefined);
 		mocks.execute.mockResolvedValue({
 			skipped: true,
 			persisted: false,

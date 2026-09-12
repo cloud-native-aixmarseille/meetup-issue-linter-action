@@ -28,11 +28,11 @@ export class ReconcileEventAssets {
 	}): Promise<ReconcileEventAssetsResult> {
 		const date = input.date.trim();
 		const host = input.hostName.trim();
-		if (!validDate(date) || !host) {
+		if (!ReconcileEventAssets.validDate(date) || !host) {
 			return {
 				files: {},
 				diagnostics: [
-					diagnostic(
+					ReconcileEventAssets.diagnostic(
 						"prerequisites",
 						"A valid event date and resolved host are required to reconcile assets",
 						false,
@@ -42,7 +42,7 @@ export class ReconcileEventAssets {
 		}
 		// Validate the complete template catalog before performing any mutation.
 		const templates = await this.repository.listTemplates();
-		validateTemplates(templates);
+		ReconcileEventAssets.validateTemplates(templates);
 		const month = new Intl.DateTimeFormat("en-US", {
 			month: "long",
 			timeZone: "UTC",
@@ -56,7 +56,7 @@ export class ReconcileEventAssets {
 		let container = await this.repository.findContainer(request);
 		if (!container || container.name !== request.title) {
 			diagnostics.push(
-				diagnostic(
+				ReconcileEventAssets.diagnostic(
 					"container.drift",
 					"The event asset folder must be created or renamed",
 					input.mode === "fix",
@@ -68,7 +68,7 @@ export class ReconcileEventAssets {
 		if (!container) return { files: {}, diagnostics };
 		if (container.url !== input.existingUrl) {
 			diagnostics.push(
-				diagnostic(
+				ReconcileEventAssets.diagnostic(
 					"link.drift",
 					"The event asset link must reference the managed folder",
 					input.mode === "fix",
@@ -89,7 +89,7 @@ export class ReconcileEventAssets {
 			let file: AssetFile | undefined = matches[0];
 			if (!file || file.name !== name || file.kind !== template.kind) {
 				diagnostics.push(
-					diagnostic(
+					ReconcileEventAssets.diagnostic(
 						"file.drift",
 						"An event template copy is missing or its name or template metadata has changed",
 						input.mode === "fix",
@@ -105,44 +105,44 @@ export class ReconcileEventAssets {
 		}
 		return { container, files, diagnostics };
 	}
-}
 
-function diagnostic(
-	code: string,
-	message: string,
-	fixApplied: boolean,
-): PublicationDiagnostic {
-	return {
-		code: `publication.assets.${code}`,
-		field: "assets",
-		severity: "warning",
-		message,
-		fixAvailable: code !== "prerequisites",
-		fixApplied,
-	};
-}
+	private static diagnostic(
+		code: string,
+		message: string,
+		fixApplied: boolean,
+	): PublicationDiagnostic {
+		return {
+			code: `publication.assets.${code}`,
+			field: "assets",
+			severity: "warning",
+			message,
+			fixAvailable: code !== "prerequisites",
+			fixApplied,
+		};
+	}
 
-function validDate(date: string): boolean {
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
-	const instant = new Date(`${date}T00:00:00Z`);
-	return (
-		!Number.isNaN(instant.valueOf()) &&
-		instant.toISOString().slice(0, 10) === date
-	);
-}
-
-function validateTemplates(templates: readonly AssetTemplate[]): void {
-	if (
-		!templates.length ||
-		templates.some(
-			(template) =>
-				!template.id || !template.name.trim() || !template.kind.trim(),
-		) ||
-		new Set(templates.map(({ id }) => id)).size !== templates.length ||
-		new Set(templates.map(({ kind }) => kind)).size !== templates.length
-	) {
-		throw new Error(
-			"Asset templates must have unique IDs, unique kinds, and non-empty names",
+	private static validDate(date: string): boolean {
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+		const instant = new Date(`${date}T00:00:00Z`);
+		return (
+			!Number.isNaN(instant.valueOf()) &&
+			instant.toISOString().slice(0, 10) === date
 		);
+	}
+
+	private static validateTemplates(templates: readonly AssetTemplate[]): void {
+		if (
+			!templates.length ||
+			templates.some(
+				(template) =>
+					!template.id || !template.name.trim() || !template.kind.trim(),
+			) ||
+			new Set(templates.map(({ id }) => id)).size !== templates.length ||
+			new Set(templates.map(({ kind }) => kind)).size !== templates.length
+		) {
+			throw new Error(
+				"Asset templates must have unique IDs, unique kinds, and non-empty names",
+			);
+		}
 	}
 }
