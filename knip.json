@@ -57,11 +57,6 @@
 		}
 	},
 	"ignoreDependencies": [
-		"@actions/github",
-		"@commitlint/config-conventional",
-		"@meetup-automation/event",
-		"@meetup-automation/publication",
-		"inversify",
-		"reflect-metadata"
+		"@commitlint/config-conventional"
 	]
 }
