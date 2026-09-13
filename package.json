@@ -48,6 +48,13 @@
 		"vitest": "vitest"
 	},
 	"license": "MIT",
+	"dependencies": {
+		"@actions/github": "^9.1.1",
+		"@meetup-automation/event": "workspace:*",
+		"@meetup-automation/publication": "workspace:*",
+		"inversify": "^8.2.3",
+		"reflect-metadata": "^0.2.2"
+	},
 	"devDependencies": {
 		"@actions/core": "^3.0.1",
 		"@biomejs/biome": "^2.4.3",
