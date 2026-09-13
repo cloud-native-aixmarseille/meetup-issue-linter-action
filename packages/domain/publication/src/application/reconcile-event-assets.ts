@@ -12,9 +12,7 @@ export type ReconcileEventAssetsResult = Readonly<{
 	diagnostics: readonly PublicationDiagnostic[];
 }>;
 
-export const RECONCILE_EVENT_ASSETS_MODES = ["check", "fix"] as const;
-export type ReconcileEventAssetsMode =
-	(typeof RECONCILE_EVENT_ASSETS_MODES)[number];
+export type ReconcileEventAssetsMode = "check" | "fix";
 
 export class ReconcileEventAssets {
 	constructor(private readonly repository: AssetRepository) {}

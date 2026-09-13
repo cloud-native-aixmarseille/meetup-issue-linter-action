@@ -70,7 +70,7 @@ export interface RunCommunicationReconcileInput {
 	}>;
 }
 
-export type CommunicationRuntimeDiagnosticCode =
+type CommunicationRuntimeDiagnosticCode =
 	| "communication.dispatch-disabled-by-config"
 	| "communication.dispatch-not-authorized"
 	| "communication.approval-label-missing"

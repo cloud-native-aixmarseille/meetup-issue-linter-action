@@ -5,7 +5,6 @@
 	"type": "module",
 	"exports": "./src/index.ts",
 	"dependencies": {
-		"@meetup-automation/journey": "workspace:*",
-		"yaml": "^2.9.0"
+		"@meetup-automation/journey": "workspace:*"
 	}
 }

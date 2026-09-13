@@ -18,14 +18,3 @@ export type EventDiagnostic = Readonly<{
 export function diagnostic(value: EventDiagnostic): Readonly<EventDiagnostic> {
 	return Object.freeze({ ...value });
 }
-
-export function missingOccurrenceStatusDiagnostic(): EventDiagnostic {
-	return diagnostic({
-		code: "event.occurrence-status.missing",
-		severity: "warning",
-		category: "migration",
-		field: "occurrenceStatus",
-		message:
-			"Occurrence status must be backfilled before occurrence-dependent effects are enabled",
-	});
-}

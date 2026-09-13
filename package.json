@@ -25,10 +25,15 @@
 	},
 	"scripts": {
 		"package": "node scripts/build-actions.mjs",
-		"lint": "biome lint --error-on-warnings .",
-		"lint:fix": "pnpm lint --fix",
+		"lint:biome": "biome lint --error-on-warnings .",
+		"lint": "corepack pnpm lint:biome && corepack pnpm check:knip",
+		"lint:fix": "corepack pnpm lint:biome --fix",
 		"lint:ci": "biome lint --error-on-warnings . --reporter=sarif | tee biome-report.sarif",
-		"all": "pnpm format && pnpm lint && pnpm build && pnpm package && pnpm test && pnpm check:dist",
+		"check:architecture": "vitest run tests/architecture.spec.ts",
+		"check:contracts": "vitest run tests/contracts.spec.ts",
+		"check:knip": "knip",
+		"quality": "corepack pnpm lint && corepack pnpm build && corepack pnpm check:architecture && corepack pnpm check:contracts && corepack pnpm package && corepack pnpm test && corepack pnpm check:dist",
+		"all": "corepack pnpm format && corepack pnpm quality",
 		"build": "tsc --noEmit -p tsconfig.json",
 		"format": "biome format --write .",
 		"test": "vitest run",
@@ -44,7 +49,6 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@actions/core": "^3.0.1",
 		"@actions/github": "^9.1.1",
 		"@meetup-automation/event": "workspace:*",
 		"@meetup-automation/publication": "workspace:*",
@@ -52,17 +56,17 @@
 		"reflect-metadata": "^0.2.2"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.12",
+		"@actions/core": "^3.0.1",
+		"@biomejs/biome": "^2.4.3",
 		"@commitlint/config-conventional": "20.0.0",
-		"@ts-dev-tools/core": "^1.13.1",
 		"@types/node": "^26.4.1",
 		"@vitest/coverage-v8": "4.1.10",
+		"archunit": "2.4.0",
 		"esbuild": "^0.28.2",
+		"knip": "6.35.1",
 		"nx": "^23.2.0",
-		"prettier": "^3.9.6",
 		"typescript": "^6.0.3",
 		"vitest": "4.1.10",
-		"vitest-mock-extended": "^5.1.1",
 		"yaml": "^2.9.0"
 	},
 	"commitlint": {
