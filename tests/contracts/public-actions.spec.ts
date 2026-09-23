@@ -5,6 +5,19 @@ import { type ActionManifest, readYaml, root, sortedKeys } from "./support.js";
 
 const actionContracts = [
 	{
+		directory: "actions/publication/reconcile-feedback",
+		inputs: [
+			"github-token",
+			"issue-number",
+			"managed-comment-author",
+			"mode",
+			"kutt-api-key",
+			"kutt-link-id",
+			"openfeedback-api-key",
+		],
+		outputs: ["result", "diagnostics", "feedback-url", "link-updated"],
+	},
+	{
 		directory: "actions/publication/reconcile-assets",
 		inputs: [
 			"github-token",
@@ -110,6 +123,22 @@ describe("public action contracts", () => {
 			required: false,
 		});
 	});
+
+	it.each(["openfeedback-api-key", "kutt-api-key", "kutt-link-id"])(
+		"requires an explicit %s for feedback reconciliation",
+		async (inputName) => {
+			// Arrange
+			const actionPath = "actions/publication/reconcile-feedback/action.yml";
+
+			// Act
+			const manifest = await readYaml<ActionManifest>(actionPath);
+			const input = manifest.inputs?.[inputName];
+
+			// Assert
+			expect(input?.required).toBe(true);
+			expect(input?.default).toBeUndefined();
+		},
+	);
 
 	it.each(["mailings-token", "slack-channel-id", "slack-token"])(
 		"requires an explicit %s for communication reconciliation",

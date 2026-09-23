@@ -10,6 +10,7 @@ export type LegacyMeetupIssueBodyDto = Readonly<{
 	meetup_link?: unknown;
 	cncf_link?: unknown;
 	drive_link?: unknown;
+	openfeedback_link?: unknown;
 	event_status?: unknown;
 }>;
 

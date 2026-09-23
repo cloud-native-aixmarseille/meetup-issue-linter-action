@@ -8,6 +8,7 @@ export const FIELD_ORDER = [
 	"Meetup Link",
 	"CNCF Link",
 	"Drive Link",
+	"OpenFeedback Link",
 	"Slides & Content",
 	"Communication",
 	"Aperitif",
@@ -81,6 +82,10 @@ export const GUIDANCE = new Map<
 	[
 		"event.link.community.invalid",
 		["CNCF Link", "comment.guidance.event.link.community.invalid"],
+	],
+	[
+		"event.link.feedback.invalid",
+		["OpenFeedback Link", "comment.guidance.event.link.feedback.invalid"],
 	],
 	[
 		"event.link.assets.invalid",

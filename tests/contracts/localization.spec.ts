@@ -86,7 +86,7 @@ describe("localization contract", () => {
 		for (const path of paths) {
 			const source = await readFile(join(root, "packages", path), "utf8");
 			for (const match of source.matchAll(
-				/"(?:((?:event|referential|publication|issue-form|communication)\.[a-z.-]+))"/g,
+				/"(?:((?:event|referential|publication|issue-form|communication)\.[a-z-]+(?:\.[a-z-]+)*))"/g,
 			))
 				if (match[1] !== "communication.organizer-attention")
 					codes.add(match[1]);

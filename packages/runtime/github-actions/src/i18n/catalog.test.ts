@@ -4,6 +4,10 @@ import { CATALOGS } from "./catalog.js";
 import type { MessageParameters } from "./message-parameters.js";
 
 const parameters = {
+	"report.feedback.changes": {
+		persisted: "true",
+		linkUpdated: "false",
+	},
 	"report.fix-applied": {
 		applied: "true",
 	},

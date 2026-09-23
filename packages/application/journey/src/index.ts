@@ -33,3 +33,4 @@ export type {
 	ValidateMeetupReferentialsResult,
 } from "./use-cases/validate-meetup-referentials.js";
 export { ValidateMeetupReferentials } from "./use-cases/validate-meetup-referentials.js";
+export { ManageMeetupFeedback } from "./use-cases/manage-meetup-feedback.js";

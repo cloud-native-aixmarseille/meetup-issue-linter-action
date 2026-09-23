@@ -1,0 +1,41 @@
+name: Reconcile meetup feedback
+description: Create missing OpenFeedback events and update the existing Kutt link on the event day.
+inputs:
+  locale:
+    description: Language for generated reports and guidance (en or fr). Regional variants are supported; unsupported locales fall back to English.
+    required: false
+    default: en
+  github-token:
+    description: GitHub token with issue read and write permissions.
+    required: true
+  issue-number:
+    description: Meetup issue number.
+    required: true
+  managed-comment-author:
+    description: GitHub App bot login used by event evaluation.
+    required: true
+  mode:
+    description: Check validates feedback configuration without writes; fix creates missing events and updates due links.
+    required: false
+    default: check
+  openfeedback-api-key:
+    description: OpenFeedback organization API key (oforg_) used to create missing events.
+    required: true
+  kutt-api-key:
+    description: API key for the owner of the existing Kutt link.
+    required: true
+  kutt-link-id:
+    description: Existing Kutt link API ID, not the short address.
+    required: true
+outputs:
+  result:
+    description: Versioned JSON feedback reconciliation result.
+  diagnostics:
+    description: Redacted JSON diagnostics.
+  feedback-url:
+    description: OpenFeedback event URL.
+  link-updated:
+    description: Whether the existing Kutt link target changed.
+runs:
+  using: node24
+  main: dist/index.js

@@ -2,6 +2,7 @@ export type PublicationReferences = Readonly<{
 	meetup?: string;
 	community?: string;
 	assets?: string;
+	feedback?: string;
 }>;
 
 export type PublicationEvent = Readonly<{
@@ -53,6 +54,7 @@ export class PublicationDiagnostics {
 			meetup?: string;
 			community?: string;
 			assets?: string;
+			feedback?: string;
 		} = { ...references };
 		for (const operation of patch.operations) {
 			switch (operation.path) {
@@ -61,6 +63,9 @@ export class PublicationDiagnostics {
 					break;
 				case "community":
 					result.community = operation.value;
+					break;
+				case "feedback":
+					result.feedback = operation.value;
 					break;
 				case "assets":
 					result.assets = operation.value;

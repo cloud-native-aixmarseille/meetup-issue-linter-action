@@ -649,3 +649,26 @@ finished
 });
 
 const CURRENT_MARKER_FOR_TEST = "<!-- meetup-event-schema:1 -->";
+
+it("round-trips feedback links while preserving unmanaged issue content", () => {
+	// Arrange
+	const codec = new GitHubIssueFormEventDocumentCodec();
+	const source = document();
+	const event = normalizedEvent({
+		publicationLinks: { feedback: "https://openfeedback.io/example-poll" },
+	});
+
+	// Act
+	const patch = codec.createPatch(source, event);
+	const projected = { ...source, ...patch };
+	const decoded = codec.decode(projected);
+	const repeated = codec.createPatch(projected, decoded.event);
+
+	// Assert
+	expect(decoded.event.publicationLinks.feedback).toBe(
+		"https://openfeedback.io/example-poll",
+	);
+	expect(patch.body).toContain("### OpenFeedback Link");
+	expect(patch.body).toContain("This exact content must survive.");
+	expect(repeated).toEqual({});
+});

@@ -9,6 +9,6 @@ export class OrganizerNotificationMessages extends MessageLocalizer<
 		super(CATALOGS, locale);
 	}
 	get policyRevision(): string {
-		return this.locale === "en" ? "" : "organizer-attention.fr.v1";
+		return this.locale === "en" ? "" : "organizer-attention.fr.v2";
 	}
 }

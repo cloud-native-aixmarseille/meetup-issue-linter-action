@@ -30797,40 +30797,41 @@ var DIAGNOSTICS_COMMUNICATION_EN = {
 // packages/runtime/github-actions/src/i18n/diagnostics-communication.fr.ts
 var DIAGNOSTICS_COMMUNICATION_FR = {
   "diagnostic.communication.duplicate-intent": "Une intention de communication en double a \xE9t\xE9 ignor\xE9e.",
-  "diagnostic.communication.gateway-delivery-uncertain": "Un service n\u2019a pas pu confirmer la livraison.",
+  "diagnostic.communication.gateway-delivery-uncertain": "Un service n'a pas pu confirmer la livraison.",
   "diagnostic.communication.gateway-delivery-rejected": "Un service a refus\xE9 d\xE9finitivement la demande de livraison.",
   "diagnostic.communication.gateway-delivery-deferred": "Un service a diff\xE9r\xE9 la demande ; une nouvelle tentative reste s\xFBre.",
   "diagnostic.communication.gateway-threw-ambiguous-error": "Un service a \xE9chou\xE9 sans r\xE9sultat de livraison d\xE9finitif.",
-  "diagnostic.communication.invalid-clock": "L\u2019horloge des communications est invalide.",
-  "diagnostic.communication.invalid-event-date": "La date de l\u2019\xE9v\xE9nement est invalide.",
+  "diagnostic.communication.invalid-clock": "L'horloge des communications est invalide.",
+  "diagnostic.communication.invalid-event-date": "La date de l'\xE9v\xE9nement est invalide.",
   "diagnostic.communication.invalid-identifier": "Un identifiant stable de communication est invalide.",
   "diagnostic.communication.invalid-readiness-window": "La p\xE9riode de rappel de pr\xE9paration est invalide.",
   "diagnostic.communication.invalid-time-zone": "Le fuseau horaire configur\xE9 est invalide.",
-  "diagnostic.communication.ledger-read-failed": "Le registre des livraisons n\u2019a pas pu \xEAtre lu.",
-  "diagnostic.communication.ledger-reservation-failed": "La livraison n\u2019a pas pu \xEAtre r\xE9serv\xE9e de mani\xE8re s\xFBre.",
-  "diagnostic.communication.ledger-status-write-failed": "L\u2019\xE9tat de la livraison n\u2019a pas pu \xEAtre enregistr\xE9.",
-  "diagnostic.communication.missing-mail-destination": "Un destinataire ayant accept\xE9 les e-mails n\u2019a pas d\u2019adresse.",
+  "diagnostic.communication.ledger-read-failed": "Le registre des livraisons n'a pas pu \xEAtre lu.",
+  "diagnostic.communication.ledger-reservation-failed": "La livraison n'a pas pu \xEAtre r\xE9serv\xE9e de mani\xE8re s\xFBre.",
+  "diagnostic.communication.ledger-status-write-failed": "L'\xE9tat de la livraison n'a pas pu \xEAtre enregistr\xE9.",
+  "diagnostic.communication.missing-mail-destination": "Un destinataire ayant accept\xE9 les e-mails n'a pas d'adresse.",
   "diagnostic.communication.missing-notification-content": "Le contenu de la notification est indisponible.",
-  "diagnostic.communication.occurrence-status-unknown": "Le statut de l\u2019\xE9v\xE9nement doit \xEAtre explicite.",
+  "diagnostic.communication.occurrence-status-unknown": "Le statut de l'\xE9v\xE9nement doit \xEAtre explicite.",
   "diagnostic.communication.delivery-already-recorded": "Le registre des livraisons contient d\xE9j\xE0 cette intention.",
-  "diagnostic.communication.dispatch-disabled-by-config": "L\u2019envoi des communications est d\xE9sactiv\xE9 par la configuration du d\xE9p\xF4t.",
-  "diagnostic.communication.dispatch-not-authorized": "L\u2019envoi des communications n\u2019est pas autoris\xE9 par le verrou du workflow.",
-  "diagnostic.communication.approval-label-missing": "Les communications n\xE9cessitent le label d\u2019approbation configur\xE9.",
+  "diagnostic.communication.dispatch-disabled-by-config": "L'envoi des communications est d\xE9sactiv\xE9 par la configuration du d\xE9p\xF4t.",
+  "diagnostic.communication.dispatch-not-authorized": "L'envoi des communications n'est pas autoris\xE9 par le verrou du workflow.",
+  "diagnostic.communication.approval-label-missing": "Les communications n\xE9cessitent le label d'approbation configur\xE9.",
   "diagnostic.communication.approval-missing": "Les communications n\xE9cessitent un instantan\xE9 approuv\xE9 par un responsable.",
-  "diagnostic.communication.approval-stale": "Des informations affectant les messages ont chang\xE9 depuis l\u2019approbation ; retirez puis ajoutez \xE0 nouveau le label d\u2019approbation.",
-  "diagnostic.communication.approval-capture-unauthorized": "L\u2019auteur du label d\u2019approbation n\u2019a pas les droits suffisants sur le d\xE9p\xF4t.",
-  "diagnostic.communication.approval-trigger-snapshot-missing": "L\u2019\xE9v\xE9nement d\u2019ajout du label ne contient pas d\u2019instantan\xE9 immuable de l\u2019issue.",
-  "diagnostic.communication.approval-trigger-stale": "L\u2019issue a chang\xE9 depuis l\u2019ajout du label ; retirez puis ajoutez \xE0 nouveau le label d\u2019approbation.",
-  "diagnostic.communication.approval-repository-failed": "L\u2019approbation du responsable n\u2019a pas pu \xEAtre v\xE9rifi\xE9e de mani\xE8re s\xFBre.",
-  "diagnostic.communication.event-skipped": "L\u2019issue n\u2019est pas un \xE9v\xE9nement meetup configur\xE9.",
-  "diagnostic.communication.event-concurrently-modified": "L\u2019issue a chang\xE9 pendant la pr\xE9paration des communications ; aucun envoi n\u2019a \xE9t\xE9 tent\xE9.",
-  "diagnostic.communication.event-references-unresolved": "Les participants n\u2019ont pas pu \xEAtre associ\xE9s \xE0 des identifiants stables.",
+  "diagnostic.communication.approval-stale": "Des informations affectant les messages ont chang\xE9 depuis l'approbation ; retirez puis ajoutez \xE0 nouveau le label d'approbation.",
+  "diagnostic.communication.approval-capture-unauthorized": "L'auteur du label d'approbation n'a pas les droits suffisants sur le d\xE9p\xF4t.",
+  "diagnostic.communication.approval-trigger-snapshot-missing": "L'\xE9v\xE9nement d'ajout du label ne contient pas d'instantan\xE9 immuable de l'issue.",
+  "diagnostic.communication.approval-trigger-stale": "L'issue a chang\xE9 depuis l'ajout du label ; retirez puis ajoutez \xE0 nouveau le label d'approbation.",
+  "diagnostic.communication.approval-repository-failed": "L'approbation du responsable n'a pas pu \xEAtre v\xE9rifi\xE9e de mani\xE8re s\xFBre.",
+  "diagnostic.communication.event-skipped": "L'issue n'est pas un \xE9v\xE9nement meetup configur\xE9.",
+  "diagnostic.communication.event-concurrently-modified": "L'issue a chang\xE9 pendant la pr\xE9paration des communications ; aucun envoi n'a \xE9t\xE9 tent\xE9.",
+  "diagnostic.communication.event-references-unresolved": "Les participants n'ont pas pu \xEAtre associ\xE9s \xE0 des identifiants stables.",
   "diagnostic.communication.github-credential-missing": "Les identifiants GitHub sont indisponibles.",
   "diagnostic.communication.referential-catalog-invalid": "Les communications sont d\xE9sactiv\xE9es car le catalogue de r\xE9f\xE9rences est invalide."
 };
 
 // packages/runtime/github-actions/src/i18n/diagnostics-event.en.ts
 var DIAGNOSTICS_EVENT_EN = {
+  "diagnostic.event.link.feedback.invalid": "The feedback link must be a valid HTTPS URL.",
   "diagnostic.event.document.reference-metadata.duplicate": "The event document contains duplicate reference metadata",
   "diagnostic.event.document.reference-metadata.invalid": "Stable reference metadata is malformed",
   "diagnostic.event.document.reference-metadata.legacy": "Unbound stable reference metadata cannot safely restore participant IDs",
@@ -30875,36 +30876,37 @@ var DIAGNOSTICS_EVENT_EN = {
 
 // packages/runtime/github-actions/src/i18n/diagnostics-event.fr.ts
 var DIAGNOSTICS_EVENT_FR = {
+  "diagnostic.event.link.feedback.invalid": "Le lien des retours doit \xEAtre une URL HTTPS valide.",
   "diagnostic.event.document.reference-metadata.duplicate": "Le document contient des m\xE9tadonn\xE9es de r\xE9f\xE9rences en double.",
   "diagnostic.event.document.reference-metadata.invalid": "Les m\xE9tadonn\xE9es des r\xE9f\xE9rences stables sont mal form\xE9es.",
   "diagnostic.event.document.reference-metadata.legacy": "Les anciennes m\xE9tadonn\xE9es ne permettent pas de r\xE9tablir les identifiants des participants de mani\xE8re s\xFBre.",
   "diagnostic.event.document.reference-metadata.stale": "Les m\xE9tadonn\xE9es des r\xE9f\xE9rences stables ne correspondent pas aux participants visibles.",
   "diagnostic.event.document.reference-metadata.missing": "Les m\xE9tadonn\xE9es des r\xE9f\xE9rences stables sont manquantes.",
   "diagnostic.event.document.schema-marker.duplicate": "Le document contient des marqueurs de sch\xE9ma en double.",
-  "diagnostic.event.document.schema-version.unsupported": "La version du sch\xE9ma du document n\u2019est pas prise en charge.",
+  "diagnostic.event.document.schema-version.unsupported": "La version du sch\xE9ma du document n'est pas prise en charge.",
   "diagnostic.event.agenda.missing": "Le programme doit contenir au moins une conf\xE9rence.",
   "diagnostic.event.agenda.normalized": "Le programme peut \xEAtre normalis\xE9 sans risque.",
   "diagnostic.event.agenda.speaker.missing": "Chaque conf\xE9rence doit avoir au moins un intervenant.",
-  "diagnostic.event.agenda.speaker.invalid": "Le nom de l\u2019intervenant ne doit pas \xEAtre vide.",
+  "diagnostic.event.agenda.speaker.invalid": "Le nom de l'intervenant ne doit pas \xEAtre vide.",
   "diagnostic.event.agenda.description.missing": "La description de la conf\xE9rence ne doit pas \xEAtre vide.",
-  "diagnostic.event.date.missing": "La date de l\u2019\xE9v\xE9nement est obligatoire.",
+  "diagnostic.event.date.missing": "La date de l'\xE9v\xE9nement est obligatoire.",
   "diagnostic.event.date.invalid": "La date doit \xEAtre une date r\xE9elle au format AAAA-MM-JJ.",
-  "diagnostic.event.description.missing": "La description de l\u2019\xE9v\xE9nement est obligatoire.",
+  "diagnostic.event.description.missing": "La description de l'\xE9v\xE9nement est obligatoire.",
   "diagnostic.event.hoster.missing": "Un h\xF4te doit \xEAtre s\xE9lectionn\xE9.",
-  "diagnostic.event.hoster.invalid": "Le nom de l\u2019h\xF4te ne doit pas \xEAtre vide.",
-  "diagnostic.event.hoster.normalized": "La r\xE9f\xE9rence de l\u2019h\xF4te peut \xEAtre normalis\xE9e sans risque.",
+  "diagnostic.event.hoster.invalid": "Le nom de l'h\xF4te ne doit pas \xEAtre vide.",
+  "diagnostic.event.hoster.normalized": "La r\xE9f\xE9rence de l'h\xF4te peut \xEAtre normalis\xE9e sans risque.",
   "diagnostic.event.links.normalized": "Les liens de publication peuvent \xEAtre normalis\xE9s sans risque.",
-  "diagnostic.event.occurrence-status.label-conflict": "Les labels de statut s\u2019excluent mutuellement ; conservez uniquement event:postponed, event:held ou event:cancelled.",
+  "diagnostic.event.occurrence-status.label-conflict": "Les labels de statut s'excluent mutuellement ; conservez uniquement event:postponed, event:held ou event:cancelled.",
   "diagnostic.event.occurrence-status.invalid": "Le statut doit \xEAtre scheduled, postponed, held ou cancelled.",
-  "diagnostic.event.title.missing": "Le titre de l\u2019\xE9v\xE9nement est obligatoire.",
-  "diagnostic.event.document.invalid-hoster-type": "L\u2019ancien champ hoster doit \xEAtre un tableau.",
-  "diagnostic.event.hoster.multiple": "L\u2019\xE9v\xE9nement doit avoir exactement un h\xF4te.",
-  "diagnostic.event.document.invalid-hoster-entry": "L\u2019ancienne r\xE9f\xE9rence d\u2019h\xF4te doit \xEAtre une cha\xEEne de caract\xE8res.",
-  "diagnostic.event.document.invalid-agenda-type": "L\u2019ancien champ agenda doit \xEAtre une cha\xEEne de caract\xE8res.",
-  "diagnostic.event.labels.normalized": "Les labels g\xE9r\xE9s par l\u2019automatisation peuvent \xEAtre synchronis\xE9s sans risque.",
-  "diagnostic.event.document.legacy-schema": "L\u2019ancien document a \xE9t\xE9 migr\xE9 vers la version 1 du sch\xE9ma.",
-  "diagnostic.event.confirmation.host.missing": "La confirmation de l\u2019h\xF4te est n\xE9cessaire pour que l\u2019\xE9v\xE9nement soit pr\xEAt.",
-  "diagnostic.event.confirmation.speakers.missing": "La confirmation des intervenants est n\xE9cessaire pour que l\u2019\xE9v\xE9nement soit pr\xEAt.",
+  "diagnostic.event.title.missing": "Le titre de l'\xE9v\xE9nement est obligatoire.",
+  "diagnostic.event.document.invalid-hoster-type": "L'ancien champ hoster doit \xEAtre un tableau.",
+  "diagnostic.event.hoster.multiple": "L'\xE9v\xE9nement doit avoir exactement un h\xF4te.",
+  "diagnostic.event.document.invalid-hoster-entry": "L'ancienne r\xE9f\xE9rence d'h\xF4te doit \xEAtre une cha\xEEne de caract\xE8res.",
+  "diagnostic.event.document.invalid-agenda-type": "L'ancien champ agenda doit \xEAtre une cha\xEEne de caract\xE8res.",
+  "diagnostic.event.labels.normalized": "Les labels g\xE9r\xE9s par l'automatisation peuvent \xEAtre synchronis\xE9s sans risque.",
+  "diagnostic.event.document.legacy-schema": "L'ancien document a \xE9t\xE9 migr\xE9 vers la version 1 du sch\xE9ma.",
+  "diagnostic.event.confirmation.host.missing": "La confirmation de l'h\xF4te est n\xE9cessaire pour que l'\xE9v\xE9nement soit pr\xEAt.",
+  "diagnostic.event.confirmation.speakers.missing": "La confirmation des intervenants est n\xE9cessaire pour que l'\xE9v\xE9nement soit pr\xEAt.",
   "diagnostic.event.agenda.legacy-line-invalid": "Utilisez - Intervenant: Description pour chaque ligne du programme.",
   "diagnostic.event.link.meetup.invalid": "Le lien Meetup doit \xEAtre une URL HTTPS valide.",
   "diagnostic.event.link.community.invalid": "Le lien CNCF / OCGroups doit \xEAtre une URL HTTPS valide.",
@@ -30913,12 +30915,17 @@ var DIAGNOSTICS_EVENT_FR = {
   "diagnostic.event.document.heading.missing": "Un en-t\xEAte de section obligatoire est manquant.",
   "diagnostic.event.document.heading.duplicate": "Un en-t\xEAte de section est pr\xE9sent en double.",
   "diagnostic.event.document.checkbox.invalid": "Utilisez - [ ] T\xE2che ou - [x] T\xE2che pour les cases \xE0 cocher.",
-  "diagnostic.event.document.invalid-field-type": "Le champ de l\u2019issue doit contenir du texte.",
-  "diagnostic.event.issue-title.normalized": "Le titre de l\u2019issue peut \xEAtre normalis\xE9 sans risque."
+  "diagnostic.event.document.invalid-field-type": "Le champ de l'issue doit contenir du texte.",
+  "diagnostic.event.issue-title.normalized": "Le titre de l'issue peut \xEAtre normalis\xE9 sans risque."
 };
 
 // packages/runtime/github-actions/src/i18n/diagnostics-other.en.ts
 var DIAGNOSTICS_OTHER_EN = {
+  "diagnostic.publication.feedback.unrelated": "This issue is not a meetup",
+  "diagnostic.publication.feedback.inactive": "Feedback automation is inactive for this event",
+  "diagnostic.publication.feedback.prerequisites": "Resolve the event title, date and feedback link before updating feedback",
+  "diagnostic.publication.feedback.creation-pending": "An OpenFeedback event will be created in fix mode; configure its talks and speakers in OpenFeedback",
+  "diagnostic.publication.feedback.ambiguous-date": "Several active meetups share this date; update the shared feedback link manually",
   "diagnostic.publication.assets.prerequisites": "Resolve the event host and date before reconciling assets",
   "diagnostic.publication.community-url.invalid": "Community event URL must use an approved CNCF/OCGroups prefix and identifier",
   "diagnostic.publication.meetup.missing": "The Meetup publication link is required.",
@@ -30933,16 +30940,21 @@ var DIAGNOSTICS_OTHER_EN = {
 
 // packages/runtime/github-actions/src/i18n/diagnostics-other.fr.ts
 var DIAGNOSTICS_OTHER_FR = {
-  "diagnostic.publication.assets.prerequisites": "R\xE9solvez les r\xE9f\xE9rences de l\u2019h\xF4te et de la date avant de synchroniser les fichiers.",
-  "diagnostic.publication.community-url.invalid": "L\u2019URL doit utiliser un pr\xE9fixe CNCF/OCGroups autoris\xE9 et un identifiant.",
+  "diagnostic.publication.feedback.unrelated": "Ce ticket ne correspond pas \xE0 un meetup.",
+  "diagnostic.publication.feedback.inactive": "L'automatisation des retours est inactive pour cet \xE9v\xE9nement.",
+  "diagnostic.publication.feedback.prerequisites": "Corrigez le titre, la date et le lien des retours avant de mettre \xE0 jour les retours.",
+  "diagnostic.publication.feedback.creation-pending": "Un \xE9v\xE9nement OpenFeedback sera cr\xE9\xE9 en mode fix ; configurez ses pr\xE9sentations et ses intervenants dans OpenFeedback.",
+  "diagnostic.publication.feedback.ambiguous-date": "Plusieurs meetups actifs ont lieu \xE0 cette date ; mettez \xE0 jour le lien partag\xE9 des retours manuellement.",
+  "diagnostic.publication.assets.prerequisites": "R\xE9solvez les r\xE9f\xE9rences de l'h\xF4te et de la date avant de synchroniser les fichiers.",
+  "diagnostic.publication.community-url.invalid": "L'URL doit utiliser un pr\xE9fixe CNCF/OCGroups autoris\xE9 et un identifiant.",
   "diagnostic.publication.meetup.missing": "Le lien de publication Meetup est obligatoire.",
   "diagnostic.publication.community.missing": "Le lien de publication CNCF / OCGroups est obligatoire.",
   "diagnostic.publication.assets.missing": "Le lien vers le dossier des fichiers est obligatoire.",
-  "diagnostic.publication.meetup-url.invalid": "Utilisez l\u2019URL Meetup de ce groupe, termin\xE9e par l\u2019identifiant num\xE9rique de l\u2019\xE9v\xE9nement.",
+  "diagnostic.publication.meetup-url.invalid": "Utilisez l'URL Meetup de ce groupe, termin\xE9e par l'identifiant num\xE9rique de l'\xE9v\xE9nement.",
   "diagnostic.publication.asset-url.invalid": "Utilisez une URL de dossier Google Drive.",
-  "diagnostic.issue-form.out-of-date": "Le formulaire d\u2019issue doit \xEAtre synchronis\xE9.",
-  "diagnostic.issue-form.updated": "Le formulaire d\u2019issue a \xE9t\xE9 synchronis\xE9.",
-  "diagnostic.action.execution.failed": "L\u2019automatisation a \xE9chou\xE9 ; consultez les journaux de d\xE9bogage sur un ex\xE9cuteur de confiance."
+  "diagnostic.issue-form.out-of-date": "Le formulaire d'issue doit \xEAtre synchronis\xE9.",
+  "diagnostic.issue-form.updated": "Le formulaire d'issue a \xE9t\xE9 synchronis\xE9.",
+  "diagnostic.action.execution.failed": "L'automatisation a \xE9chou\xE9 ; consultez les journaux de d\xE9bogage sur un ex\xE9cuteur de confiance."
 };
 
 // packages/runtime/github-actions/src/i18n/diagnostics-referential.en.ts
@@ -30978,35 +30990,40 @@ var DIAGNOSTICS_REFERENTIAL_EN = {
 // packages/runtime/github-actions/src/i18n/diagnostics-referential.fr.ts
 var DIAGNOSTICS_REFERENTIAL_FR = {
   "diagnostic.referential.contact.id.duplicate": "Les identifiants stables des contacts doivent \xEAtre uniques.",
-  "diagnostic.referential.host.id.conflict": "Un identifiant stable d\u2019h\xF4te ne peut pas d\xE9signer plusieurs noms d\u2019h\xF4te.",
-  "diagnostic.referential.host.display-name.invalid": "Le nom de l\u2019h\xF4te doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
+  "diagnostic.referential.host.id.conflict": "Un identifiant stable d'h\xF4te ne peut pas d\xE9signer plusieurs noms d'h\xF4te.",
+  "diagnostic.referential.host.display-name.invalid": "Le nom de l'h\xF4te doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
   "diagnostic.referential.contact.name.invalid": "Le nom du contact doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
-  "diagnostic.referential.contact.email.invalid": "L\u2019adresse e-mail du contact de l\u2019h\xF4te est invalide.",
-  "diagnostic.referential.contact.phone.invalid": "Le t\xE9l\xE9phone du contact doit \xEAtre une cha\xEEne de caract\xE8res lorsqu\u2019il est renseign\xE9.",
-  "diagnostic.referential.contact.address.invalid": "L\u2019adresse du contact doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
-  "diagnostic.referential.host.id.invalid": "L\u2019identifiant stable de l\u2019h\xF4te doit respecter le format opaque host-0001.",
-  "diagnostic.referential.contact.id.invalid": "L\u2019identifiant stable du contact doit respecter le format opaque contact-0001.",
-  "diagnostic.referential.reference.host.invalid": "La r\xE9f\xE9rence de l\u2019h\xF4te ou son identifiant stable est invalide.",
-  "diagnostic.referential.reference.host.unknown": "L\u2019h\xF4te r\xE9f\xE9renc\xE9 est absent du catalogue.",
-  "diagnostic.referential.reference.host.display-name-mismatch": "Le nom de l\u2019h\xF4te est obsol\xE8te ; son identifiant stable reste la r\xE9f\xE9rence.",
-  "diagnostic.referential.reference.speaker.invalid": "La r\xE9f\xE9rence de l\u2019intervenant ou son identifiant stable est invalide.",
-  "diagnostic.referential.reference.speaker.unknown": "L\u2019intervenant r\xE9f\xE9renc\xE9 est absent du catalogue.",
-  "diagnostic.referential.reference.speaker.display-name-mismatch": "Le nom de l\u2019intervenant est obsol\xE8te ; son identifiant stable reste la r\xE9f\xE9rence.",
+  "diagnostic.referential.contact.email.invalid": "L'adresse e-mail du contact de l'h\xF4te est invalide.",
+  "diagnostic.referential.contact.phone.invalid": "Le t\xE9l\xE9phone du contact doit \xEAtre une cha\xEEne de caract\xE8res lorsqu'il est renseign\xE9.",
+  "diagnostic.referential.contact.address.invalid": "L'adresse du contact doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
+  "diagnostic.referential.host.id.invalid": "L'identifiant stable de l'h\xF4te doit respecter le format opaque host-0001.",
+  "diagnostic.referential.contact.id.invalid": "L'identifiant stable du contact doit respecter le format opaque contact-0001.",
+  "diagnostic.referential.reference.host.invalid": "La r\xE9f\xE9rence de l'h\xF4te ou son identifiant stable est invalide.",
+  "diagnostic.referential.reference.host.unknown": "L'h\xF4te r\xE9f\xE9renc\xE9 est absent du catalogue.",
+  "diagnostic.referential.reference.host.display-name-mismatch": "Le nom de l'h\xF4te est obsol\xE8te ; son identifiant stable reste la r\xE9f\xE9rence.",
+  "diagnostic.referential.reference.speaker.invalid": "La r\xE9f\xE9rence de l'intervenant ou son identifiant stable est invalide.",
+  "diagnostic.referential.reference.speaker.unknown": "L'intervenant r\xE9f\xE9renc\xE9 est absent du catalogue.",
+  "diagnostic.referential.reference.speaker.display-name-mismatch": "Le nom de l'intervenant est obsol\xE8te ; son identifiant stable reste la r\xE9f\xE9rence.",
   "diagnostic.referential.speaker.id.duplicate": "Les identifiants stables des intervenants doivent \xEAtre uniques.",
-  "diagnostic.referential.speaker.id.invalid": "L\u2019identifiant stable de l\u2019intervenant doit respecter le format speaker-*.",
-  "diagnostic.referential.speaker.first-name.invalid": "Le pr\xE9nom de l\u2019intervenant doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
-  "diagnostic.referential.speaker.last-name.invalid": "Le nom de l\u2019intervenant doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
-  "diagnostic.referential.speaker.company.invalid": "L\u2019entreprise de l\u2019intervenant doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
-  "diagnostic.referential.speaker.email.invalid": "L\u2019adresse e-mail de l\u2019intervenant est invalide.",
-  "diagnostic.referential.speaker.phone.invalid": "Le t\xE9l\xE9phone de l\u2019intervenant doit \xEAtre une cha\xEEne de caract\xE8res lorsqu\u2019il est renseign\xE9.",
-  "diagnostic.referential.host.display-name.duplicate": "Les noms d\u2019h\xF4te normalis\xE9s doivent \xEAtre uniques ; conservez un seul identifiant stable par nom public.",
-  "diagnostic.referential.speaker.display-name.duplicate": "Les noms d\u2019intervenant normalis\xE9s doivent \xEAtre uniques ; conservez un seul identifiant stable par nom public.",
+  "diagnostic.referential.speaker.id.invalid": "L'identifiant stable de l'intervenant doit respecter le format speaker-*.",
+  "diagnostic.referential.speaker.first-name.invalid": "Le pr\xE9nom de l'intervenant doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
+  "diagnostic.referential.speaker.last-name.invalid": "Le nom de l'intervenant doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
+  "diagnostic.referential.speaker.company.invalid": "L'entreprise de l'intervenant doit \xEAtre une cha\xEEne de caract\xE8res non vide.",
+  "diagnostic.referential.speaker.email.invalid": "L'adresse e-mail de l'intervenant est invalide.",
+  "diagnostic.referential.speaker.phone.invalid": "Le t\xE9l\xE9phone de l'intervenant doit \xEAtre une cha\xEEne de caract\xE8res lorsqu'il est renseign\xE9.",
+  "diagnostic.referential.host.display-name.duplicate": "Les noms d'h\xF4te normalis\xE9s doivent \xEAtre uniques ; conservez un seul identifiant stable par nom public.",
+  "diagnostic.referential.speaker.display-name.duplicate": "Les noms d'intervenant normalis\xE9s doivent \xEAtre uniques ; conservez un seul identifiant stable par nom public.",
   "diagnostic.referential.reference.host.ambiguous": "Plusieurs h\xF4tes portent ce nom ; ajoutez le bon identifiant stable.",
   "diagnostic.referential.reference.speaker.ambiguous": "Plusieurs intervenants portent ce nom ; ajoutez le bon identifiant stable."
 };
 
 // packages/runtime/github-actions/src/i18n/messages.en.ts
 var EN_MESSAGES = {
+  "action.publication.reconcile-feedback": "Reconcile meetup feedback",
+  "report.feedback.skipped": "Feedback reconciliation was skipped; review the diagnostics for the reason.",
+  "report.feedback.completed": "Feedback reconciliation completed.",
+  "report.feedback.changes": "Issue changes persisted: {persisted, select, true {true} other {false}}; shared feedback link updated: {linkUpdated, select, true {true} other {false}}.",
+  "report.feedback.guidance": "Review feedback diagnostics and configure talks and speakers in OpenFeedback.",
   "error.EventNotFoundError": "The event could not be found. Check the issue number and repository.",
   "error.EventConcurrentModificationError": "The event changed during reconciliation. Rerun against its latest version.",
   "error.GoogleDriveAssetRepositoryError": "Google Drive asset reconciliation failed. Check credentials, folders and permissions.",
@@ -31067,15 +31084,20 @@ var EN_MESSAGES = {
 
 // packages/runtime/github-actions/src/i18n/messages.fr.ts
 var FR_MESSAGES = {
-  "error.EventNotFoundError": "L\u2019\xE9v\xE9nement est introuvable. V\xE9rifiez le num\xE9ro d\u2019issue et le d\xE9p\xF4t.",
-  "error.EventConcurrentModificationError": "L\u2019\xE9v\xE9nement a chang\xE9 pendant la synchronisation. Relancez-la sur sa derni\xE8re version.",
+  "action.publication.reconcile-feedback": "V\xE9rifier et mettre \xE0 jour les retours du meetup",
+  "report.feedback.skipped": "La mise \xE0 jour des retours a \xE9t\xE9 ignor\xE9e ; consultez les diagnostics pour conna\xEEtre la raison.",
+  "report.feedback.completed": "La v\xE9rification et la mise \xE0 jour des retours sont termin\xE9es.",
+  "report.feedback.changes": "Modifications du ticket enregistr\xE9es : {persisted, select, true {oui} other {non}} ; lien partag\xE9 des retours mis \xE0 jour : {linkUpdated, select, true {oui} other {non}}.",
+  "report.feedback.guidance": "Consultez les diagnostics des retours et configurez les pr\xE9sentations et les intervenants dans OpenFeedback.",
+  "error.EventNotFoundError": "L'\xE9v\xE9nement est introuvable. V\xE9rifiez le num\xE9ro d'issue et le d\xE9p\xF4t.",
+  "error.EventConcurrentModificationError": "L'\xE9v\xE9nement a chang\xE9 pendant la synchronisation. Relancez-la sur sa derni\xE8re version.",
   "error.GoogleDriveAssetRepositoryError": "La synchronisation des fichiers Google Drive a \xE9chou\xE9. V\xE9rifiez les identifiants, les dossiers configur\xE9s et les autorisations.",
-  "error.GitHubEventRepositoryConfigurationError": "La configuration du d\xE9p\xF4t d\u2019\xE9v\xE9nements est invalide. V\xE9rifiez les param\xE8tres du d\xE9p\xF4t.",
-  "error.GitHubEventRepositoryScopeError": "L\u2019\xE9v\xE9nement est hors du p\xE9rim\xE8tre du d\xE9p\xF4t configur\xE9.",
-  "error.GitHubEventRepositoryResponseError": "La r\xE9ponse GitHub pour l\u2019\xE9v\xE9nement est invalide. V\xE9rifiez la disponibilit\xE9 du service et l\u2019acc\xE8s au d\xE9p\xF4t.",
+  "error.GitHubEventRepositoryConfigurationError": "La configuration du d\xE9p\xF4t d'\xE9v\xE9nements est invalide. V\xE9rifiez les param\xE8tres du d\xE9p\xF4t.",
+  "error.GitHubEventRepositoryScopeError": "L'\xE9v\xE9nement est hors du p\xE9rim\xE8tre du d\xE9p\xF4t configur\xE9.",
+  "error.GitHubEventRepositoryResponseError": "La r\xE9ponse GitHub pour l'\xE9v\xE9nement est invalide. V\xE9rifiez la disponibilit\xE9 du service et l'acc\xE8s au d\xE9p\xF4t.",
   "error.GitHubEventCommentRepositoryConfigurationError": "La configuration du d\xE9p\xF4t de commentaires est invalide. V\xE9rifiez les param\xE8tres du d\xE9p\xF4t et du bot.",
   "error.GitHubEventCommentRepositoryScopeError": "Le commentaire est hors du p\xE9rim\xE8tre du d\xE9p\xF4t configur\xE9.",
-  "error.GitHubEventCommentRepositoryResponseError": "La r\xE9ponse GitHub pour les commentaires est invalide. V\xE9rifiez la disponibilit\xE9 du service et l\u2019acc\xE8s au d\xE9p\xF4t.",
+  "error.GitHubEventCommentRepositoryResponseError": "La r\xE9ponse GitHub pour les commentaires est invalide. V\xE9rifiez la disponibilit\xE9 du service et l'acc\xE8s au d\xE9p\xF4t.",
   "action.referential.validate": "Valider les r\xE9f\xE9rentiels du meetup",
   "action.referential.sync-issue-form": "Synchroniser le formulaire du meetup",
   "action.event.reconcile": "V\xE9rifier et mettre \xE0 jour le meetup",
@@ -31084,20 +31106,20 @@ var FR_MESSAGES = {
   "action.publication.reconcile-assets": "V\xE9rifier et mettre \xE0 jour les ressources du meetup",
   "report.no-diagnostics": "Aucun diagnostic.",
   "report.fix-applied": "correction appliqu\xE9e : {applied, select, true {oui} other {non}}",
-  "report.failed": "\xC9chec de l\u2019action : {reason}",
-  "report.summary-unavailable": "Le r\xE9sum\xE9 de la t\xE2che n\u2019a pas pu \xEAtre \xE9crit ; le rapport est disponible dans les journaux et les annotations.",
+  "report.failed": "\xC9chec de l'action : {reason}",
+  "report.summary-unavailable": "Le r\xE9sum\xE9 de la t\xE2che n'a pas pu \xEAtre \xE9crit ; le rapport est disponible dans les journaux et les annotations.",
   "report.severity.error": "erreur",
   "report.severity.warning": "avertissement",
   "report.severity.info": "information",
-  "report.execution.failed": "L\u2019action a \xE9chou\xE9 avant de produire un r\xE9sultat.",
-  "report.execution.guidance": "V\xE9rifiez les param\xE8tres de l\u2019action et la configuration des services. Reproduisez le probl\xE8me sur un ex\xE9cuteur de confiance si un d\xE9bogage priv\xE9 est n\xE9cessaire.",
-  "report.error.unexpected": "L\u2019automatisation du meetup a \xE9chou\xE9 ; effectuez le diagnostic sur un ex\xE9cuteur de confiance.",
+  "report.execution.failed": "L'action a \xE9chou\xE9 avant de produire un r\xE9sultat.",
+  "report.execution.guidance": "V\xE9rifiez les param\xE8tres de l'action et la configuration des services. Reproduisez le probl\xE8me sur un ex\xE9cuteur de confiance si un d\xE9bogage priv\xE9 est n\xE9cessaire.",
+  "report.error.unexpected": "L'automatisation du meetup a \xE9chou\xE9 ; effectuez le diagnostic sur un ex\xE9cuteur de confiance.",
   "report.referential.valid": "R\xE9f\xE9rentiels : valides.",
   "report.referential.invalid": "R\xE9f\xE9rentiels : invalides.",
-  "report.referential.counts": "Structures d\u2019accueil valides : {hosts, number} ; intervenants valides : {speakers, number}.",
+  "report.referential.counts": "Structures d'accueil valides : {hosts, number} ; intervenants valides : {speakers, number}.",
   "report.referential.guidance": "Corrigez les champs du r\xE9f\xE9rentiel indiqu\xE9s ci-dessous, puis relancez la validation. Les indices d\xE9signent la position des enregistrements, \xE0 partir de z\xE9ro.",
   "report.issue-form.blocked": "La synchronisation du formulaire est bloqu\xE9e par des r\xE9f\xE9rentiels invalides.",
-  "report.issue-form.stale": "Le formulaire n\u2019est pas \xE0 jour.",
+  "report.issue-form.stale": "Le formulaire n'est pas \xE0 jour.",
   "report.issue-form.drift-allowed": "Le d\xE9calage du formulaire ne bloque pas cette v\xE9rification. La synchronisation peut \xEAtre ex\xE9cut\xE9e apr\xE8s la fusion.",
   "report.issue-form.updated": "Le formulaire a \xE9t\xE9 mis \xE0 jour.",
   "report.issue-form.current": "Le formulaire est \xE0 jour.",
@@ -31110,19 +31132,19 @@ var FR_MESSAGES = {
   "report.event.guidance": "Corrigez les champs du meetup et terminez les t\xE2ches indiqu\xE9es dans les diagnostics.",
   "report.events.count": "{count, plural, =0 {Aucun meetup actif.} one {# meetup actif.} other {# meetups actifs.}}",
   "report.events.issues": "Num\xE9ros des tickets : {issues}.",
-  "report.events.empty": "Aucun meetup actif n\u2019a \xE9t\xE9 trouv\xE9.",
-  "report.assets.skipped": "La mise \xE0 jour des ressources a \xE9t\xE9 ignor\xE9e : le meetup n\u2019est pas \xE9ligible ou des pr\xE9requis manquent.",
+  "report.events.empty": "Aucun meetup actif n'a \xE9t\xE9 trouv\xE9.",
+  "report.assets.skipped": "La mise \xE0 jour des ressources a \xE9t\xE9 ignor\xE9e : le meetup n'est pas \xE9ligible ou des pr\xE9requis manquent.",
   "report.assets.completed": "La v\xE9rification et la mise \xE0 jour des ressources sont termin\xE9es.",
   "report.assets.counts": "Modifications du ticket enregistr\xE9es : {persisted, select, true {oui} other {non}} ; fichiers de ressources : {count, number}.",
   "report.communication.mode": "Mode de communication : {mode}.",
-  "report.communication.planned": "Planifi\xE9es : {planned, number} ; \xE0 envoyer : {due, number} ; tentatives d\u2019envoi : {dispatched, number}.",
+  "report.communication.planned": "Planifi\xE9es : {planned, number} ; \xE0 envoyer : {due, number} ; tentatives d'envoi : {dispatched, number}.",
   "report.communication.accepted": "Accept\xE9es : {accepted, number} ; d\xE9j\xE0 enregistr\xE9es : {recorded, number} ; diff\xE9r\xE9es : {deferred, number}.",
   "report.communication.uncertain": "R\xE9sultats incertains : {uncertain, number} ; rejets : {rejected, number}.",
-  "report.communication.guidance": "Consultez les diagnostics d\u2019approbation et d\u2019envoi avant de r\xE9essayer.",
+  "report.communication.guidance": "Consultez les diagnostics d'approbation et d'envoi avant de r\xE9essayer.",
   "report.communication.uncertain-guidance": "V\xE9rifiez les envois incertains aupr\xE8s du fournisseur et dans le registre avant tout nouvel envoi.",
   "report.communication.failed": "La v\xE9rification des communications a \xE9chou\xE9 ; consultez les annotations de diagnostic et le r\xE9sum\xE9 de la t\xE2che.",
   "workflow.referential.failed": "Les r\xE9f\xE9rentiels du meetup sont invalides. Corrigez les champs indiqu\xE9s dans les annotations de validation et le r\xE9sum\xE9 de la t\xE2che.",
-  "workflow.issue-form.failed": "Le formulaire du meetup n\u2019est pas \xE0 jour. Ex\xE9cutez actions/referential/sync-issue-form avec mode: fix sur cette branche, puis cr\xE9ez un commit avec les fichiers indiqu\xE9s dans le r\xE9sum\xE9."
+  "workflow.issue-form.failed": "Le formulaire du meetup n'est pas \xE0 jour. Ex\xE9cutez actions/referential/sync-issue-form avec mode: fix sur cette branche, puis cr\xE9ez un commit avec les fichiers indiqu\xE9s dans le r\xE9sum\xE9."
 };
 
 // packages/runtime/github-actions/src/i18n/catalog.ts
@@ -31485,6 +31507,9 @@ var PublicationDiagnostics = class {
           break;
         case "community":
           result.community = operation.value;
+          break;
+        case "feedback":
+          result.feedback = operation.value;
           break;
         case "assets":
           result.assets = operation.value;
@@ -32174,7 +32199,7 @@ var EventLinksRule = class {
     const diagnostics = [];
     const normalized = { ...event.publicationLinks };
     let changed = false;
-    for (const key of ["meetup", "community", "assets"]) {
+    for (const key of ["meetup", "community", "assets", "feedback"]) {
       const link = event.publicationLinks[key];
       if (link === void 0 || link.trim() === "") {
         continue;
@@ -32987,6 +33012,11 @@ var MeetupEventMigration = class _MeetupEventMigration {
       community: LegacyEventFields.readOptionalString(
         body.cncf_link,
         "cncf_link",
+        diagnostics
+      ),
+      feedback: LegacyEventFields.readOptionalString(
+        body.openfeedback_link,
+        "openfeedback_link",
         diagnostics
       ),
       assets: LegacyEventFields.readOptionalString(
@@ -35832,6 +35862,7 @@ var FIELD_ORDER = [
   "Meetup Link",
   "CNCF Link",
   "Drive Link",
+  "OpenFeedback Link",
   "Slides & Content",
   "Communication",
   "Aperitif",
@@ -35897,6 +35928,10 @@ var GUIDANCE = /* @__PURE__ */ new Map([
   [
     "event.link.community.invalid",
     ["CNCF Link", "comment.guidance.event.link.community.invalid"]
+  ],
+  [
+    "event.link.feedback.invalid",
+    ["OpenFeedback Link", "comment.guidance.event.link.feedback.invalid"]
   ],
   [
     "event.link.assets.invalid",
@@ -36053,6 +36088,7 @@ var GUIDANCE = /* @__PURE__ */ new Map([
 
 // packages/adapter/github-event-comment-repository/src/i18n/messages.en.ts
 var EN_MESSAGES2 = {
+  "comment.guidance.event.link.feedback.invalid": "Enter a valid HTTPS link to the OpenFeedback event page.",
   "comment.resolved": "All previously reported issues have been resolved. No changes are currently needed.",
   "comment.duplicate": "Superseded duplicate automation comment.",
   "comment.introduction": "Found the following items to complete in the meetup issue:",
@@ -36114,63 +36150,64 @@ var EN_MESSAGES2 = {
 
 // packages/adapter/github-event-comment-repository/src/i18n/messages.fr.ts
 var FR_MESSAGES2 = {
-  "comment.resolved": "Tous les probl\xE8mes signal\xE9s pr\xE9c\xE9demment ont \xE9t\xE9 r\xE9solus. Aucune modification n\u2019est n\xE9cessaire.",
+  "comment.guidance.event.link.feedback.invalid": "Saisissez un lien HTTPS valide vers la page de l'\xE9v\xE9nement OpenFeedback.",
+  "comment.resolved": "Tous les probl\xE8mes signal\xE9s pr\xE9c\xE9demment ont \xE9t\xE9 r\xE9solus. Aucune modification n'est n\xE9cessaire.",
   "comment.duplicate": "Ce commentaire automatique en double a \xE9t\xE9 remplac\xE9.",
   "comment.introduction": "Voici les \xE9l\xE9ments \xE0 compl\xE9ter dans le ticket du meetup :",
   "comment.guidance": "Mettez \xE0 jour la description du ticket ou ses \xE9tiquettes pour traiter ces \xE9l\xE9ments. Cette liste sera actualis\xE9e automatiquement.",
   "comment.unknown": "Une v\xE9rification suppl\xE9mentaire n\xE9cessite votre attention. Consultez les diagnostics du workflow avec un responsable.",
-  "comment.referential": "Demandez \xE0 un responsable de corriger les r\xE9f\xE9rentiels des structures d\u2019accueil ou des intervenants \xE0 l\u2019aide des diagnostics du workflow de validation.",
+  "comment.referential": "Demandez \xE0 un responsable de corriger les r\xE9f\xE9rentiels des structures d'accueil ou des intervenants \xE0 l'aide des diagnostics du workflow de validation.",
   "comment.agenda.item": "Programme (\xE9l\xE9ment {item}{speaker})",
   "comment.agenda.speaker-suffix": ", intervenant {speaker}",
   "comment.agenda.speaker": "Programme (intervenant {speaker})",
-  "comment.guidance.event.title.missing": "Ajoutez un titre \xE0 l\u2019\xE9v\xE9nement.",
-  "comment.guidance.event.date.missing": "Ajoutez la date de l\u2019\xE9v\xE9nement au format AAAA-MM-JJ.",
+  "comment.guidance.event.title.missing": "Ajoutez un titre \xE0 l'\xE9v\xE9nement.",
+  "comment.guidance.event.date.missing": "Ajoutez la date de l'\xE9v\xE9nement au format AAAA-MM-JJ.",
   "comment.guidance.event.date.invalid": "Saisissez une date valide au format AAAA-MM-JJ.",
-  "comment.guidance.event.description.missing": "Ajoutez une courte description de l\u2019\xE9v\xE9nement.",
+  "comment.guidance.event.description.missing": "Ajoutez une courte description de l'\xE9v\xE9nement.",
   "comment.guidance.event.hoster.missing": "S\xE9lectionnez un h\xF4te dans la liste.",
   "comment.guidance.event.hoster.invalid": "Utilisez un nom ou un identifiant stable de la liste des h\xF4tes.",
-  "comment.guidance.event.hoster.multiple": "S\xE9lectionnez un seul h\xF4te pour l\u2019\xE9v\xE9nement.",
+  "comment.guidance.event.hoster.multiple": "S\xE9lectionnez un seul h\xF4te pour l'\xE9v\xE9nement.",
   "comment.guidance.event.agenda.missing": "Ajoutez au moins une conf\xE9rence au format `- Intervenant: Description`.",
   "comment.guidance.event.agenda.legacy-line-invalid": "Utilisez `- Intervenant: Description` pour chaque ligne du programme.",
   "comment.guidance.event.agenda.speaker.missing": "Ajoutez au moins un intervenant pour cette conf\xE9rence.",
   "comment.guidance.event.agenda.speaker.invalid": "Saisissez un nom de la liste des intervenants.",
-  "comment.guidance.event.agenda.description.missing": "Ajoutez une description apr\xE8s le nom de l\u2019intervenant et les deux-points.",
-  "comment.guidance.publication.meetup.missing": "Ajoutez le lien vers la page Meetup de l\u2019\xE9v\xE9nement.",
-  "comment.guidance.publication.community.missing": "Ajoutez le lien vers la page CNCF / OCGroups de l\u2019\xE9v\xE9nement.",
-  "comment.guidance.publication.assets.missing": "Ajoutez le lien vers le dossier Google Drive de l\u2019\xE9v\xE9nement.",
-  "comment.guidance.event.link.meetup.invalid": "Saisissez un lien HTTPS valide vers la page Meetup de l\u2019\xE9v\xE9nement.",
-  "comment.guidance.event.link.community.invalid": "Saisissez un lien HTTPS valide vers la page CNCF / OCGroups de l\u2019\xE9v\xE9nement.",
-  "comment.guidance.event.link.assets.invalid": "Saisissez un lien HTTPS valide vers le dossier Google Drive de l\u2019\xE9v\xE9nement.",
-  "comment.guidance.publication.meetup-url.invalid": "Utilisez l\u2019URL Meetup de ce groupe, termin\xE9e par l\u2019identifiant num\xE9rique de l\u2019\xE9v\xE9nement.",
-  "comment.guidance.publication.community-url.invalid": "Utilisez l\u2019URL CNCF / OCGroups de ce groupe.",
+  "comment.guidance.event.agenda.description.missing": "Ajoutez une description apr\xE8s le nom de l'intervenant et les deux-points.",
+  "comment.guidance.publication.meetup.missing": "Ajoutez le lien vers la page Meetup de l'\xE9v\xE9nement.",
+  "comment.guidance.publication.community.missing": "Ajoutez le lien vers la page CNCF / OCGroups de l'\xE9v\xE9nement.",
+  "comment.guidance.publication.assets.missing": "Ajoutez le lien vers le dossier Google Drive de l'\xE9v\xE9nement.",
+  "comment.guidance.event.link.meetup.invalid": "Saisissez un lien HTTPS valide vers la page Meetup de l'\xE9v\xE9nement.",
+  "comment.guidance.event.link.community.invalid": "Saisissez un lien HTTPS valide vers la page CNCF / OCGroups de l'\xE9v\xE9nement.",
+  "comment.guidance.event.link.assets.invalid": "Saisissez un lien HTTPS valide vers le dossier Google Drive de l'\xE9v\xE9nement.",
+  "comment.guidance.publication.meetup-url.invalid": "Utilisez l'URL Meetup de ce groupe, termin\xE9e par l'identifiant num\xE9rique de l'\xE9v\xE9nement.",
+  "comment.guidance.publication.community-url.invalid": "Utilisez l'URL CNCF / OCGroups de ce groupe.",
   "comment.guidance.publication.asset-url.invalid": "Utilisez une URL de dossier Google Drive : `https://drive.google.com/drive/folders/FOLDER_ID`.",
-  "comment.guidance.event.confirmation.host.missing": "Confirmez l\u2019h\xF4te, puis ajoutez le label `hoster:confirmed`.",
+  "comment.guidance.event.confirmation.host.missing": "Confirmez l'h\xF4te, puis ajoutez le label `hoster:confirmed`.",
   "comment.guidance.event.confirmation.speakers.missing": "Confirmez les intervenants, puis ajoutez le label `speakers:confirmed`.",
   "comment.guidance.event.logistics.intent.invalid": "Choisissez `Yes` ou `No`, ou laissez la r\xE9ponse vide si elle reste ind\xE9cise.",
   "comment.guidance.event.occurrence-status.invalid": "Utilisez `scheduled`, `postponed`, `held` ou `cancelled`.",
   "comment.guidance.event.occurrence-status.label-conflict": "Conservez un seul label de statut : `event:postponed`, `event:held` ou `event:cancelled`.",
-  "comment.guidance.event.document.heading.missing": "R\xE9tablissez cet en-t\xEAte de section \xE0 partir du mod\xE8le d\u2019issue.",
+  "comment.guidance.event.document.heading.missing": "R\xE9tablissez cet en-t\xEAte de section \xE0 partir du mod\xE8le d'issue.",
   "comment.guidance.event.document.heading.duplicate": "Conservez une seule section avec cet en-t\xEAte et fusionnez son contenu.",
   "comment.guidance.event.document.checkbox.invalid": "Utilisez `- [ ] T\xE2che` pour les t\xE2ches \xE0 faire et `- [x] T\xE2che` pour les t\xE2ches termin\xE9es.",
   "comment.guidance.event.document.invalid-field-type": "Saisissez une r\xE9ponse textuelle dans ce champ.",
   "comment.guidance.event.document.invalid-hoster-type": "S\xE9lectionnez un h\xF4te dans la liste.",
   "comment.guidance.event.document.invalid-hoster-entry": "Utilisez un nom ou un identifiant stable de la liste des h\xF4tes.",
   "comment.guidance.event.document.invalid-agenda-type": "R\xE9digez le programme sous forme de lignes `- Intervenant: Description`.",
-  "comment.guidance.event.document.schema-marker.duplicate": "Demandez \xE0 un responsable de corriger les m\xE9tadonn\xE9es d\u2019automatisation en double dans la description.",
-  "comment.guidance.event.document.schema-version.unsupported": "Demandez \xE0 un responsable de mettre \xE0 jour l\u2019automatisation pour prendre en charge ce format d\u2019issue.",
-  "comment.guidance.event.document.reference-metadata.missing": "Demandez \xE0 un responsable de r\xE9g\xE9n\xE9rer les m\xE9tadonn\xE9es manquantes des r\xE9f\xE9rences d\u2019h\xF4te et d\u2019intervenants.",
-  "comment.guidance.event.document.reference-metadata.duplicate": "Demandez \xE0 un responsable de corriger les m\xE9tadonn\xE9es en double des r\xE9f\xE9rences d\u2019h\xF4te et d\u2019intervenants.",
-  "comment.guidance.event.document.reference-metadata.invalid": "Demandez \xE0 un responsable de r\xE9g\xE9n\xE9rer les m\xE9tadonn\xE9es invalides des r\xE9f\xE9rences d\u2019h\xF4te et d\u2019intervenants.",
-  "comment.guidance.event.document.reference-metadata.legacy": "V\xE9rifiez les r\xE9f\xE9rences de l\u2019h\xF4te et du programme, puis relancez la mise \xE0 jour de l\u2019issue pour actualiser leurs anciennes m\xE9tadonn\xE9es.",
-  "comment.guidance.event.document.reference-metadata.stale": "V\xE9rifiez les r\xE9f\xE9rences de l\u2019h\xF4te et du programme, puis relancez la mise \xE0 jour de l\u2019issue pour actualiser leurs m\xE9tadonn\xE9es.",
-  "comment.guidance.referential.reference.host.unknown": "Cet h\xF4te est absent de la liste des h\xF4tes. Copiez son nom exact, accents compris, ou utilisez son identifiant stable : `Nom de l\u2019h\xF4te [host-0001]`.",
-  "comment.guidance.referential.reference.host.ambiguous": "Plusieurs h\xF4tes portent ce nom. Ajoutez le bon identifiant stable : `Nom de l\u2019h\xF4te [host-0001]`.",
+  "comment.guidance.event.document.schema-marker.duplicate": "Demandez \xE0 un responsable de corriger les m\xE9tadonn\xE9es d'automatisation en double dans la description.",
+  "comment.guidance.event.document.schema-version.unsupported": "Demandez \xE0 un responsable de mettre \xE0 jour l'automatisation pour prendre en charge ce format d'issue.",
+  "comment.guidance.event.document.reference-metadata.missing": "Demandez \xE0 un responsable de r\xE9g\xE9n\xE9rer les m\xE9tadonn\xE9es manquantes des r\xE9f\xE9rences d'h\xF4te et d'intervenants.",
+  "comment.guidance.event.document.reference-metadata.duplicate": "Demandez \xE0 un responsable de corriger les m\xE9tadonn\xE9es en double des r\xE9f\xE9rences d'h\xF4te et d'intervenants.",
+  "comment.guidance.event.document.reference-metadata.invalid": "Demandez \xE0 un responsable de r\xE9g\xE9n\xE9rer les m\xE9tadonn\xE9es invalides des r\xE9f\xE9rences d'h\xF4te et d'intervenants.",
+  "comment.guidance.event.document.reference-metadata.legacy": "V\xE9rifiez les r\xE9f\xE9rences de l'h\xF4te et du programme, puis relancez la mise \xE0 jour de l'issue pour actualiser leurs anciennes m\xE9tadonn\xE9es.",
+  "comment.guidance.event.document.reference-metadata.stale": "V\xE9rifiez les r\xE9f\xE9rences de l'h\xF4te et du programme, puis relancez la mise \xE0 jour de l'issue pour actualiser leurs m\xE9tadonn\xE9es.",
+  "comment.guidance.referential.reference.host.unknown": "Cet h\xF4te est absent de la liste des h\xF4tes. Copiez son nom exact, accents compris, ou utilisez son identifiant stable : `Nom de l'h\xF4te [host-0001]`.",
+  "comment.guidance.referential.reference.host.ambiguous": "Plusieurs h\xF4tes portent ce nom. Ajoutez le bon identifiant stable : `Nom de l'h\xF4te [host-0001]`.",
   "comment.guidance.referential.reference.host.display-name-mismatch": "Utilisez le nom associ\xE9 \xE0 cet identifiant stable dans la liste des h\xF4tes.",
-  "comment.guidance.referential.reference.host.invalid": "Choisissez un h\xF4te de la liste des h\xF4tes par son nom ou `Nom de l\u2019h\xF4te [host-0001]`.",
-  "comment.guidance.referential.reference.speaker.unknown": "Cet intervenant est absent de la liste des intervenants. Copiez son nom exact, accents compris, ou utilisez son identifiant stable : `Nom de l\u2019intervenant [speaker-0001]`.",
-  "comment.guidance.referential.reference.speaker.ambiguous": "Plusieurs intervenants portent ce nom. Ajoutez le bon identifiant stable : `Nom de l\u2019intervenant [speaker-0001]`.",
+  "comment.guidance.referential.reference.host.invalid": "Choisissez un h\xF4te de la liste des h\xF4tes par son nom ou `Nom de l'h\xF4te [host-0001]`.",
+  "comment.guidance.referential.reference.speaker.unknown": "Cet intervenant est absent de la liste des intervenants. Copiez son nom exact, accents compris, ou utilisez son identifiant stable : `Nom de l'intervenant [speaker-0001]`.",
+  "comment.guidance.referential.reference.speaker.ambiguous": "Plusieurs intervenants portent ce nom. Ajoutez le bon identifiant stable : `Nom de l'intervenant [speaker-0001]`.",
   "comment.guidance.referential.reference.speaker.display-name-mismatch": "Utilisez le nom associ\xE9 \xE0 cet identifiant stable dans la liste des intervenants.",
-  "comment.guidance.referential.reference.speaker.invalid": "Choisissez un intervenant de la liste des intervenants par son nom ou `Nom de l\u2019intervenant [speaker-0001]`."
+  "comment.guidance.referential.reference.speaker.invalid": "Choisissez un intervenant de la liste des intervenants par son nom ou `Nom de l'intervenant [speaker-0001]`."
 };
 
 // packages/adapter/github-event-comment-repository/src/i18n/catalog.ts
@@ -36206,6 +36243,8 @@ var DiagnosticPresenter = class _DiagnosticPresenter {
     ["cncf_link", "CNCF Link"],
     ["publicationLinks.assets", "Drive Link"],
     ["drive_link", "Drive Link"],
+    ["publicationLinks.feedback", "OpenFeedback Link"],
+    ["openfeedback_link", "OpenFeedback Link"],
     ["confirmations.host", "Host confirmation"],
     ["confirmations.speakers", "Speaker confirmation"],
     ["occurrenceStatus", "Event Status"],
@@ -36744,6 +36783,7 @@ var HEADINGS = Object.freeze({
   meetupLink: "Meetup Link",
   communityLink: "CNCF Link",
   assetsLink: "Drive Link",
+  feedbackLink: "OpenFeedback Link",
   slides: "Slides & Content",
   communication: "Communication",
   aperitif: "Aperitif",
@@ -37503,6 +37543,7 @@ var IssueFormReader = class {
       meetup_link: read(HEADINGS.meetupLink),
       cncf_link: read(HEADINGS.communityLink),
       drive_link: read(HEADINGS.assetsLink),
+      openfeedback_link: read(HEADINGS.feedbackLink),
       event_status: read(HEADINGS.occurrenceStatus)
     };
   }
@@ -37613,6 +37654,12 @@ var IssueFormWriter = class _IssueFormWriter {
     let body = document.body;
     for (const [heading, value] of fields)
       body = IssueFormSections.replaceOrAppendSection(body, heading, value);
+    if (event.publicationLinks.feedback)
+      body = IssueFormSections.replaceOrAppendSection(
+        body,
+        HEADINGS.feedbackLink,
+        event.publicationLinks.feedback
+      );
     return IssueFormSections.removeSection(body, HEADINGS.occurrenceStatus);
   }
   renderOperations(source, event) {

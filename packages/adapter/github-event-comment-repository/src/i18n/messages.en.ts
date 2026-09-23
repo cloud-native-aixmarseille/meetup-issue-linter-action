@@ -1,4 +1,6 @@
 export const EN_MESSAGES = {
+	"comment.guidance.event.link.feedback.invalid":
+		"Enter a valid HTTPS link to the OpenFeedback event page.",
 	"comment.resolved":
 		"All previously reported issues have been resolved. No changes are currently needed.",
 	"comment.duplicate": "Superseded duplicate automation comment.",

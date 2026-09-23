@@ -58,5 +58,5 @@ limits with suppression comments or formatting tricks. Preserve synthetic AAA
 behavior tests, reference-link round trips, privacy, concurrency guards, and
 idempotent delivery while moving code.
 
-The [developer guide](../developer-guide.md) and `AGENTS.md` document the rules
+The [developer guide](../development/README.md) and `AGENTS.md` document the rules
 that require human judgment. Enforce mechanically checkable rules in tooling first.

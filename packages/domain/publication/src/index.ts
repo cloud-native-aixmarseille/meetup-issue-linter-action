@@ -41,3 +41,8 @@ export {
 	type PublicationUrlConfiguration,
 	type PublicationUrlPolicy,
 } from "./domain/url-policy-contracts.js";
+export type {
+	FeedbackEventGateway,
+	FeedbackLinkGateway,
+} from "./application/feedback-ports.js";
+export { FeedbackPolicy } from "./domain/feedback-policy.js";

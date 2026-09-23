@@ -2,171 +2,60 @@
 
 # Meetup Event Automation
 
-![Meetup Event Automation logo](.github/logo.svg)
-
----
-
 <!-- header:end -->
 
-<!-- badges:start -->
+GitHub Actions workflows for organizing Cloud Native Aix-Marseille meetups. Each
+meetup is tracked in a GitHub issue: its date, host, speakers, agenda,
+publication links, and follow-up tasks.
 
-[![Release](https://img.shields.io/github/v/release/cloud-native-aixmarseille/meetup-event-automation)](https://github.com/cloud-native-aixmarseille/meetup-event-automation/releases)
-[![License](https://img.shields.io/github/license/cloud-native-aixmarseille/meetup-event-automation)](http://choosealicense.com/licenses/mit/)
-[![Stars](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-event-automation?style=social)](https://img.shields.io/github/stars/cloud-native-aixmarseille/meetup-event-automation?style=social)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/cloud-native-aixmarseille/meetup-event-automation/blob/main/CONTRIBUTING.md)
+The automation validates and updates those issues, keeps host and speaker
+choices in sync, prepares Google Drive assets and OpenFeedback events, updates
+the shared feedback link, and sends approved email and Slack messages.
 
-<!-- badges:end -->
+This repository contains the automation. The consuming meetup repository stores
+the issues, private host and speaker CSV files, credentials, and workflow
+triggers. The community paths, labels, timezone, and publication destinations
+are fixed by this project's [configuration](docs/reference/configuration.md).
 
-<!-- overview:start -->
+## Set up a repository
 
-## Overview
+Follow the [setup guide](docs/usage/setup.md) to add the issue form,
+referentials, GitHub App credentials, Drive, Slack, OpenFeedback, Kutt, and
+reusable workflow callers. Pin every caller to the same published release commit.
 
-This repository owns the tested Meetup Event Automation product for the complete
-meetup event journey through dedicated Actions and reusable workflows.
+- [Google Drive](docs/integrations/assets.md): create event folders and copy
+  templates.
+- [OpenFeedback](docs/integrations/feedback.md): create feedback events automatically.
+- [Email and Slack](docs/integrations/communications.md): send approved
+  communications.
 
-<!-- overview:end -->
+Set the optional `locale` workflow input to `fr` for French generated messages;
+English is the default. Use the same locale in all four callers.
 
-## Automation catalog
+## Organize a meetup
 
-This repository is the implementation and release unit for Meetup Event
-Automation. The `meetups` repository owns event data, credentials, and
-trigger-only workflows; it consumes the Actions and reusable workflows
-published here at an immutable release revision.
+1. Open a **Meetup** issue and fill in the date, title, host, description, and
+   agenda.
+2. Read the automation's diagnostic comment and complete the missing
+   information.
+3. Add `hoster:confirmed` and `speakers:confirmed` after confirming
+   participation.
+4. Publish the Meetup and CNCF event pages, then add their links to the issue.
+5. Review the event and apply `communication:approved` to authorize
+   communications.
+6. Complete the event and its follow-up checklist.
 
-The architecture and migration constraints are recorded in
-[ADR-0001](docs/adr/0001-centralize-meetup-event-automation.md).
+The [organizer guide](docs/usage/organize-meetup.md) covers agenda syntax,
+postponements, feedback preparation, approvals, and follow-up.
 
-### Domains
+## Documentation
 
-Domain packages contain deterministic business models, policies, ports, and use
-cases. They do not depend on GitHub Actions, vendor SDKs, files, YAML/CSV, or the
-system clock.
+Use the [documentation index](docs/README.md) for setup, configuration,
+integration guides, and action and workflow references.
 
-| Domain        | Package                                                             | Responsibility                                                                                         |
-| ------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Event         | [`@meetup-automation/event`](packages/domain/event)                 | Event documents, validation and normalization, readiness, explicit lifecycle, and event reconciliation |
-| Referential   | [`@meetup-automation/referential`](packages/domain/referential)     | Hosts and speakers, stable identifiers, catalog validation, resolution, and public choices             |
-| Communication | [`@meetup-automation/communication`](packages/domain/communication) | Communication policy, recipient-safe intent planning, idempotency, and delivery state                  |
-| Publication   | [`@meetup-automation/publication`](packages/domain/publication)     | External event URLs and explicit manual publication, asset, and attendance tasks                       |
-
-Cross-domain journey orchestration and the versioned consumer configuration
-contract live in [`@meetup-automation/journey`](packages/application/journey).
-The contract is intentionally opinionated: paths, labels, Europe/Paris time,
-routing, and policy defaults are brain-owned conventions. Consumers do not
-provide a meetup-specific runtime config file; they supply credentials, caller
-identity and Slack routing inputs, and the fixed Drive folder variables.
-Occurrence status is operational too: scheduled is the default, closing an
-issue implies occurrence, and explicit labels drive postponed or cancelled
-transitions.
-
-### Adapters
-
-Adapter names state both their technology and responsibility. Vendor objects
-remain at these boundaries and do not leak into domain APIs.
-
-| Adapter                                                                                                 | Responsibility                                                                 |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [`github-event-repository`](packages/adapter/github-event-repository)                                   | Read and minimally patch GitHub Issue-backed event documents                   |
-| [`github-event-comment-repository`](packages/adapter/github-event-comment-repository)                   | Reconcile the single managed diagnostic comment                                |
-| [`github-issue-form-event-document-codec`](packages/adapter/github-issue-form-event-document-codec)     | Decode, migrate, and render versioned issue-form event documents               |
-| [`github-communication-approval-repository`](packages/adapter/github-communication-approval-repository) | Persist maintainer-approved event, revision, and routing snapshots             |
-| [`github-delivery-ledger`](packages/adapter/github-delivery-ledger)                                     | Persist communication delivery reservations and outcomes                       |
-| [`github-repository-dispatch-mail-gateway`](packages/adapter/github-repository-dispatch-mail-gateway)   | Dispatch idempotent mail intents through a repository event                    |
-| [`csv-referential-repository`](packages/adapter/csv-referential-repository)                             | Load host and speaker referentials from checked-out CSV files                  |
-| [`yaml-issue-form-projection`](packages/adapter/yaml-issue-form-projection)                             | Project public referential choices into the issue form                         |
-| [`slack-notification-gateway`](packages/adapter/slack-notification-gateway)                             | Deliver redacted Slack notifications                                           |
-| [`system-clock`](packages/adapter/system-clock)                                                         | Supply explicit instants to time-dependent use cases                           |
-| [`google-drive-asset-repository`](packages/adapter/google-drive-asset-repository)                       | Reconcile event folders and template copies through the publication asset port |
-
-### Actions
-
-Each Action is a thin input/output boundary over the application use cases. Its
-directory contains the public contract, documentation, entrypoint, and
-committed bundle.
-
-Runtime composition roots use Inversify to inject ports and use cases within each
-invocation. Domain and application code remain independent of the container;
-cross-domain journey decisions live in `packages/application/journey`. See
-[the dependency injection decision](docs/adr/0002-runtime-dependency-injection.md).
-
-| Action                                                                                   | Responsibility                                                           |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| [`actions/event/reconcile`](actions/event/reconcile/README.md)                           | Reconcile one event issue and its managed diagnostics                    |
-| [`actions/event/list-active`](actions/event/list-active/README.md)                       | List all active event issue numbers with pagination                      |
-| [`actions/referential/validate`](actions/referential/validate/README.md)                 | Validate private referentials with redacted results                      |
-| [`actions/referential/sync-issue-form`](actions/referential/sync-issue-form/README.md)   | Synchronize public issue-form choices from referentials                  |
-| [`actions/communication/reconcile`](actions/communication/reconcile/README.md)           | Plan or dispatch due communications under workflow authorization         |
-| [`actions/publication/reconcile-assets`](actions/publication/reconcile-assets/README.md) | Check or reconcile Drive folders, template copies, and issue asset links |
-
-Both event workflows create a short-lived mailings installation token using
-the supplied GitHub App client ID and private key. Install the App on
-`mailings` in the caller repository owner's organization with Contents: write
-permission. The token scope and dispatch target both use that owner. Each token
-is scoped to that repository and revoked at job completion. Callers do not
-provide a `mailings-token` workflow secret; direct action callers still supply
-the generated token through the action input.
-
-Both event workflows require Google credentials and Drive folder IDs. See
-[Google Drive event assets](docs/publication-assets.md) for setup instructions,
-asset identity, and retry behavior.
-
-### Reusable workflows
-
-Consumer repositories keep GitHub-required triggers and delegate the journey
-to these workflows.
-
-| Workflow                                       | Intended trigger                                            | Documentation                                                                                             |
-| ---------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `update-meetup-issue.yml`                      | Relevant issue events                                       | [Update one meetup issue](.github/workflows/update-meetup-issue.md)                                       |
-| `check-active-meetup-issues.yml`               | Schedule or manual audit                                    | [Check active meetup issues](.github/workflows/check-active-meetup-issues.md)                             |
-| `update-meetup-issue-form.yml`                 | Referential/configuration changes or manual synchronization | [Update the meetup issue form](.github/workflows/update-meetup-issue-form.md)                             |
-| `check-meetup-referentials-and-issue-form.yml` | Consumer pull requests                                      | [Check meetup referentials and issue form](.github/workflows/check-meetup-referentials-and-issue-form.md) |
-
-### Release pinning
-
-Actions and reusable workflows share one SemVer release. Consumers must pin a
-full 40-character release commit SHA, retaining the version as a review aid:
-
-```yaml
-jobs:
-  manage:
-    uses: cloud-native-aixmarseille/meetup-event-automation/.github/workflows/update-meetup-issue.yml@0123456789abcdef0123456789abcdef01234567 # 1.x.y; replace with the published release SHA
-```
-
-Do not pin a mutable branch or major-version tag. Upgrades are explicit changes
-to that SHA and can be rolled back by restoring the previous release SHA.
-
-### Development
-
-Developer workflow, repository rules, and quality gates live in
-[docs/developer-guide.md](docs/developer-guide.md).
-
-```shell
-make setup
-make lint
-make check-knip
-make quality
-make check-architecture
-make check-contracts
-```
-
-## Contributing
-
-Contributions are welcome! Please see the [contributing guidelines](https://github.com/cloud-native-aixmarseille/meetup-event-automation/blob/main/CONTRIBUTING.md) for more details.
+For code changes, see [Contributing](CONTRIBUTING.md) and the
+[development guide](docs/development/README.md).
 
 ## License
 
-This project is licensed under the MIT License.
-
-SPDX-License-Identifier: MIT
-
-Copyright © 2026 Cloud Native Aix-Marseille
-
-For more details, see the [license](http://choosealicense.com/licenses/mit/).
-
-## Language
-
-Set the optional `locale` input to `fr` for French reports, comments, and generated
-guidance; English is the default. Use the same locale in all consumer workflows.
-See [Localization](docs/localization.md) for supported surfaces, fallback rules,
-and translation development.
+[MIT](LICENSE)

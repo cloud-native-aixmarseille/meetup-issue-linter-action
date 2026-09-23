@@ -67,6 +67,12 @@
 			],
 			"@meetup-automation/localization": [
 				"./packages/presentation/localization/src/index.ts"
+			],
+			"@meetup-automation/kutt-feedback-link-gateway": [
+				"./packages/adapter/kutt-feedback-link-gateway/src/index.ts"
+			],
+			"@meetup-automation/openfeedback-event-gateway": [
+				"./packages/adapter/openfeedback-event-gateway/src/index.ts"
 			]
 		}
 	}

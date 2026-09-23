@@ -418,6 +418,69 @@ jobs:
           [[ "$OUTCOME" == "failure" ]]
           jq -e 'map(.code) | index("action.execution.failed") != null' <<< "$DIAGNOSTICS" >/dev/null
 
+  test-publication-reconcile-feedback:
+    name: Test required feedback configuration
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Reject a missing OpenFeedback API key
+        id: missing-openfeedback-key
+        continue-on-error: true
+        uses: ./actions/publication/reconcile-feedback
+        with:
+          issue-number: "1"
+          mode: check
+          github-token: ${{ github.token }}
+          managed-comment-author: integration-tests[bot]
+          openfeedback-api-key: ""
+          kutt-api-key: synthetic-key
+          kutt-link-id: synthetic-link
+
+      - name: Reject a missing Kutt API key
+        id: missing-key
+        continue-on-error: true
+        uses: ./actions/publication/reconcile-feedback
+        with:
+          issue-number: "1"
+          mode: check
+          github-token: ${{ github.token }}
+          managed-comment-author: integration-tests[bot]
+          openfeedback-api-key: oforg_synthetic-key
+          kutt-api-key: ""
+          kutt-link-id: synthetic-link
+
+      - name: Reject a missing Kutt link ID
+        id: missing-id
+        continue-on-error: true
+        uses: ./actions/publication/reconcile-feedback
+        with:
+          issue-number: "1"
+          mode: check
+          github-token: ${{ github.token }}
+          managed-comment-author: integration-tests[bot]
+          openfeedback-api-key: oforg_synthetic-key
+          kutt-api-key: synthetic-key
+          kutt-link-id: ""
+
+      - name: Assert missing settings fail
+        shell: bash
+        env:
+          OPENFEEDBACK_OUTCOME: ${{ steps.missing-openfeedback-key.outcome }}
+          OPENFEEDBACK_DIAGNOSTICS: ${{ steps.missing-openfeedback-key.outputs.diagnostics }}
+          KEY_OUTCOME: ${{ steps.missing-key.outcome }}
+          ID_OUTCOME: ${{ steps.missing-id.outcome }}
+        run: |
+          [[ "$OPENFEEDBACK_OUTCOME" == "failure" ]]
+          jq -e 'map(.code) | index("action.execution.failed") != null' <<< "$OPENFEEDBACK_DIAGNOSTICS" >/dev/null
+          [[ "$KEY_OUTCOME" == "failure" ]]
+          [[ "$ID_OUTCOME" == "failure" ]]
+
   cleanup-synthetic-issue:
     name: Cleanup synthetic meetup issue
     if: always()

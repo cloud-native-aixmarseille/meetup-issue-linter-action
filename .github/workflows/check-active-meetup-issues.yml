@@ -32,11 +32,21 @@ on:
         description: Google Drive folder ID of the template folder used for asset reconciliation.
         required: true
         type: string
+      kutt-link-id:
+        description: Existing Kutt feedback link API ID.
+        required: true
+        type: string
     outputs:
       issue-numbers:
         description: JSON array of meetup issue numbers selected for audit during the listing phase.
         value: ${{ jobs.list.outputs.issue-numbers }}
     secrets:
+      openfeedback-api-key:
+        description: OpenFeedback organization API key (oforg_) used to create missing events.
+        required: true
+      kutt-api-key:
+        description: API key for the owner of the existing Kutt feedback link.
+        required: true
       google-credentials:
         description: Google service-account JSON for Drive asset reconciliation.
         required: true
@@ -109,6 +119,19 @@ jobs:
         uses: hoverkraft-tech/ci-github-common/actions/local-workflow-actions@3a27d31e9ccefbe9609cc9165017ed100ff34a22 # 0.38.0
         with:
           actions-path: actions
+
+      - name: Reconcile event feedback
+        id: feedback
+        uses: ./../self-workflow/actions/publication/reconcile-feedback
+        with:
+          locale: ${{ inputs.locale }}
+          issue-number: ${{ matrix.issue-number }}
+          mode: fix
+          github-token: ${{ steps.app-token.outputs.token }}
+          managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
+          kutt-link-id: ${{ inputs.kutt-link-id }}
+          openfeedback-api-key: ${{ secrets.openfeedback-api-key }} # zizmor: ignore[secrets-outside-env] required reusable-workflow secret is forwarded explicitly
+          kutt-api-key: ${{ secrets.kutt-api-key }} # zizmor: ignore[secrets-outside-env] required reusable-workflow secret is forwarded explicitly
 
       - name: Reconcile event assets
         id: assets

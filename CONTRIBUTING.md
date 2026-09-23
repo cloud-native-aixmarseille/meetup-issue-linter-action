@@ -1,21 +1,23 @@
 # Contributing
 
-Please start with [docs/developer-guide.md](docs/developer-guide.md); it is the
-canonical contributor workflow and quality reference for this repository.
+Start with the [development setup and commands](docs/development/README.md).
+Follow the [architecture rules](docs/development/architecture.md) and
+[test conventions](docs/development/testing.md).
 
 Please note we have a code of conduct, please follow it in all your interactions with the project.
 
 ## Pull Request Process
 
-1. Ensure any install or build dependencies are removed before the end of the layer when doing a
-   build.
-2. Update the README.md and the relevant developer docs with changes to the
-   interface, including new environment variables, exposed ports, useful file
-   locations, and container parameters.
-3. Ensure that the changes are well tested and continuous integration checks are succeeded.
-4. Ensure the build assets have been updated.
-5. You may merge the Pull Request in once you have the sign-off of one maintainer, or if you
-   do not have permission to do that, you may request the reviewer to merge it for you.
+1. Keep the change focused on a current behavior or concrete problem.
+2. Add or update behavior tests where the change needs them. Use synthetic
+   fixtures; never commit real host/speaker contact data or credentials.
+3. Update the relevant user guide or contract when behavior, configuration,
+   action inputs, or workflow wiring changes. Keep documentation direct and
+   current; remove obsolete instructions instead of appending corrections.
+4. Run the [checks appropriate to the change](docs/development/README.md#choose-checks-for-the-change).
+   Include rebuilt action bundles after production changes.
+5. Open a pull request describing the problem, resulting behavior, and checks
+   run. Wait for maintainer review and passing CI before merging.
 
 ## Code of Conduct
 

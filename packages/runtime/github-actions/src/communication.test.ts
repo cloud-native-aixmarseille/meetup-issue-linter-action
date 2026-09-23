@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CommunicationRuntime } from "./communication.js";
+import { OrganizerNotificationMessages } from "./notifications/organizer-notification-messages.js";
 
 const { getOctokitMock } = vi.hoisted(() => ({
 	getOctokitMock: vi.fn(),
@@ -13,6 +14,7 @@ vi.mock("@actions/github", () => ({ getOctokit: getOctokitMock }));
 const temporaryRoots: string[] = [];
 
 afterEach(async () => {
+	vi.restoreAllMocks();
 	vi.useRealTimers();
 	vi.unstubAllGlobals();
 	getOctokitMock.mockReset();
@@ -70,43 +72,59 @@ describe("runCommunicationReconcile", () => {
 		},
 	);
 
-	it("requires new approval after a locale change without resending recorded deliveries", async () => {
-		// Arrange
-		const workspaceRoot = await createWorkspace();
-		const clients = githubClients();
-		getOctokitMock.mockImplementation((token: string) =>
-			token === "github-token" ? clients.github : clients.mailings,
-		);
-		const input = runtimeInput(workspaceRoot, {
-			requestedMode: "dispatch",
-			dispatchAuthorized: true,
-			mailingsToken: "mailings-token",
-		});
-		await CommunicationRuntime.runCommunicationReconcile({
-			...input,
-			approvalTrigger: approvalTrigger(),
-		});
-		clients.createDispatchEvent.mockClear();
-		// Act
-		const stale = await CommunicationRuntime.runCommunicationReconcile({
-			...input,
-			locale: "fr",
-		});
-		const approved = await CommunicationRuntime.runCommunicationReconcile({
-			...input,
-			locale: "fr",
-			approvalTrigger: approvalTrigger(),
-		});
-		// Assert
-		expect(stale.mode).toBe("check");
-		expect(stale.runtimeDiagnostics).toContainEqual({
-			code: "communication.approval-stale",
-			severity: "warning",
-		});
-		expect(approved.mode).toBe("dispatch");
-		expect(approved.counts.alreadyRecorded).toBe(2);
-		expect(clients.createDispatchEvent).not.toHaveBeenCalled();
-	});
+	it.each([
+		["locale", "en", ""],
+		["French notification wording", "fr", "organizer-attention.fr.v1"],
+	])(
+		"requires new approval after a %s change without resending recorded deliveries",
+		async (_change, previousLocale, previousRevision) => {
+			// Arrange
+			const workspaceRoot = await createWorkspace();
+			const clients = githubClients();
+			getOctokitMock.mockImplementation((token: string) =>
+				token === "github-token" ? clients.github : clients.mailings,
+			);
+			const input = runtimeInput(workspaceRoot, {
+				requestedMode: "dispatch",
+				dispatchAuthorized: true,
+				mailingsToken: "mailings-token",
+			});
+			const revision = vi
+				.spyOn(OrganizerNotificationMessages.prototype, "policyRevision", "get")
+				.mockReturnValueOnce(previousRevision);
+			await CommunicationRuntime.runCommunicationReconcile({
+				...input,
+				locale: previousLocale,
+				approvalTrigger: approvalTrigger(),
+			});
+			revision.mockRestore();
+			clients.createDispatchEvent.mockClear();
+			// Act
+			const stale = await CommunicationRuntime.runCommunicationReconcile({
+				...input,
+				locale: "fr",
+			});
+			const approved = await CommunicationRuntime.runCommunicationReconcile({
+				...input,
+				locale: "fr",
+				approvalTrigger: approvalTrigger(),
+			});
+			// Assert
+			expect(stale.mode).toBe("check");
+			expect(stale.runtimeDiagnostics).toContainEqual({
+				code: "communication.approval-stale",
+				severity: "warning",
+			});
+			expect(approved.mode).toBe("dispatch");
+			expect(approved.counts.alreadyRecorded).toBe(2);
+			expect(clients.createDispatchEvent).not.toHaveBeenCalled();
+			expect(
+				clients.comments.some(({ body }) =>
+					body.includes("organizer-attention.fr.v2"),
+				),
+			).toBe(true);
+		},
+	);
 
 	it("requires a stable caller revision before reading repository state", async () => {
 		// Arrange
@@ -229,7 +247,7 @@ describe("runCommunicationReconcile", () => {
 
 	it.each([
 		["en", "Meetup event issue #42 requires organizer attention."],
-		["fr", "Le ticket du meetup #42 nécessite l’attention des organisateurs."],
+		["fr", "Le ticket du meetup #42 nécessite l'attention des organisateurs."],
 	])(
 		"uses fixed PII-free %s content for an enabled Slack reminder",
 		async (locale, expected) => {

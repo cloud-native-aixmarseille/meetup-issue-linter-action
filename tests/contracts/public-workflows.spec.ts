@@ -22,20 +22,34 @@ const publicWorkflowContracts = {
 			"github-app-client-id",
 			"google-drive-meetup-folder-id",
 			"google-drive-meetup-template-folder-id",
+			"kutt-link-id",
 			"slack-channel-id",
 		],
 		outputs: ["issue-numbers"],
-		secrets: ["github-app-private-key", "google-credentials", "slack-token"],
+		secrets: [
+			"github-app-private-key",
+			"google-credentials",
+			"kutt-api-key",
+			"openfeedback-api-key",
+			"slack-token",
+		],
 	},
 	"update-meetup-issue": {
 		inputs: [
 			"github-app-client-id",
 			"google-drive-meetup-folder-id",
 			"google-drive-meetup-template-folder-id",
+			"kutt-link-id",
 			"slack-channel-id",
 		],
 		outputs: ["communication-diagnostics", "diagnostics", "is-ready", "state"],
-		secrets: ["github-app-private-key", "google-credentials", "slack-token"],
+		secrets: [
+			"github-app-private-key",
+			"google-credentials",
+			"kutt-api-key",
+			"openfeedback-api-key",
+			"slack-token",
+		],
 	},
 	"update-meetup-issue-form": {
 		inputs: ["github-app-client-id"],
@@ -68,6 +82,7 @@ const publicWorkflowContracts = {
 const expectedActionWiring = {
 	"check-active-meetup-issues": {
 		audit: [
+			"publication/reconcile-feedback",
 			"publication/reconcile-assets",
 			"event/reconcile",
 			"communication/reconcile",
@@ -77,6 +92,7 @@ const expectedActionWiring = {
 	"update-meetup-issue": {
 		manage: [
 			"communication/reconcile",
+			"publication/reconcile-feedback",
 			"publication/reconcile-assets",
 			"event/reconcile",
 		],
@@ -110,6 +126,9 @@ describe("public reusable workflow contracts", () => {
 			expect(workflow.permissions).toEqual({});
 			expect(actual).toEqual([...expected.inputs, "locale"].sort());
 			expect(actual1).toEqual([...expected.secrets].sort());
+			for (const secretName of expected.secrets) {
+				expect(contract?.secrets?.[secretName]?.required).toBe(true);
+			}
 			expect(actual2).toEqual([...expected.outputs].sort());
 			expect(documentation).toContain(
 				`GitHub Reusable Workflow: ${workflow.name}`,
@@ -351,6 +370,7 @@ describe("public reusable workflow contracts", () => {
 		}
 		for (const action of [
 			"actions/publication/reconcile-assets",
+			"actions/publication/reconcile-feedback",
 			"actions/event/reconcile",
 			"actions/event/list-active",
 			"actions/referential/validate",

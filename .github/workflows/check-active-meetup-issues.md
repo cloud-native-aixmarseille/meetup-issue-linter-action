@@ -32,49 +32,35 @@ provide a mailing token secret.
 
 ## Usage
 
+Replace the placeholder revision with the full commit SHA of a published release.
+Set the variables and secrets described in [repository setup](../../docs/usage/setup.md).
+
 ```yaml
 name: Check active meetup issues
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * *"
 permissions: {}
 jobs:
-  check-active-meetup-issues:
-    uses: cloud-native-aixmarseille/meetup-event-automation/.github/workflows/check-active-meetup-issues.yml@0123456789abcdef0123456789abcdef01234567 # replace with a release SHA containing asset reconciliation
+  audit:
+    uses: cloud-native-aixmarseille/meetup-event-automation/.github/workflows/check-active-meetup-issues.yml@0123456789abcdef0123456789abcdef01234567
     permissions:
       contents: read
       issues: read
-    secrets:
-      # Google service-account JSON for Drive asset reconciliation.
-      # This input is required.
-      google-credentials: ""
-
-      # PEM-encoded private key for the GitHub App identified by the github-app-client-id input. Used to mint a narrowly scoped installation token.
-      # This input is required.
-      github-app-private-key: ""
-
-      # Slack bot token used for approved notifications.
-      # This input is required.
-      slack-token: ""
     with:
-      # Optional language for generated text.
       locale: en
-      # GitHub App client ID used to mint the narrowly scoped installation token for meetup automation.
-      # This input is required.
-      github-app-client-id: ""
-
-      # Slack channel ID used for approved notifications.
-      # This input is required.
-      slack-channel-id: ""
-
-      # Google Drive folder ID of the parent meetup folder used for asset reconciliation.
-      # This input is required.
-      google-drive-meetup-folder-id: ""
-
-      # Google Drive folder ID of the template folder used for asset reconciliation.
-      # This input is required.
-      google-drive-meetup-template-folder-id: ""
+      github-app-client-id: ${{ vars.CI_BOT_APP_CLIENT_ID }}
+      kutt-link-id: ${{ vars.KUTT_FEEDBACK_LINK_ID }}
+      slack-channel-id: ${{ vars.SLACK_CHANNEL_ID }}
+      google-drive-meetup-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_FOLDER_ID }}
+      google-drive-meetup-template-folder-id: ${{ vars.GOOGLE_DRIVE_MEETUP_TEMPLATE_FOLDER_ID }}
+    secrets:
+      github-app-private-key: ${{ secrets.CI_BOT_APP_PRIVATE_KEY }}
+      openfeedback-api-key: ${{ secrets.OPENFEEDBACK_API_KEY }}
+      kutt-api-key: ${{ secrets.KUTT_API_KEY }}
+      google-credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}
+      slack-token: ${{ secrets.SLACK_BOT_TOKEN }}
 ```
 
 <!-- usage:end -->
@@ -91,6 +77,7 @@ jobs:
 | **`slack-channel-id`**                       | Slack channel ID used for approved notifications.                                                                                  | **true**     | **string** | -           |
 | **`google-drive-meetup-folder-id`**          | Google Drive folder ID of the parent meetup folder used for asset reconciliation.                                                  | **true**     | **string** | -           |
 | **`google-drive-meetup-template-folder-id`** | Google Drive folder ID of the template folder used for asset reconciliation.                                                       | **true**     | **string** | -           |
+| **`kutt-link-id`**                           | Existing Kutt feedback link API ID.                                                                                                | **true**     | **string** | -           |
 
 <!-- inputs:end -->
 <!-- secrets:start -->
@@ -102,6 +89,8 @@ jobs:
 | **`google-credentials`**     | Google service-account JSON for Drive asset reconciliation.                                                                                 | **true**     |
 | **`github-app-private-key`** | PEM-encoded private key for the GitHub App identified by the github-app-client-id input. Used to mint a narrowly scoped installation token. | **true**     |
 | **`slack-token`**            | Slack bot token used for approved notifications.                                                                                            | **true**     |
+| **`kutt-api-key`**           | API key for the owner of the existing Kutt feedback link.                                                                                   | **true**     |
+| **`openfeedback-api-key`**   | OpenFeedback organization API key (oforg\_) used to create missing events.                                                                  | **true**     |
 
 <!-- secrets:end -->
 <!-- outputs:start -->
@@ -114,6 +103,11 @@ jobs:
 
 <!-- outputs:end -->
 <!-- examples:start -->
+
+See [feedback setup and retry behavior](../../docs/integrations/feedback.md) for
+the required OpenFeedback organization key and Kutt configuration. Existing
+feedback URLs do not waive the credential requirements.
+
 <!-- examples:end -->
 <!-- contributing:start -->
 <!-- contributing:end -->

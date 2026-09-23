@@ -76,6 +76,7 @@ describe("internal CI contracts", () => {
 			"test-event-list-active",
 			"test-event-reconcile",
 			"test-publication-reconcile-assets",
+			"test-publication-reconcile-feedback",
 			"test-referential-sync-issue-form",
 			"test-referential-validate",
 		]);
