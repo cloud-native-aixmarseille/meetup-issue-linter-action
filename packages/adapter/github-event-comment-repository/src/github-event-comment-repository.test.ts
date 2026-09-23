@@ -52,6 +52,37 @@ function comment(id: number, body: string, login = "meetup-bot") {
 }
 
 describe("renderDiagnosticComment", () => {
+	it.each([
+		["en", "Enter a valid HTTPS link to the OpenFeedback event page."],
+		[
+			"fr",
+			"Saisissez un lien HTTPS valide vers la page de l'événement OpenFeedback.", // codespell:ignore valide
+		],
+	])(
+		"renders feedback URL guidance in %s without exposing its value",
+		(locale, guidance) => {
+			// Arrange
+			const messages = new EventCommentMessages(locale);
+			const diagnostics = [
+				{
+					...errorDiagnostic,
+					code: "event.link.feedback.invalid",
+					field: "publicationLinks.feedback",
+				},
+			];
+
+			// Act
+			const body = GitHubEventCommentRepository.renderDiagnosticComment(
+				diagnostics,
+				messages,
+			);
+
+			// Assert
+			expect(body).toContain(`**OpenFeedback Link**: ${guidance}`);
+			expect(body).not.toContain(errorDiagnostic.message);
+		},
+	);
+
 	it("localizes guidance while retaining markers, issue headings and privacy boundaries", () => {
 		// Arrange
 		const messages = new EventCommentMessages("fr");

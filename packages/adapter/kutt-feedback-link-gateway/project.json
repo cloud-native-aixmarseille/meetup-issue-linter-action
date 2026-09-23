@@ -1,0 +1,24 @@
+{
+	"name": "kutt-feedback-link-gateway",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/kutt-feedback-link-gateway/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/kutt-feedback-link-gateway/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/kutt-feedback-link-gateway"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:kutt",
+		"responsibility:feedback-link-gateway"
+	]
+}

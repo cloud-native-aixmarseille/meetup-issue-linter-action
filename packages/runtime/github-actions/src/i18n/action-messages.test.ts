@@ -56,7 +56,7 @@ describe("ActionMessages", () => {
 		// Act
 		const text = messages.t("report.failed", { reason });
 		// Assert
-		expect(text).toBe(`Échec de l’action : ${reason}`);
+		expect(text).toBe(`Échec de l'action : ${reason}`);
 	});
 	it("translates known diagnostics and preserves already-redacted unknown diagnostics", () => {
 		// Arrange
@@ -105,8 +105,25 @@ describe("ActionMessages", () => {
 			"Safe English detail.",
 		);
 		// Assert
-		expect(known).toContain("L’événement est introuvable.");
-		expect(unknown).toContain("L’automatisation du meetup a échoué");
+		expect(known).toContain("L'événement est introuvable.");
+		expect(unknown).toContain("L'automatisation du meetup a échoué");
 		expect(canonical).toBe("Safe English detail.");
+	});
+	it.each([
+		"event.link.feedback.invalid",
+		"publication.feedback.unrelated",
+		"publication.feedback.inactive",
+		"publication.feedback.prerequisites",
+		"publication.feedback.creation-pending",
+		"publication.feedback.ambiguous-date",
+	])("translates the dynamically emitted feedback diagnostic %s", (code) => {
+		// Arrange
+		const french = new ActionMessages("fr");
+
+		// Act
+		const translated = french.diagnostic(code, "MISSING");
+
+		// Assert
+		expect(translated).not.toBe("MISSING");
 	});
 });

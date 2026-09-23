@@ -90,6 +90,7 @@ export class IssueFormReader {
 			meetup_link: read(HEADINGS.meetupLink),
 			cncf_link: read(HEADINGS.communityLink),
 			drive_link: read(HEADINGS.assetsLink),
+			openfeedback_link: read(HEADINGS.feedbackLink),
 			event_status: read(HEADINGS.occurrenceStatus),
 		};
 	}

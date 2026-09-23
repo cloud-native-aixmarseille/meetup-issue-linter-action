@@ -101,6 +101,11 @@ export class MeetupEventMigration {
 				"cncf_link",
 				diagnostics,
 			),
+			feedback: LegacyEventFields.readOptionalString(
+				body.openfeedback_link,
+				"openfeedback_link",
+				diagnostics,
+			),
 			assets: LegacyEventFields.readOptionalString(
 				body.drive_link,
 				"drive_link",

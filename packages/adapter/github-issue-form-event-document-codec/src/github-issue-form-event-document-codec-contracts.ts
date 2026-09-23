@@ -15,6 +15,7 @@ export const HEADINGS = Object.freeze({
 	meetupLink: "Meetup Link",
 	communityLink: "CNCF Link",
 	assetsLink: "Drive Link",
+	feedbackLink: "OpenFeedback Link",
 	slides: "Slides & Content",
 	communication: "Communication",
 	aperitif: "Aperitif",

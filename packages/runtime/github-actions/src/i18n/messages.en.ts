@@ -1,4 +1,12 @@
 export const EN_MESSAGES = {
+	"action.publication.reconcile-feedback": "Reconcile meetup feedback",
+	"report.feedback.skipped":
+		"Feedback reconciliation was skipped; review the diagnostics for the reason.",
+	"report.feedback.completed": "Feedback reconciliation completed.",
+	"report.feedback.changes":
+		"Issue changes persisted: {persisted, select, true {true} other {false}}; shared feedback link updated: {linkUpdated, select, true {true} other {false}}.",
+	"report.feedback.guidance":
+		"Review feedback diagnostics and configure talks and speakers in OpenFeedback.",
 	"error.EventNotFoundError":
 		"The event could not be found. Check the issue number and repository.",
 	"error.EventConcurrentModificationError":

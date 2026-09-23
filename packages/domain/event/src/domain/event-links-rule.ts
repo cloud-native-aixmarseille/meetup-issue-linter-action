@@ -15,10 +15,11 @@ export class EventLinksRule implements EventRule {
 			meetup?: string;
 			community?: string;
 			assets?: string;
+			feedback?: string;
 		} = { ...event.publicationLinks };
 		let changed = false;
 
-		for (const key of ["meetup", "community", "assets"] as const) {
+		for (const key of ["meetup", "community", "assets", "feedback"] as const) {
 			const link = event.publicationLinks[key];
 			if (link === undefined || link.trim() === "") {
 				continue;

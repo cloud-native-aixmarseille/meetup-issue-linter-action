@@ -27,6 +27,8 @@ export class DiagnosticPresenter {
 		["cncf_link", "CNCF Link"],
 		["publicationLinks.assets", "Drive Link"],
 		["drive_link", "Drive Link"],
+		["publicationLinks.feedback", "OpenFeedback Link"],
+		["openfeedback_link", "OpenFeedback Link"],
 		["confirmations.host", "Host confirmation"],
 		["confirmations.speakers", "Speaker confirmation"],
 		["occurrenceStatus", "Event Status"],

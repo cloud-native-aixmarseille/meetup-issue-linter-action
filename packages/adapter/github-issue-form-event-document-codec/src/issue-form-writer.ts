@@ -57,6 +57,12 @@ export class IssueFormWriter {
 		let body = document.body;
 		for (const [heading, value] of fields)
 			body = IssueFormSections.replaceOrAppendSection(body, heading, value);
+		if (event.publicationLinks.feedback)
+			body = IssueFormSections.replaceOrAppendSection(
+				body,
+				HEADINGS.feedbackLink,
+				event.publicationLinks.feedback,
+			);
 		return IssueFormSections.removeSection(body, HEADINGS.occurrenceStatus);
 	}
 	private renderOperations(source: string, event: MeetupEvent): string {

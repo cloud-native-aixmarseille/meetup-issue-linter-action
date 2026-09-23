@@ -1,4 +1,5 @@
 export interface MessageParameters {
+	"report.feedback.changes": { persisted: string; linkUpdated: string };
 	"report.fix-applied": { applied: string };
 	"report.failed": { reason: string };
 	"report.referential.counts": { hosts: number; speakers: number };

@@ -195,10 +195,10 @@ describe("action runner reporting contract", () => {
 		await ActionRunner.run("action.event.reconcile", operation);
 		// Assert
 		expect(core.setFailed).toHaveBeenCalledWith(
-			expect.stringContaining("L’automatisation"),
+			expect.stringContaining("L'automatisation"),
 		);
 		expect(core.error).toHaveBeenCalledWith(
-			expect.stringContaining("L’automatisation"),
+			expect.stringContaining("L'automatisation"),
 		);
 		expect(core.summary.addRaw).toHaveBeenCalledWith(
 			expect.stringContaining("Vérifiez les paramètres"),

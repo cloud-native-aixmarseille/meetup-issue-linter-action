@@ -1,0 +1,24 @@
+{
+	"name": "openfeedback-event-gateway",
+	"projectType": "library",
+	"sourceRoot": "packages/adapter/openfeedback-event-gateway/src",
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "tsc --noEmit -p packages/adapter/openfeedback-event-gateway/tsconfig.lib.json"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run packages/adapter/openfeedback-event-gateway"
+			}
+		}
+	},
+	"tags": [
+		"type:adapter",
+		"technology:openfeedback",
+		"responsibility:event-gateway"
+	]
+}

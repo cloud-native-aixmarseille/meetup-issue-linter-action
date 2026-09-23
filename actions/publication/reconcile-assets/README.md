@@ -88,7 +88,7 @@ Check or reconcile the event Drive folder, template copies, and issue asset link
 <!-- outputs:end -->
 <!-- examples:start -->
 
-See [Google Drive event assets](../../../docs/publication-assets.md) for the required folder inputs, service-account access, asset identity, and retry behavior.
+See [Google Drive event assets](../../../docs/integrations/assets.md) for the required folder inputs, service-account access, asset identity, and retry behavior.
 
 <!-- examples:end -->
 <!-- contributing:start -->

@@ -181,6 +181,7 @@ describe("event side-effect safeguards", () => {
 			"github-app-client-id",
 			"google-drive-meetup-folder-id",
 			"google-drive-meetup-template-folder-id",
+			"kutt-link-id",
 			"locale",
 			"slack-channel-id",
 		]);

@@ -18,12 +18,14 @@
 		"@meetup-automation/github-repository-dispatch-mail-gateway": "workspace:*",
 		"@meetup-automation/google-drive-asset-repository": "workspace:*",
 		"@meetup-automation/journey": "workspace:*",
+		"@meetup-automation/openfeedback-event-gateway": "workspace:*",
 		"@meetup-automation/referential": "workspace:*",
 		"@meetup-automation/slack-notification-gateway": "workspace:*",
 		"@meetup-automation/system-clock": "workspace:*",
 		"@meetup-automation/yaml-issue-form-projection": "workspace:*",
 		"inversify": "^8.2.3",
 		"@meetup-automation/publication": "workspace:*",
-		"@meetup-automation/localization": "workspace:*"
+		"@meetup-automation/localization": "workspace:*",
+		"@meetup-automation/kutt-feedback-link-gateway": "workspace:*"
 	}
 }

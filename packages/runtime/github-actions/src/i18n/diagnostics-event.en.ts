@@ -1,4 +1,6 @@
 export const DIAGNOSTICS_EVENT_EN = {
+	"diagnostic.event.link.feedback.invalid":
+		"The feedback link must be a valid HTTPS URL.",
 	"diagnostic.event.document.reference-metadata.duplicate":
 		"The event document contains duplicate reference metadata",
 	"diagnostic.event.document.reference-metadata.invalid":

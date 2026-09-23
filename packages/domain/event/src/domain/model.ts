@@ -34,6 +34,7 @@ export type EventPublicationLinks = Readonly<{
 	meetup?: string;
 	community?: string;
 	assets?: string;
+	feedback?: string;
 }>;
 
 export type EventConfirmations = Readonly<{
