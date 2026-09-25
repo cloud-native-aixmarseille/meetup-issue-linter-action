@@ -5,7 +5,7 @@
 	"type": "module",
 	"exports": "./src/index.ts",
 	"dependencies": {
-		"@googleapis/drive": "^25.0.0",
+		"@googleapis/drive": "^26.0.0",
 		"@meetup-automation/publication": "workspace:*"
 	}
 }
