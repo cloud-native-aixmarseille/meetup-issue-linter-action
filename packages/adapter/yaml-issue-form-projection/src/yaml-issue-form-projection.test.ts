@@ -5,6 +5,7 @@ import {
 	type RawReferentialCatalog,
 	ValidateReferentialCatalog,
 } from "@meetup-automation/referential";
+import { check, format } from "prettier";
 import { parse } from "yaml";
 import { YamlIssueFormProjection } from "./yaml-issue-form-projection.js";
 
@@ -117,6 +118,50 @@ async function fixture(source = INITIAL_FORM) {
 }
 
 describe("YamlIssueFormProjection", () => {
+	it("keeps generated YAML formatted and preserves unrelated field values", async () => {
+		// Arrange
+		const unrelatedFields = String.raw`  - "type": "input"
+    "id": "event_link"
+    "attributes":
+      "label": "Event Link"
+      "placeholder":
+        "https://events.example.test/details/cloud-native-example-community-\
+        presents-example"
+  - "type": "input"
+    "id": "feedback_link"
+    "attributes":
+      "label": "Feedback Link"
+      "description":
+        "Provide an existing feedback event URL, or leave blank for automatic
+        creation when configured."
+`;
+		const source = await format(INITIAL_FORM + unrelatedFields, {
+			parser: "yaml",
+		});
+		const target = await fixture(source);
+		const adapter = new YamlIssueFormProjection({
+			workspaceRoot: target.workspaceRoot,
+		});
+		const input = {
+			issueFormPath: target.issueFormPath,
+			occurrenceStatusFieldId: "event_status",
+			catalog: await catalog(),
+			mode: "fix" as const,
+		};
+
+		// Act
+		const result = await adapter.synchronize(input);
+		const updated = await readFile(target.absolutePath, "utf8");
+		const formatted = await check(updated, { parser: "yaml" });
+		const current = await adapter.synchronize({ ...input, mode: "check" });
+
+		// Assert
+		expect(result.changed).toBe(true);
+		expect(formatted).toBe(true);
+		expect(parse(updated).body.slice(-2)).toEqual(parse(source).body.slice(-2));
+		expect(current.changed).toBe(false);
+	});
+
 	it("produces a stable French projection and detects drift when the requested locale changes", async () => {
 		// Arrange
 		const target = await fixture();
@@ -289,9 +334,11 @@ describe("YamlIssueFormProjection", () => {
 		expect(secondMetadata.mtimeMs).toBe(firstMetadata.mtimeMs);
 	});
 
-	it("removes an existing configured status field", async () => {
-		// Arrange
-		const target = await fixture(`${INITIAL_FORM}  - type: dropdown
+	it.each(["before", "after"])(
+		"removes a configured status field %s the projected fields without losing updates",
+		async (position) => {
+			// Arrange
+			const statusField = `  - type: dropdown
     id: lifecycle
     attributes:
       label: Custom lifecycle label
@@ -299,25 +346,35 @@ describe("YamlIssueFormProjection", () => {
       options: [old]
     validations:
       required: false
-`);
+`;
+			const source =
+				position === "before"
+					? INITIAL_FORM.replace("body:\n", `body:\n${statusField}`)
+					: INITIAL_FORM + statusField;
+			const target = await fixture(source);
+			const adapter = new YamlIssueFormProjection({
+				workspaceRoot: target.workspaceRoot,
+			});
+			const input = {
+				issueFormPath: target.issueFormPath,
+				occurrenceStatusFieldId: "lifecycle",
+				catalog: await catalog(),
+				mode: "fix" as const,
+			};
 
-		// Act
-		await new YamlIssueFormProjection({
-			workspaceRoot: target.workspaceRoot,
-		}).synchronize({
-			issueFormPath: target.issueFormPath,
-			occurrenceStatusFieldId: "lifecycle",
-			catalog: await catalog(),
-			mode: "fix",
-		});
-		const form = parse(await readFile(target.absolutePath, "utf8"));
-		const status = form.body.find(
-			(field: { id?: string }) => field.id === "lifecycle",
-		);
+			// Act
+			await adapter.synchronize(input);
+			const form = parse(await readFile(target.absolutePath, "utf8"));
+			const status = form.body.find(
+				(field: { id?: string }) => field.id === "lifecycle",
+			);
+			const current = await adapter.synchronize({ ...input, mode: "check" });
 
-		// Assert
-		expect(status).toBeUndefined();
-	});
+			// Assert
+			expect(status).toBeUndefined();
+			expect(current.changed).toBe(false);
+		},
+	);
 
 	it("rejects traversal outside the checkout", async () => {
 		// Arrange

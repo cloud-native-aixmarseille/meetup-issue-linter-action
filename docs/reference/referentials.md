@@ -99,6 +99,9 @@ The
 also opens a pull request when choices on the default branch need updating. It
 changes the host dropdown and speaker reference block in the existing form.
 Maintain other form fields yourself and keep their IDs and labels intact.
+When choices change, the generator formats the YAML with bundled Prettier
+defaults so the update passes the standard YAML formatting check. Check mode
+does not write files, and a current projection is left untouched.
 
 The initial form must include the `hoster` dropdown and a Markdown block with
 `<!-- Available speakers -->`. Use the

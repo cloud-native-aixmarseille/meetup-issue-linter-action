@@ -5,6 +5,8 @@ import type {
 	IssueFormProjectionMode,
 } from "@meetup-automation/journey";
 import { ProjectReferentialChoices } from "@meetup-automation/referential";
+import * as yamlPlugin from "prettier/plugins/yaml";
+import { format } from "prettier/standalone";
 import { parseDocument } from "yaml";
 import { IssueFormMessages } from "./i18n/issue-form-messages.js";
 import {
@@ -91,15 +93,16 @@ export class YamlIssueFormProjection implements IssueFormProjection {
 		}
 
 		if (statusIndex !== undefined) {
-			document.setIn(
-				["body"],
-				body.filter((_, index) => index !== statusIndex),
-			);
+			document.deleteIn(["body", statusIndex]);
 			changed = true;
 		}
 
 		if (changed && input.mode === "fix") {
-			await writeFile(issueFormPath.absolutePath, document.toString(), "utf8");
+			const content = await format(document.toString(), {
+				parser: "yaml",
+				plugins: [yamlPlugin],
+			});
+			await writeFile(issueFormPath.absolutePath, content, "utf8");
 		}
 
 		return this.result(changed, issueFormPath.relativePath, input.mode);
