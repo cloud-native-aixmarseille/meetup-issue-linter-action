@@ -8,7 +8,7 @@
 		"@meetup-automation/journey": "workspace:*",
 		"@meetup-automation/localization": "workspace:*",
 		"@meetup-automation/referential": "workspace:*",
-		"prettier": "3.8.1",
+		"prettier": "3.9.9",
 		"yaml": "^2.9.1"
 	}
 }
