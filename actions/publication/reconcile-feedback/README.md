@@ -10,7 +10,7 @@ Create missing OpenFeedback events and update the existing Kutt link on the even
 
 Use the reusable issue-update and daily-audit workflows, which hold the required shared event lock. See [setup, timing and retry behavior](../../../docs/integrations/feedback.md).
 
-The OpenFeedback organization key is required in both modes, including when the
+The OpenFeedback organization key is required, including when the
 issue already has a feedback URL. Use a key beginning with `oforg_`.
 
 <!-- inputs:start -->
@@ -23,7 +23,6 @@ issue already has a feedback URL. Use a key beginning with `oforg_`.
 | `github-token`           | GitHub token with issue read and write permissions.                                                                                | true     | —       |
 | `issue-number`           | Meetup issue number.                                                                                                               | true     | —       |
 | `managed-comment-author` | GitHub App bot login used by event evaluation.                                                                                     | true     | —       |
-| `mode`                   | Check validates feedback configuration without writes; fix creates missing events and updates due links.                           | false    | check   |
 | `openfeedback-api-key`   | OpenFeedback organization API key (oforg\_) used to create missing events.                                                         | true     | —       |
 | `kutt-api-key`           | API key for the owner of the existing Kutt link.                                                                                   | true     | —       |
 | `kutt-link-id`           | Existing Kutt link API ID, not the short address.                                                                                  | true     | —       |

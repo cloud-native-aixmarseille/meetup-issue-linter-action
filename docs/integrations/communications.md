@@ -84,7 +84,12 @@ repository's run for the actual email result.
 ## Diagnose and recover
 
 Inspect `communication-diagnostics` on issue-update runs and the daily audit's
-summary. `planned-count` counts planned messages; `dispatched-count` counts
+summary. The audit records communication errors in a managed issue comment and
+succeeds once the comment is saved or confirmed current. Execution and comment
+persistence failures still fail the job. See the
+[audit workflow contract](../../.github/workflows/check-active-meetup-issues.md).
+
+`planned-count` counts planned messages; `dispatched-count` counts
 provider calls, including rejected or uncertain attempts.
 
 The bot keeps a delivery ledger in an issue comment. Existing records prevent
@@ -102,8 +107,8 @@ retry one message: that would remove duplicate protection for other messages. A
 failed ledger read or reservation prevents dispatch. Use the reusable workflows
 so issue updates and audits share the same per-issue concurrency lock.
 
-The direct
-[communication action](../../actions/communication/reconcile/README.md) provides
-`check` mode to report the plan without sending messages or capturing approval.
-Direct action callers supply a token for the mailings repository through the
-action's `mailings-token` input.
+The [communication action](../../actions/communication/reconcile/README.md)
+uses one reconciliation path. It dispatches when maintainer approval and
+delivery checks permit sending. The reported `check` mode means that a gate
+blocked dispatch. The reusable workflows supply the mailings token and hold the
+shared event lock.

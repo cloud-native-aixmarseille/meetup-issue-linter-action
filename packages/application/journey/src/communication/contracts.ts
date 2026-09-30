@@ -4,8 +4,6 @@ import type { EventDocument } from "@meetup-automation/event";
 export interface ManageMeetupCommunicationsInput {
 	readonly issueNumber: number;
 
-	readonly requestedMode: "check" | "dispatch";
-	readonly dispatchAuthorized: boolean;
 	readonly notificationDestinationFingerprint: string | null;
 	readonly notificationDestination: string;
 	/** Rendered at the presentation boundary; never use this as an idempotency key. */
@@ -28,7 +26,6 @@ export interface ManageMeetupCommunicationsInput {
 
 type CommunicationJourneyDiagnosticCode =
 	| "communication.dispatch-disabled-by-config"
-	| "communication.dispatch-not-authorized"
 	| "communication.approval-label-missing"
 	| "communication.approval-missing"
 	| "communication.approval-stale"

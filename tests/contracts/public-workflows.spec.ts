@@ -323,11 +323,11 @@ describe("public reusable workflow contracts", () => {
 	);
 
 	it.each([
-		["check-meetup-referentials-and-issue-form", "validate", "check", "false"],
-		["update-meetup-issue-form", "synchronize", "fix", undefined],
+		["check-meetup-referentials-and-issue-form", "validate", "check"],
+		["update-meetup-issue-form", "synchronize", "fix"],
 	] as const)(
-		"lets referential actions enforce the configured drift policy in %s",
-		async (workflowName, jobName, mode, failOnDrift) => {
+		"lets referential actions enforce their failure policy in %s",
+		async (workflowName, jobName, mode) => {
 			// Arrange
 			const workflow = await readWorkflow(workflowName);
 
@@ -345,7 +345,7 @@ describe("public reusable workflow contracts", () => {
 				expect(action.if).toBeUndefined();
 			}
 			expect(actions[1].with?.mode).toBe(mode);
-			expect(actions[1].with?.["fail-on-drift"]).toBe(failOnDrift);
+			expect(actions[1].with).not.toHaveProperty("fail-on-drift");
 		},
 	);
 

@@ -10,7 +10,6 @@ const actionContracts = [
 			"github-token",
 			"issue-number",
 			"managed-comment-author",
-			"mode",
 			"kutt-api-key",
 			"kutt-link-id",
 			"openfeedback-api-key",
@@ -26,7 +25,6 @@ const actionContracts = [
 			"google-drive-meetup-template-folder-id",
 			"issue-number",
 			"managed-comment-author",
-			"mode",
 		],
 		outputs: ["asset-url", "diagnostics", "drive-files", "result"],
 	},
@@ -54,7 +52,7 @@ const actionContracts = [
 	},
 	{
 		directory: "actions/referential/sync-issue-form",
-		inputs: ["fail-on-drift", "mode"],
+		inputs: ["mode"],
 		outputs: [
 			"changed",
 			"changed-files",
@@ -66,12 +64,11 @@ const actionContracts = [
 	{
 		directory: "actions/communication/reconcile",
 		inputs: [
-			"dispatch-authorized",
+			"report-errors-to-issue",
 			"github-token",
 			"issue-number",
 			"mailings-token",
 			"managed-comment-author",
-			"mode",
 			"slack-channel-id",
 			"slack-token",
 		],
@@ -109,20 +106,20 @@ describe("public action contracts", () => {
 		},
 	);
 
-	it("fails direct issue-form checks on drift by default", async () => {
-		// Arrange
-		const actionPath = "actions/referential/sync-issue-form/action.yml";
+	it.each(["event/reconcile", "referential/sync-issue-form"])(
+		"requires an explicit mode for %s",
+		async (action) => {
+			// Arrange
+			const actionPath = `actions/${action}/action.yml`;
 
-		// Act
-		const manifest = await readYaml<ActionManifest>(actionPath);
+			// Act
+			const manifest = await readYaml<ActionManifest>(actionPath);
 
-		// Assert
-		expect(manifest.inputs?.mode?.default).toBe("check");
-		expect(manifest.inputs?.["fail-on-drift"]).toMatchObject({
-			default: "true",
-			required: false,
-		});
-	});
+			// Assert
+			expect(manifest.inputs?.mode?.required).toBe(true);
+			expect(manifest.inputs?.mode?.default).toBeUndefined();
+		},
+	);
 
 	it.each(["openfeedback-api-key", "kutt-api-key", "kutt-link-id"])(
 		"requires an explicit %s for feedback reconciliation",
@@ -156,7 +153,7 @@ describe("public action contracts", () => {
 		},
 	);
 
-	it("keeps managed-author and dispatch authorization fail-closed", async () => {
+	it("requires managed authors and exposes no communication execution switches", async () => {
 		// Arrange
 		const event = await readYaml<ActionManifest>(
 			"actions/event/reconcile/action.yml",
@@ -172,9 +169,13 @@ describe("public action contracts", () => {
 		expect(communication.inputs?.["managed-comment-author"]?.required).toBe(
 			true,
 		);
-		expect(communication.inputs?.["dispatch-authorized"]).toMatchObject({
-			default: "false",
-			required: false,
-		});
+		expect(communication.inputs?.["report-errors-to-issue"]?.required).toBe(
+			true,
+		);
+		expect(
+			communication.inputs?.["report-errors-to-issue"]?.default,
+		).toBeUndefined();
+		expect(communication.inputs).not.toHaveProperty("mode");
+		expect(communication.inputs).not.toHaveProperty("dispatch-authorized");
 	});
 });

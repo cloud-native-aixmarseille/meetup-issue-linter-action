@@ -64,8 +64,6 @@ export const FR_MESSAGES = {
 	"report.issue-form.updated": "Le formulaire a été mis à jour.",
 	"report.issue-form.current": "Le formulaire est à jour.",
 	"report.issue-form.files": "Fichiers concernés : {files}.",
-	"report.issue-form.guidance":
-		"Exécutez actions/referential/sync-issue-form avec mode: fix sur cette branche, puis créez un commit avec les fichiers concernés.",
 	"report.event.context": "Ticket : #{issue} ; mode : {mode}.",
 	"report.event.skipped":
 		"Ignoré : ce ticket ne correspond pas à un meetup configuré.",
@@ -96,10 +94,10 @@ export const FR_MESSAGES = {
 		"Consultez les diagnostics d'approbation et d'envoi avant de réessayer.",
 	"report.communication.uncertain-guidance":
 		"Vérifiez les envois incertains auprès du fournisseur et dans le registre avant tout nouvel envoi.",
+	"report.communication.issue-reported":
+		"Les diagnostics de communication sont enregistrés dans le ticket du meetup ; les erreurs signalées ne font pas échouer cette vérification.",
 	"report.communication.failed":
 		"La vérification des communications a échoué ; consultez les annotations de diagnostic et le résumé de la tâche.",
 	"workflow.referential.failed":
 		"Les référentiels du meetup sont invalides. Corrigez les champs indiqués dans les annotations de validation et le résumé de la tâche.",
-	"workflow.issue-form.failed":
-		"Le formulaire du meetup n'est pas à jour. Exécutez actions/referential/sync-issue-form avec mode: fix sur cette branche, puis créez un commit avec les fichiers indiqués dans le résumé.",
 } satisfies Record<keyof typeof EN_MESSAGES, string>;

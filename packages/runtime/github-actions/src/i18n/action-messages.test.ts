@@ -114,7 +114,6 @@ describe("ActionMessages", () => {
 		"publication.feedback.unrelated",
 		"publication.feedback.inactive",
 		"publication.feedback.prerequisites",
-		"publication.feedback.creation-pending",
 		"publication.feedback.ambiguous-date",
 	])("translates the dynamically emitted feedback diagnostic %s", (code) => {
 		// Arrange

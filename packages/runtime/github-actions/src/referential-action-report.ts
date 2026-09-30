@@ -39,7 +39,6 @@ export class ReferentialActionReport {
 		mode: IssueFormProjectionMode,
 		result: SynchronizeMeetupIssueFormResult,
 		messages = new ActionMessages(),
-		failOnDrift = true,
 	): ActionReportData {
 		const details: string[] = [];
 		let failure: string | undefined;
@@ -55,16 +54,8 @@ export class ReferentialActionReport {
 					files: result.changedFiles.join(", "),
 				}),
 			);
-			if (mode === "check") {
-				details.push(
-					messages.t(
-						failOnDrift
-							? "report.issue-form.guidance"
-							: "report.issue-form.drift-allowed",
-					),
-				);
-				if (failOnDrift) failure = messages.t("workflow.issue-form.failed");
-			}
+			if (mode === "check")
+				details.push(messages.t("report.issue-form.drift-allowed"));
 		} else {
 			details.push(messages.t("report.issue-form.current"));
 		}

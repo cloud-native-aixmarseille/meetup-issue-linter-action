@@ -15,8 +15,6 @@ export interface RunCommunicationReconcileInput {
 	readonly locale?: string;
 	readonly issueNumber: number;
 
-	readonly requestedMode: "check" | "dispatch";
-	readonly dispatchAuthorized: boolean;
 	readonly githubToken: string;
 	readonly mailingsToken: string;
 	readonly slackToken: string;
@@ -49,11 +47,7 @@ export class CommunicationRuntime {
 		const runtimeDiagnostics: CommunicationJourneyDiagnostic[] = [];
 		const githubToken = input.githubToken.trim();
 		if (!githubToken) {
-			ManageMeetupCommunications.resolveCommunicationDispatchMode(
-				input,
-				config,
-				runtimeDiagnostics,
-			);
+			ManageMeetupCommunications.isDispatchEnabled(config, runtimeDiagnostics);
 			runtimeDiagnostics.push({
 				code: "communication.github-credential-missing",
 				severity: "error",
@@ -85,8 +79,6 @@ export class CommunicationRuntime {
 			repo: input.repo,
 			repositoryId: input.repositoryId,
 			automationRevision: input.automationRevision,
-			requestedMode: input.requestedMode,
-			dispatchAuthorized: input.dispatchAuthorized,
 			notificationDestination: slackChannelId,
 			notificationContent: messages.t("communication.organizer-attention", {
 				issue: input.issueNumber,

@@ -62,8 +62,8 @@ Duplicate managed folders or copies require manual reconciliation. For access
 errors, check service-account permissions and quota; for rate limits, retry
 later.
 
-For a preview, the direct
-[assets action](../../actions/publication/reconcile-assets/README.md) supports
-`check` mode. It reports missing or changed assets without writing to Drive or
-GitHub. Its `asset-url` output is the folder URL; `drive-files` maps each
+The direct
+[assets action](../../actions/publication/reconcile-assets/README.md) reconciles
+assets on every invocation. Call it under the shared event workflow lock. Its
+`asset-url` output is the folder URL; `drive-files` maps each
 `<template_kind>-link` to a copied file URL.

@@ -21,10 +21,7 @@ interface ManageMeetupAssetsDependencies {
 export class ManageMeetupAssets {
 	constructor(private readonly dependencies: ManageMeetupAssetsDependencies) {}
 
-	async execute(input: {
-		identity: EventIdentity;
-		mode: "check" | "fix";
-	}): Promise<{
+	async execute(input: { identity: EventIdentity }): Promise<{
 		skipped: boolean;
 		persisted: boolean;
 		assetUrl?: string;
@@ -64,24 +61,19 @@ export class ManageMeetupAssets {
 				],
 			};
 		}
-		if (input.mode === "fix")
-			await ReconcileEvent.ensureEventDocumentIsCurrent(
-				this.dependencies.eventRepository,
-				input.identity,
-				source,
-			);
+		await ReconcileEvent.ensureEventDocumentIsCurrent(
+			this.dependencies.eventRepository,
+			input.identity,
+			source,
+		);
 		const assets = await this.dependencies.reconcileAssets.execute({
 			eventId: `${input.identity.repository}#${input.identity.issueNumber}`,
 			date: evaluation.event.date,
 			hostName: evaluation.event.host.displayName,
 			existingUrl: evaluation.event.publicationLinks.assets,
-			mode: input.mode,
+			mode: "fix",
 		});
-		const persisted = await this.persistAsset(
-			source,
-			assets.container?.url,
-			input.mode,
-		);
+		const persisted = await this.persistAsset(source, assets.container?.url);
 		return {
 			skipped: false,
 			persisted,
@@ -97,10 +89,9 @@ export class ManageMeetupAssets {
 	private async persistAsset(
 		source: EventDocument,
 		assetUrl: string | undefined,
-		mode: "check" | "fix",
 	) {
 		let persisted = false;
-		if (mode === "fix" && assetUrl) {
+		if (assetUrl) {
 			// Only project the asset reference. Event normalization remains owned by
 			// event reconciliation and the versioned codec owns all Markdown edits.
 			const original = this.dependencies.documentCodec.decode(source).event;

@@ -1,5 +1,5 @@
 name: Reconcile meetup assets
-description: Check or reconcile the event Drive folder, template copies, and issue asset link. Publish redacted diagnostics in annotations, logs, and the job summary.
+description: Reconcile the event Drive folder, template copies, and issue asset link. Publish redacted diagnostics in annotations, logs, and the job summary.
 author: Cloud Native Aix-Marseille
 inputs:
   locale:
@@ -9,12 +9,8 @@ inputs:
   issue-number:
     description: GitHub issue number containing the meetup event document.
     required: true
-  mode:
-    description: Use check to report drift without writes, or fix under the shared event workflow lock.
-    required: false
-    default: check
   github-token:
-    description: Token for the caller repository. Requires issues:read; fix also requires issues:write.
+    description: Token for the caller repository. Requires issues:read and issues:write.
     required: true
   managed-comment-author:
     description: Trusted GitHub App bot login used by the event composition.

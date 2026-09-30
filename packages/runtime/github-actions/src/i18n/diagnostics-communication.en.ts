@@ -34,8 +34,6 @@ export const DIAGNOSTICS_COMMUNICATION_EN = {
 		"The delivery ledger already contains this intent.",
 	"diagnostic.communication.dispatch-disabled-by-config":
 		"Communication dispatch is disabled by repository configuration.",
-	"diagnostic.communication.dispatch-not-authorized":
-		"Communication dispatch is not authorized by the workflow lock.",
 	"diagnostic.communication.approval-label-missing":
 		"Communications require the configured maintainer approval label.",
 	"diagnostic.communication.approval-missing":

@@ -114,6 +114,35 @@ describe("internal CI contracts", () => {
 		expect(dedicatedVitestGateOccurrences).toBe(0);
 	});
 
+	it("runs communication integration checks against an unapproved fixture under the event lock", async () => {
+		// Arrange
+		const workflow = await readWorkflow("__check-actions");
+
+		// Act
+		const job = workflow.jobs?.["test-communication-reconcile"];
+		const communication = job?.steps?.find(
+			(step) => step.uses === "./actions/communication/reconcile",
+		);
+		const fixture = workflow.jobs?.["prepare-synthetic-issue"]?.steps?.find(
+			(step) => step.id === "create-issue",
+		);
+		const assertions = job?.steps?.find(
+			(step) => step.name === "Assert communication reconciliation",
+		);
+
+		// Assert
+		expect(job?.concurrency).toEqual({
+			group: `meetup-event-${workflowExpression("github.repository_id")}-${workflowExpression("needs.prepare-synthetic-issue.outputs.issue-number")}`,
+			"cancel-in-progress": false,
+		});
+		expect(communication?.with).not.toHaveProperty("mode");
+		expect(communication?.with).not.toHaveProperty("dispatch-authorized");
+		expect(communication?.with?.["report-errors-to-issue"]).toBe("false");
+		expect(fixture?.with?.script).not.toContain("communication:approved");
+		expect(assertions?.run).toContain("communication.approval-label-missing");
+		expect(assertions?.run).toContain(".data.counts.dispatched == 0");
+	});
+
 	it("delegates documentation updates to reusable release workflows", async () => {
 		// Arrange
 		const workflow = await readWorkflow("__main-ci");

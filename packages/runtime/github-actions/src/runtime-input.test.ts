@@ -93,7 +93,7 @@ describe("GitHub Action input and error boundary", () => {
 		// No additional setup is needed.
 
 		// Act
-		const actual = RuntimeInput.booleanInput("dispatch-authorized", "true");
+		const actual = RuntimeInput.booleanInput("report-errors-to-issue", "true");
 		const act = () =>
 			RuntimeInput.positiveIntegerInput("issue-number", "9007199254740992");
 

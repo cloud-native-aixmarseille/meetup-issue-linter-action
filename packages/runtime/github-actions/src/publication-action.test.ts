@@ -47,7 +47,6 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	for (const [name, value] of Object.entries({
 		"issue-number": "42",
-		mode: "check",
 		"github-token": "github-test-token",
 		"managed-comment-author": "test[bot]",
 		"google-credentials": "secret-json",
@@ -71,16 +70,12 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe("publication action boundary", () => {
 	it.each([
-		["google-credentials", "check"],
-		["google-drive-meetup-folder-id", "check"],
-		["google-drive-meetup-template-folder-id", "check"],
-		["google-credentials", "fix"],
-		["google-drive-meetup-folder-id", "fix"],
-		["google-drive-meetup-template-folder-id", "fix"],
-	])("requires %s before reconciling in %s mode", async (input, mode) => {
+		"google-credentials",
+		"google-drive-meetup-folder-id",
+		"google-drive-meetup-template-folder-id",
+	])("requires %s before reconciling", async (input) => {
 		// Arrange
 		vi.stubEnv(`INPUT_${input.toUpperCase()}`, "");
-		vi.stubEnv("INPUT_MODE", mode);
 
 		// Act
 		const operation = PublicationAction.runPublicationReconcileAssetsAction();
@@ -94,36 +89,32 @@ describe("publication action boundary", () => {
 		expect(mocks.outputs).toEqual({});
 	});
 
-	it.each(["check", "fix"])(
-		"masks credentials and serializes the %s result",
-		async (mode) => {
-			// Arrange
-			vi.stubEnv("INPUT_MODE", mode);
+	it("masks credentials and reconciles assets without a mode input", async () => {
+		// Arrange
+		vi.stubEnv("INPUT_MODE", "");
 
-			// Act
-			const report =
-				await PublicationAction.runPublicationReconcileAssetsAction();
-			const actual = JSON.parse(mocks.outputs["drive-files"]);
-			const actual1 = JSON.stringify(mocks.outputs);
+		// Act
+		const report =
+			await PublicationAction.runPublicationReconcileAssetsAction();
+		const actual = JSON.parse(mocks.outputs["drive-files"]);
+		const actual1 = JSON.stringify(mocks.outputs);
 
-			// Assert
-			expect(mocks.setSecret).toHaveBeenCalledWith("secret-json");
-			expect(mocks.createAssets).toHaveBeenCalledWith("secret-json", {
-				parentFolderId: "parent",
-				templateFolderId: "templates",
-			});
-			expect(mocks.execute).toHaveBeenCalledWith(
-				expect.objectContaining({
-					identity: { repository: "community/meetups", issueNumber: 42 },
-					mode,
-				}),
-			);
-			expect(actual).toHaveProperty("slides-link");
-			expect(report.diagnostics).toEqual([]);
-			expect(report.details).toContain("Asset reconciliation completed.");
-			expect(actual1).not.toContain("secret-json");
-		},
-	);
+		// Assert
+		expect(mocks.setSecret).toHaveBeenCalledWith("secret-json");
+		expect(mocks.createAssets).toHaveBeenCalledWith("secret-json", {
+			parentFolderId: "parent",
+			templateFolderId: "templates",
+		});
+		expect(mocks.execute).toHaveBeenCalledWith(
+			expect.objectContaining({
+				identity: { repository: "community/meetups", issueNumber: 42 },
+			}),
+		);
+		expect(actual).toHaveProperty("slides-link");
+		expect(report.diagnostics).toEqual([]);
+		expect(report.details).toContain("Asset reconciliation completed.");
+		expect(actual1).not.toContain("secret-json");
+	});
 
 	it("reports skipped events with supplied Google Drive configuration", async () => {
 		// Arrange

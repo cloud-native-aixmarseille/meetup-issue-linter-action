@@ -36,8 +36,6 @@ export const DIAGNOSTICS_COMMUNICATION_FR = {
 		"Le registre des livraisons contient déjà cette intention.",
 	"diagnostic.communication.dispatch-disabled-by-config":
 		"L'envoi des communications est désactivé par la configuration du dépôt.",
-	"diagnostic.communication.dispatch-not-authorized":
-		"L'envoi des communications n'est pas autorisé par le verrou du workflow.",
 	"diagnostic.communication.approval-label-missing":
 		"Les communications nécessitent le label d'approbation configuré.",
 	"diagnostic.communication.approval-missing":

@@ -52,7 +52,7 @@ describe("feedback composition", () => {
 		// Act
 		const result = await container
 			.get(ManageMeetupFeedback)
-			.execute({ identity, mode: "fix" });
+			.execute({ identity });
 
 		// Assert
 		expect(result.skipped).toBe(true);
@@ -121,7 +121,7 @@ describe("feedback composition", () => {
 		// Act
 		const result = await container
 			.get(ManageMeetupFeedback)
-			.execute({ identity, mode: "fix" });
+			.execute({ identity });
 
 		// Assert
 		expect(events.ensureEvent).toHaveBeenCalledWith({

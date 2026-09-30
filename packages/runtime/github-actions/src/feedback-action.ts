@@ -16,11 +16,6 @@ export class FeedbackAction {
 			"issue-number",
 			core.getInput("issue-number", { required: true }),
 		);
-		const mode = RuntimeInput.enumInput(
-			"mode",
-			core.getInput("mode", { required: true }),
-			["check", "fix"] as const,
-		);
 		const kuttApiKey = FeedbackAction.requiredInput("kutt-api-key");
 		core.setSecret(kuttApiKey);
 		const kuttLinkId = FeedbackAction.requiredInput("kutt-link-id");
@@ -43,9 +38,8 @@ export class FeedbackAction {
 		});
 		const outcome = await container.get(ManageMeetupFeedback).execute({
 			identity: { repository: `${owner}/${repo}`, issueNumber },
-			mode,
 		});
-		return FeedbackAction.report(issueNumber, mode, outcome, messages);
+		return FeedbackAction.report(issueNumber, outcome, messages);
 	}
 
 	private static requiredInput(
@@ -58,7 +52,6 @@ export class FeedbackAction {
 
 	private static report(
 		issueNumber: number,
-		mode: string,
 		outcome: Awaited<ReturnType<ManageMeetupFeedback["execute"]>>,
 		messages: ActionMessages,
 	): ActionReportData {
@@ -71,7 +64,7 @@ export class FeedbackAction {
 		core.setOutput("link-updated", String(result.linkUpdated));
 		return {
 			details: [
-				messages.t("report.event.context", { issue: issueNumber, mode }),
+				messages.t("report.event.context", { issue: issueNumber, mode: "fix" }),
 				result.skipped
 					? messages.t("report.feedback.skipped")
 					: messages.t("report.feedback.completed"),

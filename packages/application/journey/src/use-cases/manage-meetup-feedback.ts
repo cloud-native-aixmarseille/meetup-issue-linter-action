@@ -39,7 +39,6 @@ export class ManageMeetupFeedback {
 
 	async execute(input: {
 		identity: EventIdentity;
-		mode: "check" | "fix";
 	}): Promise<ManageMeetupFeedbackResult> {
 		const source = await this.dependencies.eventRepository.find(input.identity);
 		if (!source) throw new EventNotFoundError(input.identity);
@@ -69,30 +68,19 @@ export class ManageMeetupFeedback {
 				"Resolve the event date and feedback link before updating feedback",
 			);
 		const feedbackUrl = event.publicationLinks.feedback;
-		if (!feedbackUrl) return this.createFeedback(source, event, input.mode);
-		return this.reconcile(
-			source,
-			event,
-			FeedbackPolicy.pollUrl(feedbackUrl),
-			input.mode,
-		);
+		if (!feedbackUrl) return this.createFeedback(source, event);
+		return this.reconcile(source, event, FeedbackPolicy.pollUrl(feedbackUrl));
 	}
 
 	private async createFeedback(
 		source: EventDocument,
 		event: MeetupEvent,
-		mode: "check" | "fix",
 	): Promise<ManageMeetupFeedbackResult> {
 		const name = event.eventTitle.trim().slice(0, 100);
 		if (!name)
 			return this.skipped(
 				"prerequisites",
 				"Set an event title before creating feedback",
-			);
-		if (mode === "check")
-			return this.skipped(
-				"creation-pending",
-				"An OpenFeedback event will be created in fix mode; configure its talks and speakers in OpenFeedback",
 			);
 		await this.ensureCurrent(source);
 		const { repository, issueNumber } = source.identity;
@@ -101,23 +89,14 @@ export class ManageMeetupFeedback {
 			name,
 			scheduleUrl: `https://github.com/${repository}/issues/${issueNumber}`,
 		});
-		return this.reconcile(source, event, FeedbackPolicy.pollUrl(url), mode);
+		return this.reconcile(source, event, FeedbackPolicy.pollUrl(url));
 	}
 
 	private async reconcile(
 		source: EventDocument,
 		event: MeetupEvent,
 		url: string,
-		mode: "check" | "fix",
 	): Promise<ManageMeetupFeedbackResult> {
-		if (mode === "check")
-			return {
-				skipped: false,
-				persisted: false,
-				feedbackUrl: url,
-				linkUpdated: false,
-				diagnostics: [],
-			};
 		await this.ensureCurrent(source);
 		const { persisted, current } = await this.persist(source, url);
 		const diagnostics: PublicDiagnostic[] = [];

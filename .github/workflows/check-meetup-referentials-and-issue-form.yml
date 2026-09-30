@@ -75,4 +75,3 @@ jobs:
         with:
           locale: ${{ inputs.locale }}
           mode: check
-          fail-on-drift: "false"

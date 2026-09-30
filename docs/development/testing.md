@@ -82,7 +82,8 @@ it("rejects a non-positive issue identifier", () => {
 [`__check-actions.yml`](../../.github/workflows/__check-actions.yml) exercises
 bundled actions in CI using a synthetic issue and catalog fixtures. Its cleanup
 job closes the test issue. Do not replace these fixtures with live meetup
-issues.
+issues. Communication integration checks use an unapproved synthetic issue
+and assert that no messages are dispatched through the standard action path.
 
 `pnpm test:cov` enforces the aggregate thresholds in
 [`vitest.config.ts`](../../vitest.config.ts): 90% lines/statements and 85%
