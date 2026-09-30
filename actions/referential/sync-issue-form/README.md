@@ -14,7 +14,7 @@
 
 ## Overview
 
-Validate configured referentials and synchronize the public meetup issue form projection. Fail on errors in either mode and, by default, projection drift in check mode; set fail-on-drift to false for advisory drift checks. Successful updates in fix mode pass. Publish redacted diagnostics in annotations, logs, and the job summary.
+Validate configured referentials and synchronize the public meetup issue form projection. Fail on errors in either mode; report projection drift in check mode without failing. Successful updates in fix mode pass. Publish redacted diagnostics in annotations, logs, and the job summary.
 
 <!-- overview:end -->
 <!-- usage:start -->
@@ -27,11 +27,8 @@ Validate configured referentials and synchronize the public meetup issue form pr
     # Optional language for generated text.
     locale: en
     # Use check to detect projection drift or fix to rewrite the checked-out issue form with the validated public projection.
-    # Default: `check`
+    # This input is required.
     mode: check
-    # Fail when check mode detects projection drift. Set to false to report expected drift without failing; errors always fail.
-    # Default: `true`
-    fail-on-drift: "true"
 ```
 
 <!-- usage:end -->
@@ -39,11 +36,10 @@ Validate configured referentials and synchronize the public meetup issue form pr
 
 ## Inputs
 
-| **Input**           | **Description**                                                                                                                    | **Required** | **Default** |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
-| **`locale`**        | Language for generated reports and guidance (en or fr). Regional variants are supported; unsupported locales fall back to English. | **false**    | `en`        |
-| **`mode`**          | Use check to detect projection drift or fix to rewrite the checked-out issue form with the validated public projection.            | **false**    | `check`     |
-| **`fail-on-drift`** | Fail when check mode detects projection drift. Set to false to report expected drift without failing; errors always fail.          | **false**    | `true`      |
+| **Input**    | **Description**                                                                                                                    | **Required** | **Default** |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
+| **`locale`** | Language for generated reports and guidance (en or fr). Regional variants are supported; unsupported locales fall back to English. | **false**    | `en`        |
+| **`mode`**   | Use check to detect projection drift or fix to rewrite the checked-out issue form with the validated public projection.            | **true**     | -           |
 
 <!-- inputs:end -->
 <!-- secrets:start -->

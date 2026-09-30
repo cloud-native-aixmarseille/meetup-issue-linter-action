@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import * as core from "@actions/core";
-import { context } from "@actions/github";
+import { context, getOctokit } from "@actions/github";
 import type { CommunicationDiagnostic } from "@meetup-automation/communication";
 import { GitHubEventRepository } from "@meetup-automation/github-event-repository";
 import type { CommunicationJourneyDiagnostic } from "@meetup-automation/journey";
@@ -11,6 +11,7 @@ import {
 import { ActionOutput } from "./action-output.js";
 import type { ActionReportData } from "./action-report.js";
 import { CommunicationRuntime } from "./communication.js";
+import { CommunicationComposition } from "./communication-composition.js";
 import { ActionMessages } from "./i18n/action-messages.js";
 import { RuntimeInput } from "./runtime-input.js";
 
@@ -45,8 +46,6 @@ const RUNTIME_MESSAGES: Readonly<
 > = {
 	"communication.dispatch-disabled-by-config":
 		"Communication dispatch is disabled by repository configuration.",
-	"communication.dispatch-not-authorized":
-		"Communication dispatch is not authorized by the workflow lock.",
 	"communication.approval-label-missing":
 		"Communications require the configured maintainer approval label.",
 	"communication.approval-missing":
@@ -76,18 +75,13 @@ export class CommunicationAction {
 	static async runCommunicationReconcileAction(
 		messages = new ActionMessages(),
 	): Promise<ActionReportData> {
+		const reportErrorsToIssue = RuntimeInput.booleanInput(
+			"report-errors-to-issue",
+			core.getInput("report-errors-to-issue", { required: true }),
+		);
 		const issueNumber = RuntimeInput.positiveIntegerInput(
 			"issue-number",
 			core.getInput("issue-number", { required: true }),
-		);
-		const requestedMode = RuntimeInput.enumInput(
-			"mode",
-			core.getInput("mode", { required: true }),
-			["check", "dispatch"] as const,
-		);
-		const dispatchAuthorized = RuntimeInput.booleanInput(
-			"dispatch-authorized",
-			core.getInput("dispatch-authorized", { required: true }),
 		);
 		const { owner, repo } = context.repo;
 		const issueSnapshot = context.payload.issue
@@ -100,8 +94,6 @@ export class CommunicationAction {
 			locale: messages.locale,
 			issueNumber,
 
-			requestedMode,
-			dispatchAuthorized,
 			githubToken: core.getInput("github-token", { required: true }),
 			mailingsToken: core.getInput("mailings-token", { required: true }),
 			slackToken: core.getInput("slack-token", { required: true }),
@@ -129,7 +121,26 @@ export class CommunicationAction {
 				...(issueSnapshot ? { issueSnapshot } : {}),
 			},
 		});
-		return CommunicationAction.report(outcome, messages);
+		const report = CommunicationAction.report(outcome, messages);
+		return reportErrorsToIssue
+			? CommunicationAction.reportToIssue(issueNumber, report, messages)
+			: report;
+	}
+
+	private static async reportToIssue(
+		issueNumber: number,
+		report: ActionReportData,
+		messages: ActionMessages,
+	): Promise<ActionReportData> {
+		return CommunicationComposition.createIssueReport({
+			...context.repo,
+			issueNumber,
+			locale: messages.locale,
+			client: getOctokit(core.getInput("github-token", { required: true })),
+			commentAuthorLogin: core.getInput("managed-comment-author", {
+				required: true,
+			}),
+		}).reconcile(report);
 	}
 
 	static publicIntentIdentifier(value: string): string {

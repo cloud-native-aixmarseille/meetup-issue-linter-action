@@ -201,91 +201,21 @@ describe("referential action failure reporting", () => {
 	);
 
 	it.each([
-		{
-			mode: "check",
-			changed: true,
-			severity: "warning",
-			failed: true,
-			failOnDrift: "",
-		},
-		{
-			mode: "fix",
-			changed: true,
-			severity: "warning",
-			failed: false,
-			failOnDrift: "",
-		},
-		{
-			mode: "check",
-			changed: false,
-			severity: "warning",
-			failed: false,
-			failOnDrift: "",
-		},
-		{
-			mode: "fix",
-			changed: false,
-			severity: "warning",
-			failed: false,
-			failOnDrift: "",
-		},
-		{
-			mode: "check",
-			changed: false,
-			severity: "error",
-			failed: true,
-			failOnDrift: "",
-		},
-		{
-			mode: "fix",
-			changed: false,
-			severity: "error",
-			failed: true,
-			failOnDrift: "",
-		},
-		{
-			mode: "check",
-			changed: true,
-			severity: "warning",
-			failed: true,
-			failOnDrift: "true",
-		},
-		{
-			mode: "check",
-			changed: true,
-			severity: "warning",
-			failed: false,
-			failOnDrift: "false",
-		},
-		{
-			mode: "fix",
-			changed: true,
-			severity: "warning",
-			failed: false,
-			failOnDrift: "false",
-		},
-		{
-			mode: "check",
-			changed: false,
-			severity: "error",
-			failed: true,
-			failOnDrift: "false",
-		},
-		{
-			mode: "fix",
-			changed: false,
-			severity: "error",
-			failed: true,
-			failOnDrift: "false",
-		},
+		{ mode: "check", changed: true, severity: "warning", failed: false },
+		{ mode: "check", changed: true, severity: "error", failed: true },
+		{ mode: "check", changed: false, severity: "warning", failed: false },
+		{ mode: "check", changed: false, severity: "error", failed: true },
+		{ mode: "fix", changed: true, severity: "warning", failed: false },
+		{ mode: "fix", changed: true, severity: "error", failed: true },
+		{ mode: "fix", changed: false, severity: "warning", failed: false },
+		{ mode: "fix", changed: false, severity: "error", failed: true },
 	])(
-		"sets failure=$failed for $mode with changed=$changed, $severity diagnostics and fail-on-drift=$failOnDrift",
-		async ({ mode, changed, severity, failed, failOnDrift }) => {
+		"sets failure=$failed for $mode with changed=$changed, $severity diagnostics",
+		async ({ mode, changed, severity, failed }) => {
 			// Arrange
 			const inputs: Record<string, string> = {
 				mode,
 				locale: "en",
-				"fail-on-drift": failOnDrift,
 			};
 			boundary.getInput.mockImplementation(
 				(name: string) => inputs[name] ?? "",
@@ -340,7 +270,6 @@ describe("referential action failure reporting", () => {
 		const inputs: Record<string, string> = {
 			mode: "check",
 			locale: "en",
-			"fail-on-drift": "false",
 		};
 		boundary.getInput.mockImplementation((name: string) => inputs[name] ?? "");
 		boundary.synchronize.mockRejectedValue(

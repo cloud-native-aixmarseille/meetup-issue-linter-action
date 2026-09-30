@@ -23,11 +23,13 @@ import type { ReferentialRepository } from "@meetup-automation/referential";
 import { SlackNotificationGateway } from "@meetup-automation/slack-notification-gateway";
 import { SystemCommunicationClock } from "@meetup-automation/system-clock";
 import type { Container } from "inversify";
+import { CommunicationIssueReport } from "./communication-issue-report.js";
 import {
 	EventComposition,
 	type EventCompositionInput,
 	SERVICES,
 } from "./composition.js";
+import { ActionMessages } from "./i18n/action-messages.js";
 
 const COMMUNICATION_SERVICES = {
 	approvalRepository: Symbol("CommunicationApprovalRepository"),
@@ -45,6 +47,21 @@ type CommunicationCompositionInput = EventCompositionInput & {
 type DeliveryLedgerFactory = (dispatchAuthorized: boolean) => DeliveryLedger;
 
 export class CommunicationComposition {
+	static createIssueReport(
+		input: EventCompositionInput & { readonly issueNumber: number },
+	): CommunicationIssueReport {
+		return new CommunicationIssueReport(
+			new ScopedGithubLedgerCommentClient(
+				input.client,
+				input.owner,
+				input.repo,
+				input.issueNumber,
+			),
+			input.commentAuthorLogin,
+			new ActionMessages(input.locale),
+		);
+	}
+
 	static createCommunicationContainer(input: CommunicationCompositionInput) {
 		const container = EventComposition.createEventContainer(input);
 		CommunicationComposition.bindRepositories(container, input);

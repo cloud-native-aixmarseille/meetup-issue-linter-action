@@ -1,5 +1,5 @@
 name: Reconcile meetup communications
-description: Plan due meetup communications and, when authorized, dispatch them through the configured mail and Slack gateways. Publish redacted diagnostics in annotations, logs, and the job summary.
+description: Reconcile due meetup communications and dispatch them through the configured mail and Slack gateways when approval and delivery checks pass. Publish redacted diagnostics in annotations, logs, and the job summary.
 author: Cloud Native Aix-Marseille
 inputs:
   locale:
@@ -9,15 +9,11 @@ inputs:
   issue-number:
     description: GitHub issue number in the caller repository containing the meetup event document to inspect.
     required: true
-  mode:
-    description: Use check to plan and validate only, or dispatch to send due communications when every safety gate passes.
-    required: false
-    default: check
   github-token:
-    description: Token for the caller repository. Requires issues:read; dispatch mode also requires issues:write.
+    description: Token for the caller repository. Requires issues:write for approval, delivery ledger, and diagnostic comments.
     required: true
   managed-comment-author:
-    description: Trusted bot login allowed to create or update the managed delivery ledger comment, for example my-app[bot].
+    description: Trusted bot login allowed to create or update managed delivery ledger and communication diagnostic comments, for example my-app[bot].
     required: true
   mailings-token:
     description: Token used to dispatch approved email communications to the configured mailings repository.
@@ -28,10 +24,9 @@ inputs:
   slack-token:
     description: Slack bot token used for approved notifications.
     required: true
-  dispatch-authorized:
-    description: Internal workflow assertion that the shared event concurrency lock is held and dispatch is authorized by the caller workflow.
-    required: false
-    default: "false"
+  report-errors-to-issue:
+    description: Use true to record communication diagnostics in a managed meetup issue comment and succeed after persistence, or false to fail on error diagnostics. Execution and comment persistence failures still fail the action. Requires the shared event lock.
+    required: true
 outputs:
   result:
     description: Versioned redacted JSON envelope containing the effective mode, reconciliation counts, hashed intent identifiers, and diagnostics.

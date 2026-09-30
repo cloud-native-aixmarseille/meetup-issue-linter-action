@@ -40,8 +40,8 @@ describe("event side-effect safeguards", () => {
 				expect(action.inputs?.[inputName]?.default).toBeUndefined();
 			}
 			expect(job.concurrency?.["cancel-in-progress"]).toBe(false);
+			expect(step?.with).not.toHaveProperty("mode");
 			expect(step?.with).toMatchObject({
-				mode: "fix",
 				"google-credentials": workflowExpression("secrets.google-credentials"),
 				"managed-comment-author": managedAuthor,
 				"google-drive-meetup-folder-id": workflowExpression(
@@ -128,16 +128,16 @@ describe("event side-effect safeguards", () => {
 	it.each([
 		{
 			job: "manage",
-			mode: "dispatch",
+			reportErrorsToIssue: "false",
 			workflow: "update-meetup-issue",
 		},
 		{
 			job: "audit",
-			mode: "dispatch",
+			reportErrorsToIssue: "true",
 			workflow: "check-active-meetup-issues",
 		},
 	] as const)(
-		"authorizes dispatch under the event lock in $workflow",
+		"reconciles communications under the event lock in $workflow",
 		async (item) => {
 			// Arrange
 			// Use the shared fixtures.
@@ -152,8 +152,11 @@ describe("event side-effect safeguards", () => {
 
 			// Assert
 			expect(job.concurrency?.["cancel-in-progress"]).toBe(false);
-			expect(step?.with?.mode).toBe(item.mode);
-			expect(step?.with?.["dispatch-authorized"]).toBe("true");
+			expect(step?.with).not.toHaveProperty("mode");
+			expect(step?.with).not.toHaveProperty("dispatch-authorized");
+			expect(step?.with?.["report-errors-to-issue"]).toBe(
+				item.reportErrorsToIssue,
+			);
 		},
 	);
 
@@ -191,7 +194,9 @@ describe("event side-effect safeguards", () => {
 		expect(token?.with?.["permission-issues"]).toBe("write");
 		expect(event?.with?.mode).toBe("check");
 		expect(event?.id).toBe("event");
-		expect(communication?.with?.mode).toBe("dispatch");
+		expect(communication?.with).not.toHaveProperty("mode");
+		expect(communication?.with?.["report-errors-to-issue"]).toBe("true");
+		expect(communication).not.toHaveProperty("continue-on-error");
 		expect(communication?.with?.["slack-channel-id"]).toBe(
 			workflowExpression("inputs.slack-channel-id"),
 		);

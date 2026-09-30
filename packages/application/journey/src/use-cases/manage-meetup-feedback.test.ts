@@ -73,7 +73,7 @@ describe("meetup feedback journey", () => {
 		const { deps, events, links, useCase } = journey();
 
 		// Act
-		const result = await useCase.execute({ identity, mode: "fix" });
+		const result = await useCase.execute({ identity });
 
 		// Assert
 		expect(result).toMatchObject({
@@ -87,20 +87,6 @@ describe("meetup feedback journey", () => {
 		expect(deps.commentRepository.reconcileDiagnostics).not.toHaveBeenCalled();
 	});
 
-	it("validates the poll URL without remote or issue writes in check mode", async () => {
-		// Arrange
-		const { deps, events, links, useCase } = journey();
-
-		// Act
-		const result = await useCase.execute({ identity, mode: "check" });
-
-		// Assert
-		expect(result.persisted).toBe(false);
-		expect(links.updateTarget).not.toHaveBeenCalled();
-		expect(deps.repository.applyPatch).not.toHaveBeenCalled();
-		expect(events.ensureEvent).not.toHaveBeenCalled();
-	});
-
 	it.each(["2026-09-29T10:00:00Z", "2026-10-01T10:00:00Z"])(
 		"leaves the shared link unchanged outside the event day: %s",
 		async (now) => {
@@ -108,7 +94,7 @@ describe("meetup feedback journey", () => {
 			const { links, useCase } = journey({}, now);
 
 			// Act
-			const result = await useCase.execute({ identity, mode: "fix" });
+			const result = await useCase.execute({ identity });
 
 			// Assert
 			expect(result.feedbackUrl).toBe(feedbackUrl);
@@ -121,7 +107,7 @@ describe("meetup feedback journey", () => {
 		const { links, useCase } = journey({ agenda: [] });
 
 		// Act
-		const result = await useCase.execute({ identity, mode: "fix" });
+		const result = await useCase.execute({ identity });
 
 		// Assert
 		expect(result.feedbackUrl).toBe(feedbackUrl);
@@ -149,7 +135,7 @@ describe("meetup feedback journey", () => {
 			});
 
 			// Act
-			const result = await useCase.execute({ identity, mode: "fix" });
+			const result = await useCase.execute({ identity });
 
 			// Assert
 			expect(result.skipped).toBe(true);
@@ -170,7 +156,7 @@ describe("meetup feedback journey", () => {
 			});
 
 		// Act
-		const result = await useCase.execute({ identity, mode: "fix" });
+		const result = await useCase.execute({ identity });
 
 		// Assert
 		expect(result.diagnostics).toContainEqual(
@@ -192,7 +178,7 @@ describe("meetup feedback journey", () => {
 		});
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toMatchObject({
@@ -211,7 +197,7 @@ describe("meetup feedback journey", () => {
 		);
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toThrow("HTTP 401");
@@ -230,7 +216,7 @@ describe("meetup feedback journey", () => {
 		});
 
 		// Act
-		const result = await useCase.execute({ identity, mode: "fix" });
+		const result = await useCase.execute({ identity });
 
 		// Assert
 		expect(result).toMatchObject({
@@ -249,8 +235,8 @@ describe("meetup feedback journey", () => {
 		});
 
 		// Act
-		const result = await useCase.execute({ identity, mode: "fix" });
-		const repeated = await useCase.execute({ identity, mode: "fix" });
+		const result = await useCase.execute({ identity });
+		const repeated = await useCase.execute({ identity });
 
 		// Assert
 		expect(result).toMatchObject({
@@ -275,27 +261,6 @@ describe("meetup feedback journey", () => {
 		expect(repeated.persisted).toBe(false);
 	});
 
-	it("reports planned creation without calling any write gateway in check mode", async () => {
-		// Arrange
-		const { deps, events, links, useCase } = journey({
-			publicationLinks: event.publicationLinks,
-		});
-
-		// Act
-		const result = await useCase.execute({ identity, mode: "check" });
-
-		// Assert
-		expect(result).toMatchObject({
-			persisted: false,
-			linkUpdated: false,
-			diagnostics: [{ code: "publication.feedback.creation-pending" }],
-		});
-		expect(result.feedbackUrl).toBeUndefined();
-		expect(events.ensureEvent).not.toHaveBeenCalled();
-		expect(deps.repository.applyPatch).not.toHaveBeenCalled();
-		expect(links.updateTarget).not.toHaveBeenCalled();
-	});
-
 	it("prepares future feedback without changing the shared short link", async () => {
 		// Arrange
 		const { events, links, useCase } = journey(
@@ -304,7 +269,7 @@ describe("meetup feedback journey", () => {
 		);
 
 		// Act
-		const result = await useCase.execute({ identity, mode: "fix" });
+		const result = await useCase.execute({ identity });
 
 		// Assert
 		expect(result).toMatchObject({
@@ -324,7 +289,7 @@ describe("meetup feedback journey", () => {
 		});
 
 		// Act
-		await useCase.execute({ identity, mode: "fix" });
+		await useCase.execute({ identity });
 
 		// Assert
 		expect(events.ensureEvent).toHaveBeenCalledWith(
@@ -340,7 +305,7 @@ describe("meetup feedback journey", () => {
 		});
 
 		// Act
-		const result = await useCase.execute({ identity, mode: "fix" });
+		const result = await useCase.execute({ identity });
 
 		// Assert
 		expect(result.diagnostics).toContainEqual(
@@ -359,7 +324,7 @@ describe("meetup feedback journey", () => {
 			.mockResolvedValue({ ...sourceDocument, body: "human edit" });
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toMatchObject({
@@ -384,7 +349,7 @@ describe("meetup feedback journey", () => {
 		});
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toMatchObject({
@@ -405,9 +370,9 @@ describe("meetup feedback journey", () => {
 
 		// Act
 		const firstError = await useCase
-			.execute({ identity, mode: "fix" })
+			.execute({ identity })
 			.catch((error: unknown) => error);
-		const retried = await useCase.execute({ identity, mode: "fix" });
+		const retried = await useCase.execute({ identity });
 
 		// Assert
 		expect(firstError).toMatchObject({ message: "Issue save failed" });
@@ -433,7 +398,7 @@ describe("meetup feedback journey", () => {
 		);
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toThrow("HTTP 401");

@@ -18,11 +18,6 @@ export class PublicationAction {
 			"issue-number",
 			core.getInput("issue-number", { required: true }),
 		);
-		const mode = RuntimeInput.enumInput(
-			"mode",
-			core.getInput("mode", { required: true }),
-			["check", "fix"] as const,
-		);
 		const credentials = core.getInput("google-credentials", { required: true });
 		core.setSecret(credentials);
 		const client = getOctokit(
@@ -51,14 +46,12 @@ export class PublicationAction {
 		});
 		const outcome = await container.get(ManageMeetupAssets).execute({
 			identity: { repository: `${owner}/${repo}`, issueNumber },
-			mode,
 		});
-		return PublicationAction.report(issueNumber, mode, outcome, messages);
+		return PublicationAction.report(issueNumber, outcome, messages);
 	}
 
 	private static report(
 		issueNumber: number,
-		mode: string,
 		outcome: Awaited<ReturnType<ManageMeetupAssets["execute"]>>,
 		messages: ActionMessages,
 	): ActionReportData {
@@ -78,7 +71,7 @@ export class PublicationAction {
 		core.setOutput("asset-url", outcome.assetUrl ?? "");
 		return {
 			details: [
-				messages.t("report.event.context", { issue: issueNumber, mode }),
+				messages.t("report.event.context", { issue: issueNumber, mode: "fix" }),
 				outcome.skipped
 					? messages.t("report.assets.skipped")
 					: messages.t("report.assets.completed"),

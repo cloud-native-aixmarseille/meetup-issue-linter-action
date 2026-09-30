@@ -31,7 +31,7 @@ Read one meetup issue, derive lifecycle and readiness, and optionally persist sa
     issue-number: ""
 
     # Use check for read-only validation or fix to persist safe normalizations to the issue and managed diagnostic comment.
-    # Default: `check`
+    # This input is required.
     mode: check
 
     # Token for the caller repository. Requires issues:read; fix mode also requires issues:write.
@@ -52,7 +52,7 @@ Read one meetup issue, derive lifecycle and readiness, and optionally persist sa
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
 | **`locale`**                 | Language for generated reports and guidance (en or fr). Regional variants are supported; unsupported locales fall back to English. | **false**    | `en`        |
 | **`issue-number`**           | GitHub issue number in the caller repository containing the meetup event document to inspect.                                      | **true**     | -           |
-| **`mode`**                   | Use check for read-only validation or fix to persist safe normalizations to the issue and managed diagnostic comment.              | **false**    | `check`     |
+| **`mode`**                   | Use check for read-only validation or fix to persist safe normalizations to the issue and managed diagnostic comment.              | **true**     | -           |
 | **`github-token`**           | Token for the caller repository. Requires issues:read; fix mode also requires issues:write.                                        | **true**     | -           |
 | **`managed-comment-author`** | Trusted bot login allowed to create or update the managed diagnostic comment, for example my-app[bot].                             | **true**     | -           |
 

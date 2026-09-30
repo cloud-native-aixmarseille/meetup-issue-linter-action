@@ -4,8 +4,6 @@ export const DIAGNOSTICS_OTHER_EN = {
 		"Feedback automation is inactive for this event",
 	"diagnostic.publication.feedback.prerequisites":
 		"Resolve the event title, date and feedback link before updating feedback",
-	"diagnostic.publication.feedback.creation-pending":
-		"An OpenFeedback event will be created in fix mode; configure its talks and speakers in OpenFeedback",
 	"diagnostic.publication.feedback.ambiguous-date":
 		"Several active meetups share this date; update the shared feedback link manually",
 	"diagnostic.publication.assets.prerequisites":

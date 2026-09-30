@@ -32,8 +32,8 @@ describe("feedback workflow safeguards", () => {
 			expect(
 				workflow.on?.workflow_call?.inputs?.["kutt-link-id"]?.required,
 			).toBe(true);
+			expect(step?.with).not.toHaveProperty("mode");
 			expect(step?.with).toMatchObject({
-				mode: "fix",
 				locale: workflowExpression("inputs.locale"),
 				"managed-comment-author": managedAuthor,
 				"openfeedback-api-key": workflowExpression(

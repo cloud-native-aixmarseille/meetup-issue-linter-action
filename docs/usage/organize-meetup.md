@@ -28,6 +28,10 @@ The issue workflow normalizes supported fields and updates a diagnostic comment.
 Read that comment and fix missing or invalid values. If the workflow fails, open
 its Actions run to identify the failing integration or configuration.
 
+The [active-issue audit](../../.github/workflows/check-active-meetup-issues.md)
+records communication errors in a managed comment and can finish successfully
+while those errors still need attention. Review the issue comments after an audit.
+
 After confirming participation, add `hoster:confirmed` and `speakers:confirmed`.
 The automation maintains the corresponding `needed` labels. A ready event has
 valid required fields, resolved host and speaker references, both confirmations,

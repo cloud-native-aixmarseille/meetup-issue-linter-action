@@ -1,5 +1,7 @@
 # Reusable workflow that checks active meetup issues, evaluates their current
 # state, and processes due communications under the shared per-event lock.
+# Communication errors are recorded in the meetup issue without failing the audit;
+# execution and comment persistence failures still fail the job.
 #
 # The workflow creates a separate GitHub App installation token for
 # `<repository-owner>/mailings` using the supplied App client ID and private key.
@@ -126,7 +128,6 @@ jobs:
         with:
           locale: ${{ inputs.locale }}
           issue-number: ${{ matrix.issue-number }}
-          mode: fix
           github-token: ${{ steps.app-token.outputs.token }}
           managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
           kutt-link-id: ${{ inputs.kutt-link-id }}
@@ -139,7 +140,6 @@ jobs:
         with:
           locale: ${{ inputs.locale }}
           issue-number: ${{ matrix.issue-number }}
-          mode: fix
           github-token: ${{ steps.app-token.outputs.token }}
           managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
           google-credentials: ${{ secrets.google-credentials }} # zizmor: ignore[secrets-outside-env] required reusable-workflow secret is forwarded explicitly
@@ -172,10 +172,9 @@ jobs:
         with:
           locale: ${{ inputs.locale }}
           issue-number: ${{ matrix.issue-number }}
-          mode: dispatch
           github-token: ${{ steps.app-token.outputs.token }}
           managed-comment-author: ${{ format('{0}[bot]', steps.app-token.outputs.app-slug) }}
           mailings-token: ${{ steps.mailings-token.outputs.token }}
           slack-channel-id: ${{ inputs.slack-channel-id }}
           slack-token: ${{ secrets.slack-token }} # zizmor: ignore[secrets-outside-env] required reusable-workflow secret is forwarded explicitly to avoid secrets: inherit
-          dispatch-authorized: "true"
+          report-errors-to-issue: "true"

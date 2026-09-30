@@ -1,6 +1,6 @@
 # ADR-0001: Centralize the meetup event journey in the automation repository
 
-- Status: Accepted
+- Status: Accepted; communication execution inputs superseded by [ADR 0005](0005-single-communication-reconciliation-path.md); remaining reconciliation inputs partially superseded by [ADR 0006](0006-explicit-reconciliation-behavior.md)
 - Date: 2026-09-04
 - Owners: Cloud Native Aix-Marseille maintainers
 - Scope: `meetup-event-automation` and `meetups`

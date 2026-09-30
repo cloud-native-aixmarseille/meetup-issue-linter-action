@@ -44,8 +44,6 @@ describe("runCommunicationReconcile", () => {
 			const result = await CommunicationRuntime.runCommunicationReconcile(
 				runtimeInput(workspaceRoot, {
 					owner,
-					requestedMode: "dispatch",
-					dispatchAuthorized: true,
 					approvalTrigger: {
 						...trigger,
 						issueSnapshot: {
@@ -85,8 +83,6 @@ describe("runCommunicationReconcile", () => {
 				token === "github-token" ? clients.github : clients.mailings,
 			);
 			const input = runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 			});
 			const revision = vi
@@ -151,8 +147,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				approvalTrigger: approvalTrigger(),
 			}),
@@ -213,36 +207,35 @@ describe("runCommunicationReconcile", () => {
 		}
 	});
 
-	it("stays read-only unless dispatch is authorized by the caller workflow", async () => {
+	it("blocks delivery without the approval label", async () => {
 		// Arrange
 		const workspaceRoot = await createWorkspace();
-		const clients = githubClients();
+		const clients = githubClients({
+			labels: ["meetup", "hoster:confirmed", "speakers:confirmed"],
+		});
 		getOctokitMock.mockImplementation((token: string) =>
 			token === "github-token" ? clients.github : clients.mailings,
 		);
 
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
-			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: false,
-				mailingsToken: "mailings-token",
-			}),
+			runtimeInput(workspaceRoot),
 		);
-		const actual = result.runtimeDiagnostics.map((item) => item.code);
 
 		// Assert
 		expect(result.mode).toBe("check");
 		expect(result.counts).toMatchObject({
 			planned: 2,
-			due: 2,
 			reserved: 0,
 			dispatched: 0,
 		});
-		expect(actual).toContain("communication.dispatch-not-authorized");
+		expect(result.runtimeDiagnostics).toContainEqual({
+			code: "communication.approval-label-missing",
+			severity: "warning",
+		});
+		expect(clients.createDispatchEvent).not.toHaveBeenCalled();
 		expect(clients.createComment).not.toHaveBeenCalled();
 		expect(clients.updateComment).not.toHaveBeenCalled();
-		expect(clients.createDispatchEvent).not.toHaveBeenCalled();
 	});
 
 	it.each([
@@ -274,8 +267,6 @@ describe("runCommunicationReconcile", () => {
 			const result = await CommunicationRuntime.runCommunicationReconcile(
 				runtimeInput(workspaceRoot, {
 					locale,
-					requestedMode: "dispatch",
-					dispatchAuthorized: true,
 					mailingsToken: "mailings-token",
 					slackToken: "slack-token",
 					slackChannelId: "channel-safe-id",
@@ -311,8 +302,6 @@ describe("runCommunicationReconcile", () => {
 		);
 		await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				approvalTrigger: approvalTrigger(),
 			}),
 		);
@@ -336,8 +325,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 			}),
 		);
@@ -352,31 +339,6 @@ describe("runCommunicationReconcile", () => {
 		expect(clients.comments).toHaveLength(2);
 	});
 
-	it("does not capture approval in check mode", async () => {
-		// Arrange
-		const workspaceRoot = await createWorkspace();
-		const clients = githubClients();
-		getOctokitMock.mockReturnValue(clients.github);
-
-		// Act
-		const result = await CommunicationRuntime.runCommunicationReconcile(
-			runtimeInput(workspaceRoot, {
-				requestedMode: "check",
-				dispatchAuthorized: true,
-				approvalTrigger: approvalTrigger(),
-			}),
-		);
-
-		// Assert
-		expect(result.mode).toBe("check");
-		expect(result.runtimeDiagnostics).toContainEqual({
-			code: "communication.approval-missing",
-			severity: "warning",
-		});
-		expect(clients.createComment).not.toHaveBeenCalled();
-		expect(clients.updateComment).not.toHaveBeenCalled();
-	});
-
 	it("does not capture approval without an authorized label transition actor", async () => {
 		// Arrange
 		const workspaceRoot = await createWorkspace();
@@ -388,8 +350,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				approvalTrigger: approvalTrigger(),
 			}),
@@ -414,8 +374,6 @@ describe("runCommunicationReconcile", () => {
 		);
 		await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				approvalTrigger: approvalTrigger(),
 			}),
 		);
@@ -427,8 +385,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				approvalTrigger: approvalTrigger(),
 			}),
@@ -458,16 +414,12 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				approvalTrigger: approvalTrigger(),
 			}),
 		);
 		clients.createDispatchEvent.mockClear();
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				automationRevision: "revision-next",
 			}),
@@ -493,8 +445,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				approvalTrigger: approvalTrigger(),
 			}),
@@ -521,8 +471,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				approvalTrigger: {
 					action: "labeled",
@@ -558,8 +506,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				approvalTrigger: approvalTrigger(),
 			}),
@@ -597,8 +543,6 @@ describe("runCommunicationReconcile", () => {
 		// Act
 		const result = await CommunicationRuntime.runCommunicationReconcile(
 			runtimeInput(workspaceRoot, {
-				requestedMode: "dispatch",
-				dispatchAuthorized: true,
 				mailingsToken: "mailings-token",
 				slackToken: "slack-token",
 				slackChannelId: "channel-safe-id",
@@ -649,9 +593,6 @@ function runtimeInput(
 ): Parameters<typeof CommunicationRuntime.runCommunicationReconcile>[0] {
 	return {
 		issueNumber: 42,
-
-		requestedMode: "check",
-		dispatchAuthorized: false,
 		githubToken: "github-token",
 		mailingsToken: "mailings-token",
 		slackToken: "slack-token",

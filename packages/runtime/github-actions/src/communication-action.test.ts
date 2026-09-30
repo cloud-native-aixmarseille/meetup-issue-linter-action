@@ -1,13 +1,32 @@
 import * as core from "@actions/core";
+import { ManageMeetupCommunications } from "@meetup-automation/journey";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ActionRunner } from "./action-runner.js";
 import { CommunicationAction } from "./communication-action.js";
 
-const boundary = vi.hoisted(() => ({ execute: vi.fn() }));
+const boundary = vi.hoisted(() => ({
+	execute: vi.fn(),
+	listComments: vi.fn(),
+	createComment: vi.fn(),
+	updateComment: vi.fn(),
+}));
 vi.mock("@actions/core", async (importOriginal) => ({
 	...(await importOriginal<typeof core>()),
 	setOutput: vi.fn(),
+	setFailed: vi.fn(),
+	info: vi.fn(),
+	error: vi.fn(),
+	warning: vi.fn(),
+	notice: vi.fn(),
+	summary: {
+		addHeading: vi.fn().mockReturnThis(),
+		addRaw: vi.fn().mockReturnThis(),
+		write: vi.fn().mockResolvedValue(undefined),
+		clear: vi.fn(),
+	},
 }));
 vi.mock("@actions/github", () => ({
+	getOctokit: vi.fn(() => ({ rest: { issues: boundary } })),
 	context: {
 		repo: { owner: "community", repo: "meetups" },
 		payload: {},
@@ -21,10 +40,10 @@ vi.mock("./communication.js", () => ({
 describe("communication action report facts", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		boundary.listComments.mockResolvedValue({ data: [], headers: {} });
 		for (const [name, value] of Object.entries({
+			"report-errors-to-issue": "false",
 			"issue-number": "42",
-			mode: "check",
-			"dispatch-authorized": "false",
 			"github-token": "private-token",
 			"mailings-token": "private-mailings-token",
 			"slack-token": "private-slack-token",
@@ -38,16 +57,13 @@ describe("communication action report facts", () => {
 	afterEach(() => vi.unstubAllEnvs());
 
 	it.each([
-		["mailings-token", "check"],
-		["slack-token", "check"],
-		["slack-channel-id", "check"],
-		["mailings-token", "dispatch"],
-		["slack-token", "dispatch"],
-		["slack-channel-id", "dispatch"],
-	])("requires %s before reconciling in %s mode", async (input, mode) => {
+		"report-errors-to-issue",
+		"mailings-token",
+		"slack-token",
+		"slack-channel-id",
+	])("requires %s before reconciling communications", async (input) => {
 		// Arrange
 		vi.stubEnv(`INPUT_${input.toUpperCase()}`, "");
-		vi.stubEnv("INPUT_MODE", mode);
 
 		// Act
 		const operation = CommunicationAction.runCommunicationReconcileAction();
@@ -60,10 +76,16 @@ describe("communication action report facts", () => {
 		expect(core.setOutput).not.toHaveBeenCalled();
 	});
 
-	it.each(["warning", "error"] as const)(
-		"redacts provider data and preserves failure policy for %s diagnostics",
-		async (severity) => {
+	it.each([
+		["warning", false],
+		["error", false],
+		["warning", true],
+		["error", true],
+	] as const)(
+		"redacts %s diagnostics with issue reporting %s",
+		async (severity, issueReporting) => {
 			// Arrange
+			vi.stubEnv("INPUT_REPORT-ERRORS-TO-ISSUE", String(issueReporting));
 			boundary.execute.mockResolvedValue({
 				mode: "check",
 				counts: {
@@ -117,7 +139,18 @@ describe("communication action report facts", () => {
 				severity: "warning",
 				message: "Communications require a maintainer-owned approval snapshot.",
 			});
-			expect(Boolean(report.failure)).toBe(severity === "error");
+			expect(Boolean(report.failure)).toBe(
+				severity === "error" && !issueReporting,
+			);
+			expect(boundary.createComment).toHaveBeenCalledTimes(
+				severity === "error" && issueReporting ? 1 : 0,
+			);
+			expect(boundary.listComments).toHaveBeenCalledTimes(
+				issueReporting ? 1 : 0,
+			);
+			expect(JSON.stringify(boundary.createComment.mock.calls)).not.toContain(
+				"private",
+			);
 			expect(core.setOutput).toHaveBeenCalledWith("planned-count", "2");
 			expect(core.setOutput).toHaveBeenCalledWith(
 				"result",
@@ -166,5 +199,110 @@ describe("communication action report facts", () => {
 		expect(report.details.join("\n")).not.toContain("before any resend");
 		expect(report.diagnostics).toEqual([]);
 		expect(report.failure).toBeUndefined();
+	});
+
+	it("keeps the job successful after publishing error diagnostics to the issue", async () => {
+		// Arrange
+		vi.stubEnv("INPUT_REPORT-ERRORS-TO-ISSUE", "true");
+		boundary.execute.mockResolvedValue(
+			ManageMeetupCommunications.emptyCommunicationResult("check", [
+				{
+					code: "communication.event-references-unresolved",
+					severity: "error",
+				},
+			]),
+		);
+
+		// Act
+		await ActionRunner.run(
+			"action.communication.reconcile",
+			CommunicationAction.runCommunicationReconcileAction,
+		);
+
+		// Assert
+		expect(boundary.createComment).toHaveBeenCalledWith(
+			expect.objectContaining({
+				owner: "community",
+				repo: "meetups",
+				issue_number: 42,
+				body: expect.stringContaining(
+					"communication.event-references-unresolved",
+				),
+			}),
+		);
+		expect(core.error).toHaveBeenCalled();
+		expect(core.setOutput).toHaveBeenCalledWith(
+			"diagnostics",
+			expect.stringContaining('"severity":"error"'),
+		);
+		expect(core.setFailed).not.toHaveBeenCalled();
+	});
+
+	it.each([
+		"execute",
+		"listComments",
+		"createComment",
+		"updateComment",
+	] as const)(
+		"fails safely when %s fails with issue reporting enabled",
+		async (operation) => {
+			// Arrange
+			vi.stubEnv("INPUT_REPORT-ERRORS-TO-ISSUE", "true");
+			boundary.execute.mockResolvedValue(
+				ManageMeetupCommunications.emptyCommunicationResult("check", [
+					{
+						code: "communication.event-references-unresolved",
+						severity: "error",
+					},
+				]),
+			);
+			if (operation === "updateComment")
+				boundary.listComments.mockResolvedValue({
+					data: [
+						{
+							id: 17,
+							body: "<!-- meetup-automation:communication-diagnostics:v1 -->\nOld report",
+							user: { login: "automation[bot]" },
+						},
+					],
+					headers: {},
+				});
+			boundary[operation].mockRejectedValueOnce(
+				new Error("private provider response"),
+			);
+
+			// Act
+			await ActionRunner.run(
+				"action.communication.reconcile",
+				CommunicationAction.runCommunicationReconcileAction,
+			);
+
+			// Assert
+			expect(core.setFailed).toHaveBeenCalledOnce();
+			expect(core.setOutput).toHaveBeenCalledWith(
+				"diagnostics",
+				expect.stringContaining("action.execution.failed"),
+			);
+			expect(
+				JSON.stringify([
+					vi.mocked(core.setFailed).mock.calls,
+					vi.mocked(core.summary.addRaw).mock.calls,
+				]),
+			).not.toContain("private provider response");
+		},
+	);
+
+	it("rejects an invalid issue reporting option before executing communications", async () => {
+		// Arrange
+		vi.stubEnv("INPUT_REPORT-ERRORS-TO-ISSUE", "invalid");
+
+		// Act
+		const result = CommunicationAction.runCommunicationReconcileAction();
+
+		// Assert
+		await expect(result).rejects.toThrow(
+			"report-errors-to-issue must be true or false",
+		);
+		expect(boundary.execute).not.toHaveBeenCalled();
 	});
 });

@@ -15,7 +15,7 @@ Follow [repository setup](../usage/setup.md), then pass these settings to both
 | Variable `KUTT_FEEDBACK_LINK_ID` | Input `kutt-link-id`          | Required; the link's API `id`, not its short address                   |
 | Secret `OPENFEEDBACK_API_KEY`    | Secret `openfeedback-api-key` | Required organization key beginning with `oforg_`                      |
 
-All three settings are required, including for `check` mode and issues with an
+All three settings are required, including for issues with an
 existing feedback URL. A missing or malformed OpenFeedback key fails feedback
 reconciliation. Use an organization key beginning with `oforg_`; an event-specific
 `ofproj_` key is not accepted.
@@ -65,6 +65,6 @@ OpenFeedback authorization error, verify that the organization key has access to
 the event. If the issue changed during a run, rerun after editing is complete.
 
 The direct
-[feedback action](../../actions/publication/reconcile-feedback/README.md) also
-provides `check` mode: it validates the issue and configuration without creating
-an event, writing the issue or contacting Kutt.
+[feedback action](../../actions/publication/reconcile-feedback/README.md)
+reconciles feedback on every invocation. Call it under the shared event workflow
+lock used by the reusable workflows.

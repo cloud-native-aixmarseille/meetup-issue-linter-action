@@ -14,10 +14,6 @@ inputs:
   managed-comment-author:
     description: GitHub App bot login used by event evaluation.
     required: true
-  mode:
-    description: Check validates feedback configuration without writes; fix creates missing events and updates due links.
-    required: false
-    default: check
   openfeedback-api-key:
     description: OpenFeedback organization API key (oforg_) used to create missing events.
     required: true

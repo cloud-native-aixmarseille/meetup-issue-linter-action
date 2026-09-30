@@ -25,7 +25,6 @@ describe("ManageMeetupAssets", () => {
 		// Act
 		const result = await useCase.execute({
 			identity,
-			mode: "fix",
 		});
 
 		// Assert
@@ -53,32 +52,12 @@ describe("ManageMeetupAssets", () => {
 		).not.toHaveBeenCalled();
 	});
 
-	it("checks existing assets without updating the issue or remote files", async () => {
-		// Arrange
-		const { eventDependencies, assetRepository, useCase } = assetJourney();
-
-		// Act
-		const result = await useCase.execute({
-			identity,
-			mode: "check",
-		});
-
-		// Assert
-		expect(result.persisted).toBe(false);
-		expect(assetRepository.ensureContainer).not.toHaveBeenCalled();
-		expect(eventDependencies.repository.applyPatch).not.toHaveBeenCalled();
-		expect(
-			eventDependencies.commentRepository.reconcileDiagnostics,
-		).not.toHaveBeenCalled();
-	});
-
 	it("does not persist an empty codec patch", async () => {
 		// Arrange
 		const { eventDependencies, useCase } = assetJourney();
 
 		// Act
-		const persisted = (await useCase.execute({ identity, mode: "fix" }))
-			.persisted;
+		const persisted = (await useCase.execute({ identity })).persisted;
 
 		// Assert
 		expect(persisted).toBe(false);
@@ -114,7 +93,6 @@ describe("ManageMeetupAssets", () => {
 			// Act
 			const result = await useCase.execute({
 				identity,
-				mode: "fix",
 			});
 
 			// Assert
@@ -129,7 +107,7 @@ describe("ManageMeetupAssets", () => {
 		vi.mocked(eventDependencies.repository.find).mockResolvedValue(null);
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toThrow("not found");
@@ -143,7 +121,7 @@ describe("ManageMeetupAssets", () => {
 			.mockResolvedValue({ ...sourceDocument, body: "concurrent human edit" });
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toMatchObject({
@@ -164,7 +142,7 @@ describe("ManageMeetupAssets", () => {
 			.mockResolvedValue({ ...sourceDocument, body: "concurrent human edit" });
 
 		// Act
-		const operation = useCase.execute({ identity, mode: "fix" });
+		const operation = useCase.execute({ identity });
 
 		// Assert
 		await expect(operation).rejects.toMatchObject({

@@ -60,8 +60,6 @@ export const EN_MESSAGES = {
 	"report.issue-form.updated": "Issue form was updated.",
 	"report.issue-form.current": "Issue form is up to date.",
 	"report.issue-form.files": "Affected files: {files}.",
-	"report.issue-form.guidance":
-		"Run actions/referential/sync-issue-form with mode: fix on this branch, then commit the affected files.",
 	"report.event.context": "Issue: #{issue}; mode: {mode}.",
 	"report.event.skipped":
 		"Skipped: the issue is not a configured meetup event.",
@@ -90,10 +88,10 @@ export const EN_MESSAGES = {
 		"Review approval and delivery diagnostics before retrying.",
 	"report.communication.uncertain-guidance":
 		"Reconcile uncertain deliveries with the provider and ledger before any resend.",
+	"report.communication.issue-reported":
+		"Communication diagnostics are recorded in the meetup issue; reported errors do not fail this audit.",
 	"report.communication.failed":
 		"Communication reconciliation failed; inspect the diagnostic annotations and job summary.",
 	"workflow.referential.failed":
 		"Meetup referentials are invalid. Correct the catalog fields listed in the validation annotations and job summary.",
-	"workflow.issue-form.failed":
-		"The meetup issue form is out of date. Run actions/referential/sync-issue-form with mode: fix on this branch and commit the affected files listed in the job summary.",
 } as const;

@@ -60,6 +60,8 @@ implementation.
 - [ADR-0002: Runtime dependency injection](adr/0002-runtime-dependency-injection.md)
 - [ADR-0003: Production code structure](adr/0003-production-code-structure.md)
 - [ADR-0004: Localize generated messages](adr/0004-localize-generated-messages.md)
+- [ADR-0005: Use one communication reconciliation path](adr/0005-single-communication-reconciliation-path.md)
+- [ADR-0006: Match action inputs to operational behavior](adr/0006-explicit-reconciliation-behavior.md)
 
 ## Directory layout
 
@@ -86,7 +88,9 @@ docs/
     ├── 0001-centralize-meetup-event-automation.md
     ├── 0002-runtime-dependency-injection.md
     ├── 0003-production-code-structure.md
-    └── 0004-localize-generated-messages.md
+    ├── 0004-localize-generated-messages.md
+    ├── 0005-single-communication-reconciliation-path.md
+    └── 0006-explicit-reconciliation-behavior.md
 ```
 
 Action references stay beside `action.yml`; workflow references stay beside

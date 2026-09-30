@@ -54,21 +54,12 @@ export class ReferentialActions {
 			core.getInput("mode", { required: true }),
 			["check", "fix"] as const,
 		);
-		const failOnDrift = RuntimeInput.booleanInput(
-			"fail-on-drift",
-			core.getInput("fail-on-drift") || "true",
-		);
 		const outcome = await EventComposition.createReferentialContainer({
 			locale: messages.locale,
 		})
 			.get(SynchronizeMeetupIssueForm)
 			.execute({ mode });
-		const report = ReferentialActionReport.issueForm(
-			mode,
-			outcome,
-			messages,
-			failOnDrift,
-		);
+		const report = ReferentialActionReport.issueForm(mode, outcome, messages);
 
 		ActionOutput.setJsonOutput(
 			"result",

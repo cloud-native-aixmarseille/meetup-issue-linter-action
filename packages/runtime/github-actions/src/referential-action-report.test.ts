@@ -65,12 +65,10 @@ describe("referential action report facts", () => {
 			expect(report.details).toContain(
 				"Affected files: .github/ISSUE_TEMPLATE/example.yml.",
 			);
-			expect(report.details.join("\n").includes("mode: fix")).toBe(guidance);
-			expect(report.failure).toBe(
-				mode === "check"
-					? "The meetup issue form is out of date. Run actions/referential/sync-issue-form with mode: fix on this branch and commit the affected files listed in the job summary."
-					: undefined,
+			expect(report.details.join("\n").includes("drift does not block")).toBe(
+				guidance,
 			);
+			expect(report.failure).toBeUndefined();
 		},
 	);
 
@@ -101,7 +99,6 @@ describe("referential action report facts", () => {
 				"check",
 				result,
 				messages,
-				false,
 			);
 
 			// Assert

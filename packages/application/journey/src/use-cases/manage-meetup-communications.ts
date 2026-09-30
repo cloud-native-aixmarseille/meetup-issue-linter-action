@@ -27,12 +27,10 @@ export class ManageMeetupCommunications {
 	): Promise<ManageMeetupCommunicationsResult> {
 		const runtimeDiagnostics: CommunicationJourneyDiagnostic[] = [];
 		const config = this.dependencies.config;
-		const dispatchPermitted =
-			ManageMeetupCommunications.resolveCommunicationDispatchMode(
-				input,
-				config,
-				runtimeDiagnostics,
-			);
+		const dispatchPermitted = ManageMeetupCommunications.isDispatchEnabled(
+			config,
+			runtimeDiagnostics,
+		);
 		const { sourceDocument, managed } = await this.loadEvent(input);
 
 		if (managed.skipped) {
@@ -96,18 +94,10 @@ export class ManageMeetupCommunications {
 		);
 	}
 
-	static resolveCommunicationDispatchMode(
-		input: Pick<
-			ManageMeetupCommunicationsInput,
-			"requestedMode" | "dispatchAuthorized"
-		>,
+	static isDispatchEnabled(
 		config: AutomationConfig,
 		diagnostics: CommunicationJourneyDiagnostic[],
 	): boolean {
-		if (input.requestedMode !== "dispatch") {
-			return false;
-		}
-
 		const enabledByConfig = config.communication["dispatch-enabled"];
 		if (!enabledByConfig) {
 			diagnostics.push({
@@ -115,13 +105,7 @@ export class ManageMeetupCommunications {
 				severity: "warning",
 			});
 		}
-		if (!input.dispatchAuthorized) {
-			diagnostics.push({
-				code: "communication.dispatch-not-authorized",
-				severity: "warning",
-			});
-		}
-		return enabledByConfig && input.dispatchAuthorized;
+		return enabledByConfig;
 	}
 
 	private static async eventSourceIsCurrent(

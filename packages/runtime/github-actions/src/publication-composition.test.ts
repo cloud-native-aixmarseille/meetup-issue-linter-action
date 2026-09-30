@@ -58,7 +58,7 @@ describe("publication-composition", () => {
 		// Act
 		const result = await container
 			.get(ManageMeetupAssets)
-			.execute({ identity, mode: "fix" });
+			.execute({ identity });
 
 		// Assert
 		expect(result).toMatchObject({ skipped: true, persisted: false });

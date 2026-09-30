@@ -9,7 +9,6 @@ env:
   ISSUE_LABEL: integration-test-meetup
   HOST_CONFIRMATION_LABEL: integration-test-hoster-confirmed
   SPEAKER_CONFIRMATION_LABEL: integration-test-speakers-confirmed
-  APPROVAL_LABEL: integration-test-communication-approved
   EVENT_DATE: "2099-06-08"
 
 jobs:
@@ -35,11 +34,9 @@ jobs:
               'meetup',
               'hoster:confirmed',
               'speakers:confirmed',
-              'communication:approved',
               process.env.ISSUE_LABEL,
               process.env.HOST_CONFIRMATION_LABEL,
               process.env.SPEAKER_CONFIRMATION_LABEL,
-              process.env.APPROVAL_LABEL,
             ])];
 
             for (const name of labels) {
@@ -99,8 +96,6 @@ jobs:
               process.env.ISSUE_LABEL,
               process.env.HOST_CONFIRMATION_LABEL,
               process.env.SPEAKER_CONFIRMATION_LABEL,
-              process.env.APPROVAL_LABEL,
-              'communication:approved',
               'meetup',
               'hoster:confirmed',
               'speakers:confirmed',
@@ -339,6 +334,9 @@ jobs:
     permissions:
       contents: read
       issues: write
+    concurrency:
+      group: meetup-event-${{ github.repository_id }}-${{ needs.prepare-synthetic-issue.outputs.issue-number }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -360,12 +358,13 @@ jobs:
           speaker-0001,Ada,Speaker,Public Company,speaker@example.invalid,
           EOF
 
+      # The synthetic issue has no approval label, so delivery remains blocked.
       - name: Reconcile synthetic meetup communications
         id: reconcile-communications
         uses: ./actions/communication/reconcile
         with:
+          report-errors-to-issue: "false"
           issue-number: ${{ needs.prepare-synthetic-issue.outputs.issue-number }}
-          mode: check
           github-token: ${{ secrets.GITHUB_TOKEN }}
           managed-comment-author: integration-tests[bot]
           mailings-token: synthetic-mailings-token
@@ -382,8 +381,8 @@ jobs:
         run: |
           [[ "$PLANNED_COUNT" == "2" ]]
           [[ "$DISPATCHED_COUNT" == "0" ]]
-          [[ "$DIAGNOSTICS" == *'communication.approval-missing'* ]]
-          jq -e '.data.mode == "check" and .data.counts.planned == 2 and .data.counts.dispatched == 0 and (.data.intentIds | length == 2) and (.diagnostics | map(.code) | index("communication.approval-missing") != null)' <<< "$RESULT" >/dev/null
+          [[ "$DIAGNOSTICS" == *'communication.approval-label-missing'* ]]
+          jq -e '.data.mode == "check" and .data.counts.planned == 2 and .data.counts.dispatched == 0 and (.data.intentIds | length == 2) and (.diagnostics | map(.code) | index("communication.approval-label-missing") != null)' <<< "$RESULT" >/dev/null
 
   test-publication-reconcile-assets:
     name: Test publication asset action requires credentials
@@ -402,7 +401,6 @@ jobs:
         uses: ./actions/publication/reconcile-assets
         with:
           issue-number: "1"
-          mode: check
           github-token: ${{ github.token }}
           managed-comment-author: integration-tests[bot]
           google-credentials: ""
@@ -435,7 +433,6 @@ jobs:
         uses: ./actions/publication/reconcile-feedback
         with:
           issue-number: "1"
-          mode: check
           github-token: ${{ github.token }}
           managed-comment-author: integration-tests[bot]
           openfeedback-api-key: ""
@@ -448,7 +445,6 @@ jobs:
         uses: ./actions/publication/reconcile-feedback
         with:
           issue-number: "1"
-          mode: check
           github-token: ${{ github.token }}
           managed-comment-author: integration-tests[bot]
           openfeedback-api-key: oforg_synthetic-key
@@ -461,7 +457,6 @@ jobs:
         uses: ./actions/publication/reconcile-feedback
         with:
           issue-number: "1"
-          mode: check
           github-token: ${{ github.token }}
           managed-comment-author: integration-tests[bot]
           openfeedback-api-key: oforg_synthetic-key

@@ -14,8 +14,7 @@ inputs:
     required: true
   mode:
     description: Use check for read-only validation or fix to persist safe normalizations to the issue and managed diagnostic comment.
-    required: false
-    default: check
+    required: true
   github-token:
     description: Token for the caller repository. Requires issues:read; fix mode also requires issues:write.
     required: true
