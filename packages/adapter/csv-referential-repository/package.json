@@ -6,6 +6,6 @@
 	"exports": "./src/index.ts",
 	"dependencies": {
 		"@meetup-automation/referential": "workspace:*",
-		"csv-parse": "^7.0.2"
+		"csv-parse": "^7.0.3"
 	}
 }

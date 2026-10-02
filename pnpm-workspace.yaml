@@ -9,7 +9,14 @@ allowBuilds:
   esbuild: true
   nx: true
 
-# Nx 23.2.1 pins the vulnerable parser; remove when Nx ships a patched version.
-# https://github.com/advisories/GHSA-7w5x-hrqm-74c2
 overrides:
-  nx@23.2.1>smol-toml: 1.7.1
+  undici@>=7.28.0 <7.29.1: ">=7.29.1"
+  undici@>=7.11.0 <7.29.1: ">=7.29.1"
+  undici@>=7.0.0 <7.29.1: ">=7.29.1"
+  undici@>=7.15.0 <7.29.1: ">=7.29.1"
+  undici@>=7.1.0 <7.29.1: ">=7.29.1"
+  undici@>=7.24.1 <7.29.1: ">=7.29.1"
+  vite: 8.3.3
+  googleapis-common: 9.1.0
+  google-auth-library: 11.1.0
+  gcp-metadata: 9.0.4

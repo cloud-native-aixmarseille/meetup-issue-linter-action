@@ -30413,9 +30413,9 @@ var require_json_bigint = __commonJS({
   }
 });
 
-// node_modules/.pnpm/gcp-metadata@9.0.3_supports-color@7.2.0/node_modules/gcp-metadata/build/src/gcp-residency.js
+// node_modules/.pnpm/gcp-metadata@9.0.4_supports-color@7.2.0/node_modules/gcp-metadata/build/src/gcp-residency.js
 var require_gcp_residency = __commonJS({
-  "node_modules/.pnpm/gcp-metadata@9.0.3_supports-color@7.2.0/node_modules/gcp-metadata/build/src/gcp-residency.js"(exports) {
+  "node_modules/.pnpm/gcp-metadata@9.0.4_supports-color@7.2.0/node_modules/gcp-metadata/build/src/gcp-residency.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.GCE_LINUX_BIOS_PATHS = void 0;
@@ -30431,9 +30431,14 @@ var require_gcp_residency = __commonJS({
       BIOS_VENDOR: "/sys/class/dmi/id/bios_vendor"
     };
     var GCE_MAC_ADDRESS_REGEX = /^42:01/;
+    var SERVERLESS_ENV_VARS = [
+      "CLOUD_RUN_JOB",
+      "FUNCTION_NAME",
+      "K_SERVICE",
+      "CLOUD_RUN_WORKER_POOL"
+    ];
     function isGoogleCloudServerless() {
-      const isGFEnvironment = process.env.CLOUD_RUN_JOB || process.env.FUNCTION_NAME || process.env.K_SERVICE;
-      return !!isGFEnvironment;
+      return SERVERLESS_ENV_VARS.some((key) => Boolean(process.env[key]));
     }
     function isGoogleComputeEngineLinux() {
       if ((0, os_1.platform)() !== "linux")
@@ -30854,9 +30859,9 @@ var require_src3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/gcp-metadata@9.0.3_supports-color@7.2.0/node_modules/gcp-metadata/build/src/index.js
+// node_modules/.pnpm/gcp-metadata@9.0.4_supports-color@7.2.0/node_modules/gcp-metadata/build/src/index.js
 var require_src4 = __commonJS({
-  "node_modules/.pnpm/gcp-metadata@9.0.3_supports-color@7.2.0/node_modules/gcp-metadata/build/src/index.js"(exports) {
+  "node_modules/.pnpm/gcp-metadata@9.0.4_supports-color@7.2.0/node_modules/gcp-metadata/build/src/index.js"(exports) {
     "use strict";
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m2, k2, k22) {
       if (k22 === void 0) k22 = k2;
@@ -31030,6 +31035,49 @@ var require_src4 = __commonJS({
       return process.env.DETECT_GCP_RETRIES ? Number(process.env.DETECT_GCP_RETRIES) : 0;
     }
     var cachedIsAvailableResponse;
+    var EXPECTED_NETWORK_ERROR_CODES = /* @__PURE__ */ new Set([
+      "EHOSTDOWN",
+      "EHOSTUNREACH",
+      "ENETUNREACH",
+      "ENOENT",
+      "ENOTFOUND",
+      "ECONNREFUSED"
+    ]);
+    var TIMEOUT_NAMES_AND_CODES = /* @__PURE__ */ new Set([
+      "AbortError",
+      "TimeoutError"
+    ]);
+    var TIMEOUT_TYPES = /* @__PURE__ */ new Set([
+      "aborted",
+      "request-timeout"
+    ]);
+    var MAX_ERROR_DEPTH = 20;
+    function isErrorWithDetails(val) {
+      return typeof val === "object" && val !== null;
+    }
+    function getErrorCodes(err, visited = /* @__PURE__ */ new Set(), depth = 0) {
+      if (!isErrorWithDetails(err) || visited.has(err) || depth > MAX_ERROR_DEPTH) {
+        return ["UNKNOWN"];
+      }
+      visited.add(err);
+      if (err.name === "AggregateError" && Array.isArray(err.errors)) {
+        if (err.errors.length === 0) {
+          return ["UNKNOWN"];
+        }
+        return err.errors.flatMap((subErr) => getErrorCodes(subErr, visited, depth + 1));
+      }
+      if (err.name !== void 0 && TIMEOUT_NAMES_AND_CODES.has(err.name) || err.code !== void 0 && TIMEOUT_NAMES_AND_CODES.has(err.code) || err.type !== void 0 && TIMEOUT_TYPES.has(err.type)) {
+        return ["ETIMEDOUT"];
+      }
+      if ((typeof err.code === "string" || typeof err.code === "number") && err.code !== "") {
+        return [String(err.code)];
+      }
+      const nested = err.cause ?? err.error;
+      if (nested !== void 0) {
+        return getErrorCodes(nested, visited, depth + 1);
+      }
+      return ["UNKNOWN"];
+    }
     async function isAvailable() {
       if (process.env.METADATA_SERVER_DETECTION) {
         const value = process.env.METADATA_SERVER_DETECTION.trim().toLocaleLowerCase();
@@ -31061,46 +31109,23 @@ var require_src4 = __commonJS({
               );
               return true;
             } catch (e2) {
-              const err = e2;
               if (process.env.DEBUG_AUTH) {
-                console.info(err);
+                console.info(e2);
               }
-              if (err.type === "request-timeout") {
+              if (!isErrorWithDetails(e2)) {
+                process.emitWarning(`received unexpected error = ${String(e2)} code = UNKNOWN`, "MetadataLookupWarning");
                 return false;
               }
-              if (err.response && err.response.status === 404) {
-                return false;
-              } else {
-                const errObj = e2;
-                const getErrorCodes = (err2) => {
-                  if (!err2)
-                    return ["UNKNOWN"];
-                  if (err2.name === "AggregateError" && Array.isArray(err2.errors)) {
-                    return err2.errors.flatMap(getErrorCodes);
-                  }
-                  if (err2.code) {
-                    return [err2.code.toString()];
-                  }
-                  if (err2.cause) {
-                    return getErrorCodes(err2.cause);
-                  }
-                  return ["UNKNOWN"];
-                };
-                const codes = getErrorCodes(errObj);
-                const isExpected = codes.every((code) => [
-                  "EHOSTDOWN",
-                  "EHOSTUNREACH",
-                  "ENETUNREACH",
-                  "ENOENT",
-                  "ENOTFOUND",
-                  "ECONNREFUSED"
-                ].includes(code));
-                if (!isExpected) {
-                  const code = err.code ? err.code.toString() : "UNKNOWN";
-                  process.emitWarning(`received unexpected error = ${err.message} code = ${code}`, "MetadataLookupWarning");
-                }
+              if (e2.type === "request-timeout" || e2.response?.status === 404) {
                 return false;
               }
+              const codes = getErrorCodes(e2);
+              const isExpected = codes.length > 0 && codes.every((code) => EXPECTED_NETWORK_ERROR_CODES.has(code));
+              if (!isExpected) {
+                const code = [...new Set(codes)].join(", ");
+                process.emitWarning(`received unexpected error = ${e2.message} code = ${code}`, "MetadataLookupWarning");
+              }
+              return false;
             }
           })();
         }
@@ -31230,9 +31255,9 @@ var require_base64_js = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/shared.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/shared.js
 var require_shared = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/shared.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/shared.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.fromArrayBufferToHex = fromArrayBufferToHex;
@@ -31245,9 +31270,9 @@ var require_shared = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/browser/crypto.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/browser/crypto.js
 var require_crypto = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/browser/crypto.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/browser/crypto.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BrowserCrypto = void 0;
@@ -31341,9 +31366,9 @@ var require_crypto = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/node/crypto.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/node/crypto.js
 var require_crypto2 = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/node/crypto.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/node/crypto.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NodeCrypto = void 0;
@@ -31410,9 +31435,9 @@ var require_crypto2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/crypto.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/crypto.js
 var require_crypto3 = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/crypto.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/crypto/crypto.js"(exports) {
     "use strict";
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m2, k2, k22) {
       if (k22 === void 0) k22 = k2;
@@ -31670,9 +31695,9 @@ var require_ecdsa_sig_formatter = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/util.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/util.js
 var require_util10 = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/util.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/util.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LRUCache = void 0;
@@ -31785,12 +31810,12 @@ var require_util10 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/package.json
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/package.json
 var require_package2 = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/package.json"(exports, module) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/package.json"(exports, module) {
     module.exports = {
       name: "google-auth-library",
-      version: "11.0.2",
+      version: "11.1.0",
       author: "Google Inc.",
       description: "Google APIs Authentication Client Library for Node.js",
       engines: {
@@ -31865,15 +31890,15 @@ var require_package2 = __commonJS({
         lint: "gts check --no-inline-config",
         compile: "tsc -p .",
         fix: "gts fix",
-        pretest: "npm run compile -- --sourceMap",
+        pretest: "pnpm run compile --sourceMap",
         docs: "jsdoc -c .jsdoc.js",
-        "samples-setup": "cd samples/ && npm link ../ && npm run setup && cd ../",
-        "samples-test": "cd samples/ && npm link ../ && npm test && cd ../",
+        "samples-setup": "cd samples/ && pnpm link ../ && pnpm run setup && cd ../",
+        "samples-test": "cd samples/ && pnpm link ../ && pnpm test && cd ../",
         "system-test": "mocha build/system-test --timeout 60000",
-        "presystem-test": "npm run compile -- --sourceMap",
+        "presystem-test": "pnpm run compile --sourceMap",
         webpack: "webpack",
         "browser-test": "karma start",
-        prelint: "cd samples; npm link ../; npm install"
+        prelint: "cd samples; pnpm link ../; pnpm install"
       },
       license: "Apache-2.0",
       homepage: "https://github.com/googleapis/google-cloud-node/tree/main/core/packages/google-auth-library-nodejs"
@@ -31881,9 +31906,9 @@ var require_package2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/shared.cjs
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/shared.cjs
 var require_shared2 = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/shared.cjs"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/shared.cjs"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.USER_AGENT = exports.PRODUCT_NAME = exports.pkg = void 0;
@@ -31896,9 +31921,9 @@ var require_shared2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/authclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/authclient.js
 var require_authclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/authclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/authclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AuthClient = exports.DEFAULT_EAGER_REFRESH_THRESHOLD_MILLIS = exports.DEFAULT_UNIVERSE = void 0;
@@ -32131,9 +32156,9 @@ var require_authclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/loginticket.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/loginticket.js
 var require_loginticket = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/loginticket.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/loginticket.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LoginTicket = void 0;
@@ -32183,9 +32208,9 @@ var require_loginticket = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2client.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2client.js
 var require_oauth2client = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2client.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2client.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.OAuth2Client = exports.ClientAuthentication = exports.CertificateFormat = exports.CodeChallengeMethod = void 0;
@@ -32864,9 +32889,9 @@ var require_oauth2client = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/computeclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/computeclient.js
 var require_computeclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/computeclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/computeclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Compute = void 0;
@@ -32956,9 +32981,9 @@ var require_computeclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/idtokenclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/idtokenclient.js
 var require_idtokenclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/idtokenclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/idtokenclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IdTokenClient = void 0;
@@ -33002,9 +33027,9 @@ var require_idtokenclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/envDetect.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/envDetect.js
 var require_envDetect = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/envDetect.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/envDetect.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.GCPEnv = void 0;
@@ -33622,9 +33647,9 @@ var require_jws = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/jwsSign.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/jwsSign.js
 var require_jwsSign = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/jwsSign.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/jwsSign.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.buildPayloadForJwsSign = buildPayloadForJwsSign;
@@ -33656,9 +33681,9 @@ var require_jwsSign = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getToken.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getToken.js
 var require_getToken = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getToken.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getToken.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getToken = getToken;
@@ -33700,9 +33725,9 @@ var require_getToken = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/errorWithCode.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/errorWithCode.js
 var require_errorWithCode = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/errorWithCode.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/errorWithCode.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ErrorWithCode = void 0;
@@ -33717,9 +33742,9 @@ var require_errorWithCode = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getCredentials.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getCredentials.js
 var require_getCredentials = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getCredentials.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/getCredentials.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getCredentials = getCredentials;
@@ -33818,9 +33843,9 @@ var require_getCredentials = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/tokenHandler.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/tokenHandler.js
 var require_tokenHandler = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/tokenHandler.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/tokenHandler.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TokenHandler = void 0;
@@ -33909,9 +33934,9 @@ var require_tokenHandler = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/revokeToken.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/revokeToken.js
 var require_revokeToken = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/revokeToken.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/revokeToken.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.revokeToken = revokeToken;
@@ -33927,9 +33952,9 @@ var require_revokeToken = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/googleToken.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/googleToken.js
 var require_googleToken = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/googleToken.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/gtoken/googleToken.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.GoogleToken = void 0;
@@ -34033,9 +34058,9 @@ var require_googleToken = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtaccess.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtaccess.js
 var require_jwtaccess = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtaccess.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtaccess.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.JWTAccess = void 0;
@@ -34203,9 +34228,9 @@ var require_jwtaccess = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtclient.js
 var require_jwtclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/jwtclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.JWT = void 0;
@@ -34475,9 +34500,9 @@ var require_jwtclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/refreshclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/refreshclient.js
 var require_refreshclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/refreshclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/refreshclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UserRefreshClient = exports.USER_REFRESH_ACCOUNT_TYPE = void 0;
@@ -34603,9 +34628,9 @@ var require_refreshclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/impersonated.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/impersonated.js
 var require_impersonated = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/impersonated.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/impersonated.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Impersonated = exports.IMPERSONATED_ACCOUNT_TYPE = void 0;
@@ -34782,9 +34807,9 @@ var require_impersonated = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2common.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2common.js
 var require_oauth2common = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2common.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/oauth2common.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.OAuthClientAuthHandler = void 0;
@@ -34930,9 +34955,9 @@ var require_oauth2common = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/stscredentials.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/stscredentials.js
 var require_stscredentials = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/stscredentials.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/stscredentials.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.StsCredentials = void 0;
@@ -35018,9 +35043,9 @@ var require_stscredentials = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/baseexternalclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/baseexternalclient.js
 var require_baseexternalclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/baseexternalclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/baseexternalclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.BaseExternalAccountClient = exports.CLOUD_RESOURCE_MANAGER = exports.EXTERNAL_ACCOUNT_TYPE = exports.EXPIRATION_TIME_OFFSET = void 0;
@@ -35397,9 +35422,9 @@ var require_baseexternalclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/filesubjecttokensupplier.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/filesubjecttokensupplier.js
 var require_filesubjecttokensupplier = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/filesubjecttokensupplier.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/filesubjecttokensupplier.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FileSubjectTokenSupplier = void 0;
@@ -35462,9 +35487,9 @@ var require_filesubjecttokensupplier = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/urlsubjecttokensupplier.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/urlsubjecttokensupplier.js
 var require_urlsubjecttokensupplier = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/urlsubjecttokensupplier.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/urlsubjecttokensupplier.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UrlSubjectTokenSupplier = void 0;
@@ -35520,9 +35545,9 @@ var require_urlsubjecttokensupplier = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/certificatesubjecttokensupplier.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/certificatesubjecttokensupplier.js
 var require_certificatesubjecttokensupplier = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/certificatesubjecttokensupplier.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/certificatesubjecttokensupplier.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CertificateSubjectTokenSupplier = exports.InvalidConfigurationError = exports.CertificateSourceUnavailableError = exports.CERTIFICATE_CONFIGURATION_ENV_VARIABLE = void 0;
@@ -35704,9 +35729,9 @@ var require_certificatesubjecttokensupplier = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/identitypoolclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/identitypoolclient.js
 var require_identitypoolclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/identitypoolclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/identitypoolclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IdentityPoolClient = void 0;
@@ -35816,9 +35841,9 @@ var require_identitypoolclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsrequestsigner.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsrequestsigner.js
 var require_awsrequestsigner = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsrequestsigner.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsrequestsigner.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AwsRequestSigner = void 0;
@@ -35966,9 +35991,9 @@ ${credentialScope}
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/defaultawssecuritycredentialssupplier.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/defaultawssecuritycredentialssupplier.js
 var require_defaultawssecuritycredentialssupplier = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/defaultawssecuritycredentialssupplier.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/defaultawssecuritycredentialssupplier.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DefaultAwsSecurityCredentialsSupplier = void 0;
@@ -36121,9 +36146,9 @@ var require_defaultawssecuritycredentialssupplier = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsclient.js
 var require_awsclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/awsclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AwsClient = void 0;
@@ -36235,9 +36260,9 @@ var require_awsclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/executable-response.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/executable-response.js
 var require_executable_response = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/executable-response.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/executable-response.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.InvalidSubjectTokenError = exports.InvalidMessageFieldError = exports.InvalidCodeFieldError = exports.InvalidTokenTypeFieldError = exports.InvalidExpirationTimeFieldError = exports.InvalidSuccessFieldError = exports.InvalidVersionFieldError = exports.ExecutableResponseError = exports.ExecutableResponse = void 0;
@@ -36366,9 +36391,9 @@ var require_executable_response = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-handler.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-handler.js
 var require_pluggable_auth_handler = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-handler.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-handler.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PluggableAuthHandler = exports.ExecutableError = void 0;
@@ -36507,9 +36532,9 @@ var require_pluggable_auth_handler = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-client.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-client.js
 var require_pluggable_auth_client = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-client.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/pluggable-auth-client.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PluggableAuthClient = exports.ExecutableError = void 0;
@@ -36634,9 +36659,9 @@ var require_pluggable_auth_client = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalclient.js
 var require_externalclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ExternalAccountClient = void 0;
@@ -36683,9 +36708,9 @@ var require_externalclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalAccountAuthorizedUserClient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalAccountAuthorizedUserClient.js
 var require_externalAccountAuthorizedUserClient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalAccountAuthorizedUserClient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/externalAccountAuthorizedUserClient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ExternalAccountAuthorizedUserClient = exports.EXTERNAL_ACCOUNT_AUTHORIZED_USER_TYPE = void 0;
@@ -36870,9 +36895,9 @@ var require_externalAccountAuthorizedUserClient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/gdchclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/gdchclient.js
 var require_gdchclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/gdchclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/gdchclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.GdchClient = exports.GDCH_SERVICE_ACCOUNT_TYPE = void 0;
@@ -37153,9 +37178,9 @@ var require_gdchclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/googleauth.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/googleauth.js
 var require_googleauth = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/googleauth.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/googleauth.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.GoogleAuth = exports.GoogleAuthExceptionMessages = void 0;
@@ -37961,9 +37986,9 @@ var require_googleauth = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/iam.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/iam.js
 var require_iam = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/iam.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/iam.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.IAMAuth = void 0;
@@ -37997,9 +38022,9 @@ var require_iam = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/downscopedclient.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/downscopedclient.js
 var require_downscopedclient = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/downscopedclient.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/downscopedclient.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DownscopedClient = exports.EXPIRATION_TIME_OFFSET = exports.MAX_ACCESS_BOUNDARY_RULES_COUNT = void 0;
@@ -38182,9 +38207,9 @@ var require_downscopedclient = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/passthrough.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/passthrough.js
 var require_passthrough = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/passthrough.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/auth/passthrough.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PassThroughClient = void 0;
@@ -38227,9 +38252,9 @@ var require_passthrough = __commonJS({
   }
 });
 
-// node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/index.js
+// node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/index.js
 var require_src5 = __commonJS({
-  "node_modules/.pnpm/google-auth-library@11.0.2_supports-color@7.2.0/node_modules/google-auth-library/build/src/index.js"(exports) {
+  "node_modules/.pnpm/google-auth-library@11.1.0_supports-color@7.2.0/node_modules/google-auth-library/build/src/index.js"(exports) {
     "use strict";
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m2, k2, k22) {
       if (k22 === void 0) k22 = k2;
@@ -38363,9 +38388,9 @@ var require_src5 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/apiIndex.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/apiIndex.js
 var require_apiIndex = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/apiIndex.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/apiIndex.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getAPI = getAPI;
@@ -41125,9 +41150,9 @@ var require_url_template = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/isbrowser.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/isbrowser.js
 var require_isbrowser = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/isbrowser.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/isbrowser.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.isBrowser = isBrowser;
@@ -41137,9 +41162,9 @@ var require_isbrowser = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/util.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/util.js
 var require_util11 = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/util.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/util.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.headersToClassicHeaders = headersToClassicHeaders;
@@ -41172,9 +41197,9 @@ var require_util11 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/http2.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/http2.js
 var require_http2 = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/http2.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/http2.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.sessions = void 0;
@@ -41352,9 +41377,9 @@ var require_http2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/transcoding.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/transcoding.js
 var require_transcoding = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/transcoding.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/transcoding.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.validateAndEncodeParams = validateAndEncodeParams;
@@ -41425,12 +41450,12 @@ var require_transcoding = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/package.json
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/package.json
 var require_package3 = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/package.json"(exports, module) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/package.json"(exports, module) {
     module.exports = {
       name: "googleapis-common",
-      version: "9.0.4",
+      version: "9.1.0",
       description: "A common tooling library used by the googleapis npm module. You probably don't want to use this directly.",
       repository: {
         type: "git",
@@ -41525,9 +41550,9 @@ var require_package3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/apirequest.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/apirequest.js
 var require_apirequest = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/apirequest.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/apirequest.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.createAPIRequest = createAPIRequest;
@@ -41790,9 +41815,9 @@ content-type: ${part["content-type"]}\r
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/authplus.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/authplus.js
 var require_authplus = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/authplus.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/authplus.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AuthPlus = void 0;
@@ -41826,9 +41851,9 @@ var require_authplus = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/endpoint.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/endpoint.js
 var require_endpoint = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/endpoint.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/endpoint.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Endpoint = void 0;
@@ -41938,9 +41963,9 @@ var require_endpoint = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/discovery.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/discovery.js
 var require_discovery = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/discovery.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/discovery.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Discovery = void 0;
@@ -42072,9 +42097,9 @@ var require_discovery = __commonJS({
   }
 });
 
-// node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/index.js
+// node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/index.js
 var require_src6 = __commonJS({
-  "node_modules/.pnpm/googleapis-common@9.0.4_supports-color@7.2.0/node_modules/googleapis-common/build/src/index.js"(exports) {
+  "node_modules/.pnpm/googleapis-common@9.1.0_supports-color@7.2.0/node_modules/googleapis-common/build/src/index.js"(exports) {
     "use strict";
     var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m2, k2, k22) {
       if (k22 === void 0) k22 = k2;
@@ -42155,9 +42180,9 @@ var require_src6 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@googleapis+drive@26.0.0_supports-color@7.2.0/node_modules/@googleapis/drive/build/v2.js
+// node_modules/.pnpm/@googleapis+drive@26.0.2_supports-color@7.2.0/node_modules/@googleapis/drive/build/v2.js
 var require_v2 = __commonJS({
-  "node_modules/.pnpm/@googleapis+drive@26.0.0_supports-color@7.2.0/node_modules/@googleapis/drive/build/v2.js"(exports) {
+  "node_modules/.pnpm/@googleapis+drive@26.0.2_supports-color@7.2.0/node_modules/@googleapis/drive/build/v2.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.drive_v2 = void 0;
@@ -44556,9 +44581,9 @@ var require_v2 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@googleapis+drive@26.0.0_supports-color@7.2.0/node_modules/@googleapis/drive/build/v3.js
+// node_modules/.pnpm/@googleapis+drive@26.0.2_supports-color@7.2.0/node_modules/@googleapis/drive/build/v3.js
 var require_v3 = __commonJS({
-  "node_modules/.pnpm/@googleapis+drive@26.0.0_supports-color@7.2.0/node_modules/@googleapis/drive/build/v3.js"(exports) {
+  "node_modules/.pnpm/@googleapis+drive@26.0.2_supports-color@7.2.0/node_modules/@googleapis/drive/build/v3.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.drive_v3 = void 0;
@@ -46627,9 +46652,9 @@ var require_v3 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@googleapis+drive@26.0.0_supports-color@7.2.0/node_modules/@googleapis/drive/build/index.js
+// node_modules/.pnpm/@googleapis+drive@26.0.2_supports-color@7.2.0/node_modules/@googleapis/drive/build/index.js
 var require_build = __commonJS({
-  "node_modules/.pnpm/@googleapis+drive@26.0.0_supports-color@7.2.0/node_modules/@googleapis/drive/build/index.js"(exports) {
+  "node_modules/.pnpm/@googleapis+drive@26.0.2_supports-color@7.2.0/node_modules/@googleapis/drive/build/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.AuthPlus = exports.drive_v3 = exports.drive_v2 = exports.auth = exports.VERSIONS = void 0;
@@ -55669,7 +55694,7 @@ function parseNumberSkeleton(tokens) {
   return result;
 }
 
-// node_modules/.pnpm/@formatjs+icu-messageformat-parser@3.5.20/node_modules/@formatjs/icu-messageformat-parser/index.js
+// node_modules/.pnpm/@formatjs+icu-messageformat-parser@3.5.21/node_modules/@formatjs/icu-messageformat-parser/index.js
 var ErrorKind = /* @__PURE__ */ (function(ErrorKind2) {
   ErrorKind2[ErrorKind2["EXPECT_ARGUMENT_CLOSING_BRACE"] = 1] = "EXPECT_ARGUMENT_CLOSING_BRACE";
   ErrorKind2[ErrorKind2["EMPTY_ARGUMENT"] = 2] = "EMPTY_ARGUMENT";
@@ -57598,7 +57623,8 @@ var Parser = class {
   * and return false.
   */
   bumpIf(prefix) {
-    if (this.message.startsWith(prefix, this.offset())) {
+    const offset = this.offset();
+    if (this.message.slice(offset, offset + prefix.length) === prefix) {
       for (let i2 = 0; i2 < prefix.length; i2++) this.bump();
       return true;
     }
@@ -57690,7 +57716,7 @@ function parse(message, opts = {}) {
   return result.val;
 }
 
-// node_modules/.pnpm/intl-messageformat@12.1.2/node_modules/intl-messageformat/index.js
+// node_modules/.pnpm/intl-messageformat@12.1.3/node_modules/intl-messageformat/index.js
 var ErrorCode = /* @__PURE__ */ (function(ErrorCode2) {
   ErrorCode2["MISSING_VALUE"] = "MISSING_VALUE";
   ErrorCode2["INVALID_VALUE"] = "INVALID_VALUE";
@@ -58000,7 +58026,7 @@ var IntlMessageFormat = class IntlMessageFormat2 {
   }
 };
 
-// node_modules/.pnpm/@formatjs+intl@6.1.2/node_modules/@formatjs/intl/index.js
+// node_modules/.pnpm/@formatjs+intl@6.1.3/node_modules/@formatjs/intl/index.js
 var IntlError = class IntlError2 extends Error {
   constructor(code, message, exception) {
     const err = exception ? exception instanceof Error ? exception : new Error(String(exception)) : void 0;
@@ -59672,26 +59698,7 @@ function withDefaults(oldDefaults, newDefaults) {
 }
 var endpoint = withDefaults(null, DEFAULTS);
 
-// node_modules/.pnpm/content-type@3.0.0/node_modules/content-type/dist/index.js
-var NullObject = /* @__PURE__ */ (() => {
-  const C2 = function() {
-  };
-  C2.prototype = /* @__PURE__ */ Object.create(null);
-  return C2;
-})();
-function parse3(header, options) {
-  const stopChar = options?.comma === true ? COMMA : 65536;
-  const len = header.length;
-  let index = skipOWS(header, options?.start ?? 0, len);
-  const valueStart = index;
-  index = skipValue(header, index, len, stopChar);
-  const valueEnd = trailingOWS(header, valueStart, index);
-  const type = header.slice(valueStart, valueEnd).toLowerCase();
-  if (options?.parameters === false) {
-    return { type, index, parameters: new NullObject() };
-  }
-  return parseParameters(header, type, index, len, stopChar);
-}
+// node_modules/.pnpm/content-type@3.1.1/node_modules/content-type/dist/index.js
 var SP = 32;
 var HTAB = 9;
 var SEMI = 59;
@@ -59699,81 +59706,180 @@ var EQ = 61;
 var DQUOTE = 34;
 var BSLASH = 92;
 var COMMA = 44;
-function parseParameters(header, type, index, len, stopChar) {
+var LOWER_CASE = 1;
+var OWS = 2;
+var SEMI_FLAG = 4;
+var COMMA_FLAG = 8;
+var TOKEN_FLAG = 16;
+var NON_ASCII = 65280;
+var CASE_FLAGS = LOWER_CASE | NON_ASCII;
+var CHAR_MAP = new Uint8Array(256);
+CHAR_MAP[HTAB] |= OWS;
+CHAR_MAP[SP] |= OWS;
+CHAR_MAP[SEMI] |= SEMI_FLAG;
+CHAR_MAP[COMMA] |= COMMA_FLAG;
+for (let code = 128; code <= 255; code++) {
+  CHAR_MAP[code] |= LOWER_CASE;
+}
+for (const char of "!#$%&'*+-.^_`|~") {
+  CHAR_MAP[char.charCodeAt(0)] |= TOKEN_FLAG;
+}
+for (let code = 48; code <= 57; code++) {
+  CHAR_MAP[code] |= TOKEN_FLAG;
+}
+for (let code = 65; code <= 90; code++) {
+  CHAR_MAP[code] |= LOWER_CASE | TOKEN_FLAG;
+}
+for (let code = 97; code <= 122; code++) {
+  CHAR_MAP[code] |= TOKEN_FLAG;
+}
+var NullObject = /* @__PURE__ */ (() => {
+  const C2 = function() {
+  };
+  C2.prototype = /* @__PURE__ */ Object.create(null);
+  return C2;
+})();
+function parse3(header, options) {
+  const stopFlags = SEMI_FLAG | (options?.comma === true ? COMMA_FLAG : 0);
+  const len = header.length;
+  let valueStart = options?.start ?? 0;
+  while ((CHAR_MAP[header.charCodeAt(valueStart)] & OWS) !== 0) {
+    valueStart++;
+  }
+  let index = valueStart;
+  let typeFlags = 0;
+  let whitespace = -1;
+  let stop = options?.parameters === false ? COMMA_FLAG : 0;
+  while (index < len) {
+    const code = header.charCodeAt(index);
+    const flags = CHAR_MAP[code];
+    if ((flags & stopFlags) !== 0) {
+      stop |= flags & COMMA_FLAG;
+      break;
+    }
+    if ((flags & OWS) !== 0) {
+      if (whitespace === -1)
+        whitespace = index;
+    } else {
+      whitespace = -1;
+    }
+    typeFlags |= code & NON_ASCII | flags;
+    index++;
+  }
+  const valueEnd = whitespace === -1 ? index : whitespace;
+  const value = header.slice(valueStart, valueEnd);
+  const type = (typeFlags & CASE_FLAGS) === 0 ? value : value.toLowerCase();
+  if (index === len || stop !== 0) {
+    return { type, index, parameters: new NullObject() };
+  }
+  return parseParameters(header, type, index, len, stopFlags);
+}
+function parseParameters(header, type, index, len, stopFlags) {
   const parameters = new NullObject();
   parameter: while (index < len) {
-    if (header.charCodeAt(index) === stopChar)
-      break;
-    index = skipOWS(header, index + 1, len);
+    index++;
+    while ((CHAR_MAP[header.charCodeAt(index)] & OWS) !== 0) {
+      index++;
+    }
     const keyStart = index;
+    let keyFlags = 0;
+    let keyWhitespace = -1;
     while (index < len) {
       const code = header.charCodeAt(index);
-      if (code === stopChar)
-        break parameter;
-      if (code === SEMI)
+      const flags = CHAR_MAP[code];
+      if ((flags & stopFlags) !== 0) {
+        if ((flags & COMMA_FLAG) !== 0)
+          break parameter;
         continue parameter;
+      }
       if (code === EQ) {
-        const keyEnd = trailingOWS(header, keyStart, index);
-        const key = header.slice(keyStart, keyEnd).toLowerCase();
-        index = skipOWS(header, index + 1, len);
-        if (index < len && header.charCodeAt(index) === DQUOTE) {
+        const keyEnd = keyWhitespace === -1 ? index : keyWhitespace;
+        const value = header.slice(keyStart, keyEnd);
+        const key = (keyFlags & CASE_FLAGS) === 0 ? value : value.toLowerCase();
+        index++;
+        while ((CHAR_MAP[header.charCodeAt(index)] & OWS) !== 0) {
           index++;
-          let value = "";
+        }
+        if (index < len && header.charCodeAt(index) === DQUOTE) {
+          const quotedStart = ++index;
+          let escaped = false;
           while (index < len) {
-            const code2 = header.charCodeAt(index++);
+            const code2 = header.charCodeAt(index);
             if (code2 === DQUOTE) {
-              index = skipValue(header, index, len, stopChar);
-              if (parameters[key] === void 0)
-                parameters[key] = value;
-              break;
+              if (parameters[key] === void 0) {
+                parameters[key] = escaped ? unescapeQuotedPairs(header, quotedStart, index) : header.slice(quotedStart, index);
+              }
+              index++;
+              let stop2 = 0;
+              while (index < len) {
+                const code3 = header.charCodeAt(index);
+                const flags2 = CHAR_MAP[code3];
+                if ((flags2 & stopFlags) !== 0) {
+                  stop2 = flags2 & COMMA_FLAG;
+                  break;
+                }
+                index++;
+              }
+              if (stop2 !== 0)
+                break parameter;
+              continue parameter;
             }
-            if (code2 === BSLASH && index < len) {
-              value += header[index++];
+            if (code2 === BSLASH && index + 1 < len) {
+              escaped = true;
+              index += 2;
               continue;
             }
-            value += String.fromCharCode(code2);
+            index++;
           }
           continue parameter;
         }
         const valueStart = index;
-        index = skipValue(header, index, len, stopChar);
+        let stop = 0;
+        let valueWhitespace = -1;
+        while (index < len) {
+          const code2 = header.charCodeAt(index);
+          const flags2 = CHAR_MAP[code2];
+          if ((flags2 & stopFlags) !== 0) {
+            stop = flags2 & COMMA_FLAG;
+            break;
+          }
+          if ((flags2 & OWS) !== 0) {
+            if (valueWhitespace === -1)
+              valueWhitespace = index;
+          } else {
+            valueWhitespace = -1;
+          }
+          index++;
+        }
         if (parameters[key] === void 0) {
-          const valueEnd = trailingOWS(header, valueStart, index);
+          const valueEnd = valueWhitespace === -1 ? index : valueWhitespace;
           parameters[key] = header.slice(valueStart, valueEnd);
         }
+        if (stop !== 0)
+          break parameter;
         continue parameter;
       }
+      if ((flags & OWS) !== 0) {
+        if (keyWhitespace === -1)
+          keyWhitespace = index;
+      } else {
+        keyWhitespace = -1;
+      }
+      keyFlags |= code & NON_ASCII | flags;
       index++;
     }
   }
   return { type, index, parameters };
 }
-function skipValue(str, index, len, stopChar) {
-  while (index < len) {
-    const code = str.charCodeAt(index);
-    if (code === SEMI || code === stopChar)
-      break;
-    index++;
+function unescapeQuotedPairs(str, start, end) {
+  let result = "";
+  for (let index = start; index < end; index++) {
+    if (str.charCodeAt(index) === BSLASH) {
+      result += str.slice(start, index);
+      start = ++index;
+    }
   }
-  return index;
-}
-function skipOWS(header, index, len) {
-  while (index < len) {
-    const char = header.charCodeAt(index);
-    if (char !== SP && char !== HTAB)
-      break;
-    index++;
-  }
-  return index;
-}
-function trailingOWS(header, start, end) {
-  while (end > start) {
-    const char = header.charCodeAt(end - 1);
-    if (char !== SP && char !== HTAB)
-      break;
-    end--;
-  }
-  return end;
+  return result + str.slice(start, end);
 }
 
 // node_modules/.pnpm/json-with-bigint@3.5.12/node_modules/json-with-bigint/json-with-bigint.js
@@ -66435,7 +66541,7 @@ var GoogleDriveAssetRepository = class _GoogleDriveAssetRepository {
 import { readFile } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/CsvError.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/CsvError.js
 var CsvError = class _CsvError extends Error {
   constructor(code, message, options, ...contexts) {
     if (Array.isArray(message)) message = message.join(" ").trim();
@@ -66453,12 +66559,12 @@ var CsvError = class _CsvError extends Error {
   }
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/is_object.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/is_object.js
 var is_object = function(obj) {
   return typeof obj === "object" && obj !== null && !Array.isArray(obj);
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/normalize_columns_array.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/normalize_columns_array.js
 var normalize_columns_array = function(columns) {
   const normalizedColumns = [];
   for (let i2 = 0, l = columns.length; i2 < l; i2++) {
@@ -66487,7 +66593,7 @@ var normalize_columns_array = function(columns) {
   return normalizedColumns;
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/ResizeableBuffer.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/ResizeableBuffer.js
 var ResizeableBuffer = class {
   constructor(size = 100) {
     this.size = size;
@@ -66551,7 +66657,7 @@ var ResizeableBuffer = class {
 };
 var ResizeableBuffer_default = ResizeableBuffer;
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/init_state.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/init_state.js
 var init_state = function(options) {
   const timchars = [
     // Basic Latin
@@ -66666,14 +66772,14 @@ var init_state = function(options) {
   };
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/underscore.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/underscore.js
 var underscore = function(str) {
   return str.replace(/([A-Z])/g, function(_2, match) {
     return "_" + match.toLowerCase();
   });
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/normalize_options.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/normalize_options.js
 var normalize_options = function(opts) {
   const options = {};
   for (const opt in opts) {
@@ -67259,7 +67365,7 @@ var normalize_options = function(opts) {
   return options;
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/delimiter_discover.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/delimiter_discover.js
 var delimiter_discover = function(records, options) {
   if (!options) {
     ({ delimiter_auto: options } = normalize_options({ delimiter_auto: true }));
@@ -67309,7 +67415,7 @@ var std = function(array) {
   );
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/index.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/index.js
 var isRecordEmpty = function(record) {
   return record.every(
     (field) => field == null || field.toString && field.toString().trim() === ""
@@ -68119,7 +68225,7 @@ var transform = function(original_options = {}) {
   };
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/sync.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/sync.js
 var parse4 = function(data, opts = {}) {
   if (typeof data === "string") {
     data = Buffer.from(data);

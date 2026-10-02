@@ -1,4 +1,4 @@
-PNPM ?= pnpm
+PNPM ?= corepack pnpm
 
 .PHONY: help setup typecheck test package lint lint-fix quality check-knip check-structure check-architecture check-contracts ci
 

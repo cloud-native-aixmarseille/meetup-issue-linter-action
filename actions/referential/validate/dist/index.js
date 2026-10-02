@@ -28075,7 +28075,7 @@ function parseNumberSkeleton(tokens) {
   return result;
 }
 
-// node_modules/.pnpm/@formatjs+icu-messageformat-parser@3.5.20/node_modules/@formatjs/icu-messageformat-parser/index.js
+// node_modules/.pnpm/@formatjs+icu-messageformat-parser@3.5.21/node_modules/@formatjs/icu-messageformat-parser/index.js
 var ErrorKind = /* @__PURE__ */ (function(ErrorKind2) {
   ErrorKind2[ErrorKind2["EXPECT_ARGUMENT_CLOSING_BRACE"] = 1] = "EXPECT_ARGUMENT_CLOSING_BRACE";
   ErrorKind2[ErrorKind2["EMPTY_ARGUMENT"] = 2] = "EMPTY_ARGUMENT";
@@ -30004,7 +30004,8 @@ var Parser = class {
   * and return false.
   */
   bumpIf(prefix) {
-    if (this.message.startsWith(prefix, this.offset())) {
+    const offset = this.offset();
+    if (this.message.slice(offset, offset + prefix.length) === prefix) {
       for (let i = 0; i < prefix.length; i++) this.bump();
       return true;
     }
@@ -30096,7 +30097,7 @@ function parse(message, opts = {}) {
   return result.val;
 }
 
-// node_modules/.pnpm/intl-messageformat@12.1.2/node_modules/intl-messageformat/index.js
+// node_modules/.pnpm/intl-messageformat@12.1.3/node_modules/intl-messageformat/index.js
 var ErrorCode = /* @__PURE__ */ (function(ErrorCode2) {
   ErrorCode2["MISSING_VALUE"] = "MISSING_VALUE";
   ErrorCode2["INVALID_VALUE"] = "INVALID_VALUE";
@@ -30406,7 +30407,7 @@ var IntlMessageFormat = class IntlMessageFormat2 {
   }
 };
 
-// node_modules/.pnpm/@formatjs+intl@6.1.2/node_modules/@formatjs/intl/index.js
+// node_modules/.pnpm/@formatjs+intl@6.1.3/node_modules/@formatjs/intl/index.js
 var IntlError = class IntlError2 extends Error {
   constructor(code, message, exception) {
     const err = exception ? exception instanceof Error ? exception : new Error(String(exception)) : void 0;
@@ -34302,7 +34303,7 @@ var ValidateMeetupReferentials = class {
 import { readFile } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/CsvError.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/CsvError.js
 var CsvError = class _CsvError extends Error {
   constructor(code, message, options, ...contexts) {
     if (Array.isArray(message)) message = message.join(" ").trim();
@@ -34320,12 +34321,12 @@ var CsvError = class _CsvError extends Error {
   }
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/is_object.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/is_object.js
 var is_object = function(obj) {
   return typeof obj === "object" && obj !== null && !Array.isArray(obj);
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/normalize_columns_array.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/normalize_columns_array.js
 var normalize_columns_array = function(columns) {
   const normalizedColumns = [];
   for (let i = 0, l = columns.length; i < l; i++) {
@@ -34354,7 +34355,7 @@ var normalize_columns_array = function(columns) {
   return normalizedColumns;
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/ResizeableBuffer.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/ResizeableBuffer.js
 var ResizeableBuffer = class {
   constructor(size = 100) {
     this.size = size;
@@ -34418,7 +34419,7 @@ var ResizeableBuffer = class {
 };
 var ResizeableBuffer_default = ResizeableBuffer;
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/init_state.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/init_state.js
 var init_state = function(options) {
   const timchars = [
     // Basic Latin
@@ -34533,14 +34534,14 @@ var init_state = function(options) {
   };
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/underscore.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/underscore.js
 var underscore = function(str) {
   return str.replace(/([A-Z])/g, function(_2, match) {
     return "_" + match.toLowerCase();
   });
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/normalize_options.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/normalize_options.js
 var normalize_options = function(opts) {
   const options = {};
   for (const opt in opts) {
@@ -35126,7 +35127,7 @@ var normalize_options = function(opts) {
   return options;
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/delimiter_discover.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/delimiter_discover.js
 var delimiter_discover = function(records, options) {
   if (!options) {
     ({ delimiter_auto: options } = normalize_options({ delimiter_auto: true }));
@@ -35176,7 +35177,7 @@ var std = function(array) {
   );
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/index.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/index.js
 var isRecordEmpty = function(record) {
   return record.every(
     (field) => field == null || field.toString && field.toString().trim() === ""
@@ -35986,7 +35987,7 @@ var transform = function(original_options = {}) {
   };
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/sync.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/sync.js
 var parse2 = function(data, opts = {}) {
   if (typeof data === "string") {
     data = Buffer.from(data);
