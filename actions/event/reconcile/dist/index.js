@@ -28847,7 +28847,7 @@ function parseNumberSkeleton(tokens) {
   return result;
 }
 
-// node_modules/.pnpm/@formatjs+icu-messageformat-parser@3.5.20/node_modules/@formatjs/icu-messageformat-parser/index.js
+// node_modules/.pnpm/@formatjs+icu-messageformat-parser@3.5.21/node_modules/@formatjs/icu-messageformat-parser/index.js
 var ErrorKind = /* @__PURE__ */ (function(ErrorKind2) {
   ErrorKind2[ErrorKind2["EXPECT_ARGUMENT_CLOSING_BRACE"] = 1] = "EXPECT_ARGUMENT_CLOSING_BRACE";
   ErrorKind2[ErrorKind2["EMPTY_ARGUMENT"] = 2] = "EMPTY_ARGUMENT";
@@ -30776,7 +30776,8 @@ var Parser = class {
   * and return false.
   */
   bumpIf(prefix) {
-    if (this.message.startsWith(prefix, this.offset())) {
+    const offset = this.offset();
+    if (this.message.slice(offset, offset + prefix.length) === prefix) {
       for (let i = 0; i < prefix.length; i++) this.bump();
       return true;
     }
@@ -30868,7 +30869,7 @@ function parse(message, opts = {}) {
   return result.val;
 }
 
-// node_modules/.pnpm/intl-messageformat@12.1.2/node_modules/intl-messageformat/index.js
+// node_modules/.pnpm/intl-messageformat@12.1.3/node_modules/intl-messageformat/index.js
 var ErrorCode = /* @__PURE__ */ (function(ErrorCode2) {
   ErrorCode2["MISSING_VALUE"] = "MISSING_VALUE";
   ErrorCode2["INVALID_VALUE"] = "INVALID_VALUE";
@@ -31178,7 +31179,7 @@ var IntlMessageFormat = class IntlMessageFormat2 {
   }
 };
 
-// node_modules/.pnpm/@formatjs+intl@6.1.2/node_modules/@formatjs/intl/index.js
+// node_modules/.pnpm/@formatjs+intl@6.1.3/node_modules/@formatjs/intl/index.js
 var IntlError = class IntlError2 extends Error {
   constructor(code, message, exception) {
     const err = exception ? exception instanceof Error ? exception : new Error(String(exception)) : void 0;
@@ -32850,26 +32851,7 @@ function withDefaults(oldDefaults, newDefaults) {
 }
 var endpoint = withDefaults(null, DEFAULTS);
 
-// node_modules/.pnpm/content-type@3.0.0/node_modules/content-type/dist/index.js
-var NullObject = /* @__PURE__ */ (() => {
-  const C2 = function() {
-  };
-  C2.prototype = /* @__PURE__ */ Object.create(null);
-  return C2;
-})();
-function parse3(header, options) {
-  const stopChar = options?.comma === true ? COMMA : 65536;
-  const len = header.length;
-  let index = skipOWS(header, options?.start ?? 0, len);
-  const valueStart = index;
-  index = skipValue(header, index, len, stopChar);
-  const valueEnd = trailingOWS(header, valueStart, index);
-  const type = header.slice(valueStart, valueEnd).toLowerCase();
-  if (options?.parameters === false) {
-    return { type, index, parameters: new NullObject() };
-  }
-  return parseParameters(header, type, index, len, stopChar);
-}
+// node_modules/.pnpm/content-type@3.1.1/node_modules/content-type/dist/index.js
 var SP = 32;
 var HTAB = 9;
 var SEMI = 59;
@@ -32877,81 +32859,180 @@ var EQ = 61;
 var DQUOTE = 34;
 var BSLASH = 92;
 var COMMA = 44;
-function parseParameters(header, type, index, len, stopChar) {
+var LOWER_CASE = 1;
+var OWS = 2;
+var SEMI_FLAG = 4;
+var COMMA_FLAG = 8;
+var TOKEN_FLAG = 16;
+var NON_ASCII = 65280;
+var CASE_FLAGS = LOWER_CASE | NON_ASCII;
+var CHAR_MAP = new Uint8Array(256);
+CHAR_MAP[HTAB] |= OWS;
+CHAR_MAP[SP] |= OWS;
+CHAR_MAP[SEMI] |= SEMI_FLAG;
+CHAR_MAP[COMMA] |= COMMA_FLAG;
+for (let code = 128; code <= 255; code++) {
+  CHAR_MAP[code] |= LOWER_CASE;
+}
+for (const char of "!#$%&'*+-.^_`|~") {
+  CHAR_MAP[char.charCodeAt(0)] |= TOKEN_FLAG;
+}
+for (let code = 48; code <= 57; code++) {
+  CHAR_MAP[code] |= TOKEN_FLAG;
+}
+for (let code = 65; code <= 90; code++) {
+  CHAR_MAP[code] |= LOWER_CASE | TOKEN_FLAG;
+}
+for (let code = 97; code <= 122; code++) {
+  CHAR_MAP[code] |= TOKEN_FLAG;
+}
+var NullObject = /* @__PURE__ */ (() => {
+  const C2 = function() {
+  };
+  C2.prototype = /* @__PURE__ */ Object.create(null);
+  return C2;
+})();
+function parse3(header, options) {
+  const stopFlags = SEMI_FLAG | (options?.comma === true ? COMMA_FLAG : 0);
+  const len = header.length;
+  let valueStart = options?.start ?? 0;
+  while ((CHAR_MAP[header.charCodeAt(valueStart)] & OWS) !== 0) {
+    valueStart++;
+  }
+  let index = valueStart;
+  let typeFlags = 0;
+  let whitespace = -1;
+  let stop = options?.parameters === false ? COMMA_FLAG : 0;
+  while (index < len) {
+    const code = header.charCodeAt(index);
+    const flags = CHAR_MAP[code];
+    if ((flags & stopFlags) !== 0) {
+      stop |= flags & COMMA_FLAG;
+      break;
+    }
+    if ((flags & OWS) !== 0) {
+      if (whitespace === -1)
+        whitespace = index;
+    } else {
+      whitespace = -1;
+    }
+    typeFlags |= code & NON_ASCII | flags;
+    index++;
+  }
+  const valueEnd = whitespace === -1 ? index : whitespace;
+  const value = header.slice(valueStart, valueEnd);
+  const type = (typeFlags & CASE_FLAGS) === 0 ? value : value.toLowerCase();
+  if (index === len || stop !== 0) {
+    return { type, index, parameters: new NullObject() };
+  }
+  return parseParameters(header, type, index, len, stopFlags);
+}
+function parseParameters(header, type, index, len, stopFlags) {
   const parameters = new NullObject();
   parameter: while (index < len) {
-    if (header.charCodeAt(index) === stopChar)
-      break;
-    index = skipOWS(header, index + 1, len);
+    index++;
+    while ((CHAR_MAP[header.charCodeAt(index)] & OWS) !== 0) {
+      index++;
+    }
     const keyStart = index;
+    let keyFlags = 0;
+    let keyWhitespace = -1;
     while (index < len) {
       const code = header.charCodeAt(index);
-      if (code === stopChar)
-        break parameter;
-      if (code === SEMI)
+      const flags = CHAR_MAP[code];
+      if ((flags & stopFlags) !== 0) {
+        if ((flags & COMMA_FLAG) !== 0)
+          break parameter;
         continue parameter;
+      }
       if (code === EQ) {
-        const keyEnd = trailingOWS(header, keyStart, index);
-        const key = header.slice(keyStart, keyEnd).toLowerCase();
-        index = skipOWS(header, index + 1, len);
-        if (index < len && header.charCodeAt(index) === DQUOTE) {
+        const keyEnd = keyWhitespace === -1 ? index : keyWhitespace;
+        const value = header.slice(keyStart, keyEnd);
+        const key = (keyFlags & CASE_FLAGS) === 0 ? value : value.toLowerCase();
+        index++;
+        while ((CHAR_MAP[header.charCodeAt(index)] & OWS) !== 0) {
           index++;
-          let value = "";
+        }
+        if (index < len && header.charCodeAt(index) === DQUOTE) {
+          const quotedStart = ++index;
+          let escaped = false;
           while (index < len) {
-            const code2 = header.charCodeAt(index++);
+            const code2 = header.charCodeAt(index);
             if (code2 === DQUOTE) {
-              index = skipValue(header, index, len, stopChar);
-              if (parameters[key] === void 0)
-                parameters[key] = value;
-              break;
+              if (parameters[key] === void 0) {
+                parameters[key] = escaped ? unescapeQuotedPairs(header, quotedStart, index) : header.slice(quotedStart, index);
+              }
+              index++;
+              let stop2 = 0;
+              while (index < len) {
+                const code3 = header.charCodeAt(index);
+                const flags2 = CHAR_MAP[code3];
+                if ((flags2 & stopFlags) !== 0) {
+                  stop2 = flags2 & COMMA_FLAG;
+                  break;
+                }
+                index++;
+              }
+              if (stop2 !== 0)
+                break parameter;
+              continue parameter;
             }
-            if (code2 === BSLASH && index < len) {
-              value += header[index++];
+            if (code2 === BSLASH && index + 1 < len) {
+              escaped = true;
+              index += 2;
               continue;
             }
-            value += String.fromCharCode(code2);
+            index++;
           }
           continue parameter;
         }
         const valueStart = index;
-        index = skipValue(header, index, len, stopChar);
+        let stop = 0;
+        let valueWhitespace = -1;
+        while (index < len) {
+          const code2 = header.charCodeAt(index);
+          const flags2 = CHAR_MAP[code2];
+          if ((flags2 & stopFlags) !== 0) {
+            stop = flags2 & COMMA_FLAG;
+            break;
+          }
+          if ((flags2 & OWS) !== 0) {
+            if (valueWhitespace === -1)
+              valueWhitespace = index;
+          } else {
+            valueWhitespace = -1;
+          }
+          index++;
+        }
         if (parameters[key] === void 0) {
-          const valueEnd = trailingOWS(header, valueStart, index);
+          const valueEnd = valueWhitespace === -1 ? index : valueWhitespace;
           parameters[key] = header.slice(valueStart, valueEnd);
         }
+        if (stop !== 0)
+          break parameter;
         continue parameter;
       }
+      if ((flags & OWS) !== 0) {
+        if (keyWhitespace === -1)
+          keyWhitespace = index;
+      } else {
+        keyWhitespace = -1;
+      }
+      keyFlags |= code & NON_ASCII | flags;
       index++;
     }
   }
   return { type, index, parameters };
 }
-function skipValue(str, index, len, stopChar) {
-  while (index < len) {
-    const code = str.charCodeAt(index);
-    if (code === SEMI || code === stopChar)
-      break;
-    index++;
+function unescapeQuotedPairs(str, start, end) {
+  let result = "";
+  for (let index = start; index < end; index++) {
+    if (str.charCodeAt(index) === BSLASH) {
+      result += str.slice(start, index);
+      start = ++index;
+    }
   }
-  return index;
-}
-function skipOWS(header, index, len) {
-  while (index < len) {
-    const char = header.charCodeAt(index);
-    if (char !== SP && char !== HTAB)
-      break;
-    index++;
-  }
-  return index;
-}
-function trailingOWS(header, start, end) {
-  while (end > start) {
-    const char = header.charCodeAt(end - 1);
-    if (char !== SP && char !== HTAB)
-      break;
-    end--;
-  }
-  return end;
+  return result + str.slice(start, end);
 }
 
 // node_modules/.pnpm/json-with-bigint@3.5.12/node_modules/json-with-bigint/json-with-bigint.js
@@ -39159,7 +39240,7 @@ var ValidateMeetupReferentials = class {
 import { readFile } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/CsvError.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/CsvError.js
 var CsvError = class _CsvError extends Error {
   constructor(code, message, options, ...contexts) {
     if (Array.isArray(message)) message = message.join(" ").trim();
@@ -39177,12 +39258,12 @@ var CsvError = class _CsvError extends Error {
   }
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/is_object.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/is_object.js
 var is_object = function(obj) {
   return typeof obj === "object" && obj !== null && !Array.isArray(obj);
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/normalize_columns_array.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/normalize_columns_array.js
 var normalize_columns_array = function(columns) {
   const normalizedColumns = [];
   for (let i = 0, l = columns.length; i < l; i++) {
@@ -39211,7 +39292,7 @@ var normalize_columns_array = function(columns) {
   return normalizedColumns;
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/ResizeableBuffer.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/ResizeableBuffer.js
 var ResizeableBuffer = class {
   constructor(size = 100) {
     this.size = size;
@@ -39275,7 +39356,7 @@ var ResizeableBuffer = class {
 };
 var ResizeableBuffer_default = ResizeableBuffer;
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/init_state.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/init_state.js
 var init_state = function(options) {
   const timchars = [
     // Basic Latin
@@ -39390,14 +39471,14 @@ var init_state = function(options) {
   };
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/underscore.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/underscore.js
 var underscore = function(str) {
   return str.replace(/([A-Z])/g, function(_2, match) {
     return "_" + match.toLowerCase();
   });
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/normalize_options.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/normalize_options.js
 var normalize_options = function(opts) {
   const options = {};
   for (const opt in opts) {
@@ -39983,7 +40064,7 @@ var normalize_options = function(opts) {
   return options;
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/utils/delimiter_discover.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/utils/delimiter_discover.js
 var delimiter_discover = function(records, options) {
   if (!options) {
     ({ delimiter_auto: options } = normalize_options({ delimiter_auto: true }));
@@ -40033,7 +40114,7 @@ var std = function(array) {
   );
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/api/index.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/api/index.js
 var isRecordEmpty = function(record) {
   return record.every(
     (field) => field == null || field.toString && field.toString().trim() === ""
@@ -40843,7 +40924,7 @@ var transform = function(original_options = {}) {
   };
 };
 
-// node_modules/.pnpm/csv-parse@7.0.2/node_modules/csv-parse/lib/sync.js
+// node_modules/.pnpm/csv-parse@7.0.3/node_modules/csv-parse/lib/sync.js
 var parse4 = function(data, opts = {}) {
   if (typeof data === "string") {
     data = Buffer.from(data);
