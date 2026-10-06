@@ -62,6 +62,7 @@ implementation.
 - [ADR-0004: Localize generated messages](adr/0004-localize-generated-messages.md)
 - [ADR-0005: Use one communication reconciliation path](adr/0005-single-communication-reconciliation-path.md)
 - [ADR-0006: Match action inputs to operational behavior](adr/0006-explicit-reconciliation-behavior.md)
+- [ADR-0007: Automate community-event (OCGroups) publication](adr/0007-automate-community-event-publication.md)
 
 ## Directory layout
 
@@ -90,7 +91,8 @@ docs/
     ├── 0003-production-code-structure.md
     ├── 0004-localize-generated-messages.md
     ├── 0005-single-communication-reconciliation-path.md
-    └── 0006-explicit-reconciliation-behavior.md
+    ├── 0006-explicit-reconciliation-behavior.md
+    └── 0007-automate-community-event-publication.md
 ```
 
 Action references stay beside `action.yml`; workflow references stay beside
